@@ -1,0 +1,104 @@
+version: '3.8'
+
+services:
+  nextcloud:
+    image: nextcloud:28
+    container_name: nextcloud
+    restart: unless-stopped
+    networks:
+      - nextcloud
+    ports:
+      - "8080:80"
+    volumes:
+      - /mnt/nextcloud/data:/var/www/html/data
+      - nextcloud_html:/var/www/html
+      - nextcloud_custom_apps:/var/www/html/custom_apps
+      - nextcloud_config:/var/www/html/config
+      - nextcloud_themes:/var/www/html/themes
+    environment:
+      - POSTGRES_HOST=${POSTGRES_HOST}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_HOST_PORT=${REDIS_HOST_PORT}
+      - NEXTCLOUD_ADMIN_USER=${NEXTCLOUD_ADMIN_USER}
+      - NEXTCLOUD_ADMIN_PASSWORD=${NEXTCLOUD_ADMIN_PASSWORD}
+      - NEXTCLOUD_TRUSTED_DOMAINS=${NEXTCLOUD_TRUSTED_DOMAINS}
+      - OVERWRITEPROTOCOL=https
+      - OVERWRITEHOST=${NEXTCLOUD_DOMAIN}
+      - TRUSTED_PROXIES=172.20.0.0/16
+    depends_on:
+      - redis
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80/status.php"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  redis:
+    image: redis:7-alpine
+    container_name: nextcloud_redis
+    restart: unless-stopped
+    networks:
+      - nextcloud
+    volumes:
+      - redis_data:/data
+    command: redis-server --requirepass ${REDIS_PASSWORD}
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  nginx:
+    image: nginx:alpine
+    container_name: nextcloud_nginx
+    restart: unless-stopped
+    networks:
+      - nextcloud
+    ports:
+      - "443:443"
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - nextcloud_html:/var/www/html:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - nextcloud
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:80/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  cron:
+    image: nextcloud:28
+    container_name: nextcloud_cron
+    restart: unless-stopped
+    networks:
+      - nextcloud
+    volumes:
+      - /mnt/nextcloud/data:/var/www/html/data
+      - nextcloud_html:/var/www/html
+      - nextcloud_custom_apps:/var/www/html/custom_apps
+      - nextcloud_config:/var/www/html/config
+      - nextcloud_themes:/var/www/html/themes
+    entrypoint: /cron.sh
+    depends_on:
+      - nextcloud
+
+networks:
+  nextcloud:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+volumes:
+  nextcloud_html:
+  nextcloud_custom_apps:
+  nextcloud_config:
+  nextcloud_themes:
+  redis_data:

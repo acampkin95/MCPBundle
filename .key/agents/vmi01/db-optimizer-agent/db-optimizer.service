@@ -1,0 +1,59 @@
+[Unit]
+Description=Database Optimizer Agent - MCP PostgreSQL Monitoring
+Documentation=https://github.com/your-org/mcp-agents
+After=network.target postgresql.service redis.service
+Wants=postgresql.service redis.service
+
+[Service]
+Type=simple
+User=mcp-agent
+Group=mcp-agent
+WorkingDirectory=/opt/mcp-agents/db-optimizer-agent
+
+# Environment
+Environment="NODE_ENV=production"
+Environment="CONFIG_PATH=/opt/mcp-agents/db-optimizer-agent/config/config.yaml"
+EnvironmentFile=/etc/mcp-agents/db-optimizer.env
+
+# Process execution
+ExecStart=/usr/bin/node dist/index.js
+ExecReload=/bin/kill -HUP $MAINPID
+
+# Restart policy
+Restart=always
+RestartSec=10s
+StartLimitInterval=5min
+StartLimitBurst=5
+
+# Resource limits
+MemoryLimit=512M
+CPUQuota=50%
+TasksMax=100
+LimitNOFILE=65536
+LimitNPROC=512
+
+# Security hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/log/mcp-agents /var/lib/mcp-agents
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictRealtime=true
+RestrictNamespaces=true
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+SystemCallFilter=@system-service
+SystemCallErrorNumber=EPERM
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=db-optimizer-agent
+
+# Watchdog (must send notification every 60s)
+WatchdogSec=120s
+
+[Install]
+WantedBy=multi-user.target

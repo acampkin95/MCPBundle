@@ -1,0 +1,48 @@
+[Unit]
+Description=SERVER-MCP - On-Server Database Management Agent
+Documentation=https://github.com/yourusername/SERVER-MCP
+After=network.target postgresql.service redis.service docker.service
+Wants=postgresql.service redis.service
+
+[Service]
+Type=simple
+User=mcp-agent
+Group=mcp-agent
+WorkingDirectory=/opt/server-mcp
+
+# Main process
+ExecStart=/usr/bin/node dist/index.js
+
+# Restart policy
+Restart=always
+RestartSec=10
+StartLimitInterval=200
+StartLimitBurst=5
+
+# Environment
+Environment="NODE_ENV=production"
+EnvironmentFile=-/opt/server-mcp/.env
+
+# Security hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/server-mcp /var/backups/server-mcp /var/log/server-mcp
+
+# Resource limits
+LimitNOFILE=65536
+TasksMax=4096
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=server-mcp
+
+# Credentials (production secret management)
+# LoadCredential=postgres_password:/etc/credstore/postgres_password
+# LoadCredential=redis_password:/etc/credstore/redis_password
+# LoadCredential=keycloak_secret:/etc/credstore/keycloak_secret
+
+[Install]
+WantedBy=multi-user.target

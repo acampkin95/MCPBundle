@@ -1,0 +1,34 @@
+[Unit]
+Description=Weekly Full Backup to Wasabi S3
+After=network-online.target
+Wants=network-online.target
+ConditionPathExists=/opt/backup-scripts/full-backup-to-s3.sh
+
+[Service]
+Type=oneshot
+ExecStart=/opt/backup-scripts/full-backup-to-s3.sh
+User=root
+Group=root
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=backup-weekly
+
+# Security
+PrivateTmp=yes
+NoNewPrivileges=yes
+
+# Resource limits (full backup can use more resources)
+CPUQuota=75%
+MemoryLimit=4G
+IOWeight=100
+
+# Timeout (8 hours max for full backup)
+TimeoutStartSec=28800
+
+# Email notification on failure
+OnFailure=backup-failure-notify@%n.service
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,34 @@
+[Unit]
+Description=Daily Incremental Backup to Wasabi S3
+After=network-online.target
+Wants=network-online.target
+ConditionPathExists=/opt/backup-scripts/backup-to-s3.sh
+
+[Service]
+Type=oneshot
+ExecStart=/opt/backup-scripts/backup-to-s3.sh
+User=root
+Group=root
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=backup-daily
+
+# Security
+PrivateTmp=yes
+NoNewPrivileges=yes
+
+# Resource limits
+CPUQuota=50%
+MemoryLimit=2G
+IOWeight=100
+
+# Timeout (4 hours max)
+TimeoutStartSec=14400
+
+# Email notification on failure
+OnFailure=backup-failure-notify@%n.service
+
+[Install]
+WantedBy=multi-user.target

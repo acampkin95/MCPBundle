@@ -1,0 +1,156 @@
+agent:
+  name: "app-health-agent"
+  version: "1.0.0"
+  environment: "production"
+
+orchestrator:
+  host: "localhost"
+  port: 3000
+  transport: "stdio"
+  reconnect_interval: 5000
+  max_reconnect_attempts: 10
+
+database:
+  host: "localhost"
+  port: 5432
+  database: "mcp_ecosystem"
+  user: "mcp_orchestrator"
+  password_env: "DB_PASSWORD"
+  max_connections: 10
+  idle_timeout: 30000
+  connection_timeout: 5000
+  ssl: false
+
+redis:
+  host: "localhost"
+  port: 6379
+  password_env: "REDIS_PASSWORD"
+  db: 0
+  key_prefix: "app-health:"
+  ttl: 300
+
+prometheus:
+  pushgateway_url: "http://localhost:9091"
+  job_name: "app-health-agent"
+  push_interval: 30000
+  labels:
+    environment: "production"
+    vm: "vmi01"
+    role: "application"
+
+monitoring:
+  metrics_interval: 30000
+  health_check_port: 9101
+
+  services:
+    - name: "mcp-orchestrator"
+      type: "process"
+      process_name: "node.*orchestrator"
+      port: 3000
+      health_endpoint: "http://localhost:3000/health"
+      critical: true
+      auto_restart: true
+      max_restart_attempts: 3
+      restart_delay: 5000
+
+    - name: "perplexity-mcp"
+      type: "process"
+      process_name: "node.*perplexity-mcp"
+      port: 3001
+      health_endpoint: "http://localhost:3001/health"
+      critical: true
+      auto_restart: true
+      max_restart_attempts: 3
+      restart_delay: 5000
+
+    - name: "itjsst-mcp"
+      type: "process"
+      process_name: "node.*itjsst-mcp"
+      port: 3002
+      health_endpoint: "http://localhost:3002/health"
+      critical: false
+      auto_restart: true
+      max_restart_attempts: 3
+      restart_delay: 5000
+
+    - name: "postgresql"
+      type: "systemd"
+      service_name: "postgresql"
+      port: 5432
+      critical: true
+      auto_restart: false
+
+    - name: "redis"
+      type: "systemd"
+      service_name: "redis"
+      port: 6379
+      critical: true
+      auto_restart: false
+
+    - name: "keycloak"
+      type: "systemd"
+      service_name: "keycloak"
+      port: 8080
+      health_endpoint: "http://localhost:8080/health"
+      critical: true
+      auto_restart: false
+
+  thresholds:
+    cpu_percent_max: 80
+    memory_percent_max: 85
+    disk_percent_max: 90
+    response_time_ms_max: 5000
+    error_rate_max: 0.05
+
+  log_monitoring:
+    enabled: true
+    paths:
+      - /var/log/mcp-orchestrator/*.log
+      - /var/log/perplexity-mcp/*.log
+      - /var/log/itjsst-mcp/*.log
+    error_patterns:
+      - "ERROR"
+      - "FATAL"
+      - "Exception"
+      - "Out of memory"
+      - "Connection refused"
+      - "Timeout"
+    warning_patterns:
+      - "WARN"
+      - "Deprecated"
+      - "Slow query"
+
+recovery:
+  enabled: true
+  strategies:
+    - type: "restart_process"
+      conditions: ["process_not_running", "health_check_failed"]
+      max_attempts: 3
+      backoff: "exponential"
+
+    - type: "clear_cache"
+      conditions: ["memory_high", "performance_degraded"]
+      target: "redis"
+
+    - type: "restart_service"
+      conditions: ["critical_service_down"]
+      require_manual: true
+
+logging:
+  level: "info"
+  format: "json"
+  console_enabled: true
+  file_enabled: true
+  file_path: "/var/log/mcp-agents/app-health.log"
+  max_size: "100m"
+  max_files: 10
+
+alerts:
+  enabled: true
+  channels:
+    - "prometheus"
+    - "redis"
+  severity_levels:
+    critical: ["service_down", "critical_process_crashed", "auto_restart_failed"]
+    warning: ["high_memory", "high_cpu", "slow_response"]
+    info: ["service_restarted", "performance_degraded"]

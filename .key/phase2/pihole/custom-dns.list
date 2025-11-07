@@ -1,0 +1,28 @@
+# Custom DNS entries for acdev.host domain
+# Format: IP_ADDRESS HOSTNAME
+
+# VMI01 - Application Server
+46.250.243.123 vmi01.acdev.host
+46.250.243.123 db.acdev.host
+46.250.243.123 mcp.acdev.host
+46.250.243.123 grafana.acdev.host
+
+# VMI02D - Development Server
+46.250.241.70 vmi02d.acdev.host
+46.250.241.70 dev.acdev.host
+
+# VMI03 - Security Gateway
+154.26.158.31 vmi03.acdev.host
+154.26.158.31 auth.acdev.host
+154.26.158.31 vpn.acdev.host
+
+# WireGuard Tunnel Endpoints
+10.100.0.1 root-tunnel.acdev.host
+10.101.0.1 mcp-tunnel.acdev.host
+10.102.0.1 red-tunnel.acdev.host
+10.102.0.1 pihole.acdev.host
+
+# Future services (placeholder)
+# 46.250.243.123 cloud.acdev.host
+# 46.250.243.123 plex.acdev.host
+# 46.250.243.123 nextcloud.acdev.host

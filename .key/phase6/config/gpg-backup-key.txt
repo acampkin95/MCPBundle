@@ -1,0 +1,143 @@
+# GPG Backup Encryption Key Generation Instructions
+
+## Option 1: Use S3 Server-Side Encryption (Recommended)
+
+Wasabi S3 supports AES-256 server-side encryption (SSE-S3), which is enabled
+in the rclone configuration. This is the simplest and recommended approach.
+
+No additional configuration needed - encryption is automatic.
+
+## Option 2: Client-Side GPG Encryption (Maximum Security)
+
+For additional security, you can encrypt backups with GPG before uploading.
+
+### Generate GPG Key
+
+```bash
+# Generate a new GPG key for backups
+gpg --full-generate-key
+
+# Select:
+# - (1) RSA and RSA
+# - 4096 bits
+# - Key does not expire (or set expiration)
+# - Real name: "Backup Encryption Key"
+# - Email: backup@yourdomain.com
+# - Passphrase: [STRONG PASSPHRASE - STORE SECURELY]
+
+# List keys to get key ID
+gpg --list-keys
+
+# Export public key (safe to store anywhere)
+gpg --armor --export backup@yourdomain.com > /root/.gnupg/backup-public.asc
+
+# Export private key (KEEP SECURE - needed for restore)
+gpg --armor --export-secret-keys backup@yourdomain.com > /root/.gnupg/backup-private.asc
+
+# Encrypt the private key file itself
+gpg --symmetric --cipher-algo AES256 /root/.gnupg/backup-private.asc
+
+# Upload encrypted private key to S3 (for disaster recovery)
+rclone copy /root/.gnupg/backup-private.asc.gpg \
+  wasabi-vmi:vmibackups/gpg-keys/ \
+  --config /root/.config/rclone/rclone.conf
+
+# Store passphrase in secure location (password manager, vault, etc.)
+```
+
+### Backup Key to Multiple Locations
+
+**CRITICAL:** Store the GPG private key in multiple secure locations:
+
+1. Print the key on paper and store in a safe
+2. Store on USB drive in secure location
+3. Store in password manager
+4. Store encrypted copy in separate S3 bucket
+5. Give copy to trusted person/organization
+
+### Using GPG Encryption in Backup Scripts
+
+To enable GPG encryption in backup scripts, modify the backup commands:
+
+```bash
+# Example: Encrypt before upload
+tar czf - /path/to/backup | \
+  gpg --encrypt --recipient backup@yourdomain.com | \
+  rclone rcat wasabi-vmi:vmibackups/path/file.tar.gz.gpg
+
+# Example: Decrypt during restore
+rclone cat wasabi-vmi:vmibackups/path/file.tar.gz.gpg | \
+  gpg --decrypt | \
+  tar xzf - -C /restore/path
+```
+
+## Key Management Best Practices
+
+1. **Never lose the private key** - Without it, backups cannot be decrypted
+2. **Protect the passphrase** - Use a strong, unique passphrase
+3. **Test decryption regularly** - Verify you can decrypt backups
+4. **Rotate keys annually** - Generate new keys and re-encrypt old backups
+5. **Document recovery process** - Write step-by-step restore instructions
+6. **Audit key access** - Track who has access to encryption keys
+
+## Disaster Recovery - Key Loss
+
+If the GPG private key is lost:
+
+1. Retrieve encrypted private key from S3:
+   ```bash
+   rclone copy wasabi-vmi:vmibackups/gpg-keys/backup-private.asc.gpg .
+   ```
+
+2. Decrypt the private key:
+   ```bash
+   gpg --decrypt backup-private.asc.gpg > backup-private.asc
+   ```
+
+3. Import the key:
+   ```bash
+   gpg --import backup-private.asc
+   ```
+
+4. Verify import:
+   ```bash
+   gpg --list-secret-keys
+   ```
+
+## Testing Encryption/Decryption
+
+```bash
+# Test file
+echo "Test backup data" > /tmp/test.txt
+
+# Encrypt
+gpg --encrypt --recipient backup@yourdomain.com /tmp/test.txt
+
+# Decrypt
+gpg --decrypt /tmp/test.txt.gpg
+
+# Should output: "Test backup data"
+```
+
+## Alternative: Age Encryption (Modern Alternative to GPG)
+
+Age is a simpler, modern file encryption tool:
+
+```bash
+# Install age
+apt install age
+
+# Generate key
+age-keygen -o /root/.age/backup-key.txt
+
+# Public key will be displayed - save it
+# Private key is in /root/.age/backup-key.txt
+
+# Encrypt
+age -r <public-key> -o file.enc file.tar.gz
+
+# Decrypt
+age -d -i /root/.age/backup-key.txt file.enc > file.tar.gz
+```
+
+Age is recommended for new installations due to simplicity and modern cryptography.

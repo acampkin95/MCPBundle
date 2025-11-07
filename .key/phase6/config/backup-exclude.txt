@@ -1,0 +1,90 @@
+# Backup Exclusion Patterns
+# Files and directories matching these patterns will be excluded from backups
+
+# Temporary files
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+.*.swp
+
+# Cache directories
+cache/
+.cache/
+*.cache
+apt/archives/*
+apt/lists/*
+
+# Log files (we backup separately)
+*.log.*
+*.log.gz
+*.log.bz2
+*.log.xz
+
+# Build artifacts
+*.o
+*.pyc
+*.pyo
+__pycache__/
+*.class
+*.jar
+
+# Node modules (should be in package.json)
+node_modules/
+npm-debug.log
+
+# Python virtual environments
+venv/
+.venv/
+env/
+.env/
+
+# Database files (backed up separately via dumps)
+*.db-journal
+*.db-wal
+
+# System files
+lost+found/
+.Trash-*/
+
+# Docker ephemeral data
+/var/lib/docker/overlay2/
+/var/lib/docker/containers/*/
+
+# Kubernetes
+/var/lib/kubelet/pods/
+
+# Large binary files that shouldn't be in backups
+*.iso
+*.img
+*.qcow2
+*.vmdk
+
+# Package manager caches
+/var/cache/apt/
+/var/cache/debconf/
+/var/cache/yum/
+
+# System journals (backed up separately)
+/var/log/journal/
+
+# Runtime files
+/run/*
+/var/run/*
+/tmp/*
+/var/tmp/*
+
+# Proc, sys, dev (pseudo filesystems)
+/proc/*
+/sys/*
+/dev/*
+
+# Mounted filesystems
+/mnt/*
+/media/*
+
+# Backup staging (don't backup backups)
+/var/backups/s3-staging/*
+/var/backups/s3-staging-full/*
+/var/restore/*

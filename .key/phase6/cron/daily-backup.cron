@@ -1,0 +1,9 @@
+# Daily Incremental Backup Cron Job
+# Alternative to systemd timer for systems that prefer cron
+# Location: /etc/cron.d/backup-daily
+
+# Run daily at 2:00 AM
+0 2 * * * root /opt/backup-scripts/backup-to-s3.sh >> /var/log/backups/cron-backup.log 2>&1
+
+# Verify backup at 2:30 AM (after backup completes)
+30 2 * * * root /opt/backup-scripts/verify-backup.sh --quick >> /var/log/backups/cron-verify.log 2>&1

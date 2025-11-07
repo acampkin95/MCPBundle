@@ -1,0 +1,96 @@
+agent:
+  name: "db-optimizer-agent"
+  version: "1.0.0"
+  environment: "production"
+
+orchestrator:
+  host: "localhost"
+  port: 3000
+  transport: "stdio"
+  reconnect_interval: 5000
+  max_reconnect_attempts: 10
+
+database:
+  host: "localhost"
+  port: 5432
+  database: "mcp_ecosystem"
+  user: "mcp_orchestrator"
+  password_env: "DB_PASSWORD"
+  max_connections: 10
+  idle_timeout: 30000
+  connection_timeout: 5000
+  ssl: false
+
+redis:
+  host: "localhost"
+  port: 6379
+  password_env: "REDIS_PASSWORD"
+  db: 0
+  key_prefix: "db-optimizer:"
+  ttl: 300
+
+prometheus:
+  pushgateway_url: "http://localhost:9091"
+  job_name: "db-optimizer-agent"
+  push_interval: 60000
+  labels:
+    environment: "production"
+    vm: "vmi01"
+    role: "database"
+
+monitoring:
+  metrics_interval: 60000
+  health_check_port: 9100
+
+  thresholds:
+    connection_usage_percent: 80
+    cache_hit_ratio_min: 0.95
+    dead_tuples_max: 10000
+    bloat_ratio_max: 0.3
+    slow_query_ms: 1000
+    index_scan_ratio_min: 0.9
+
+  databases:
+    - "mcp_ecosystem"
+    - "keycloak"
+    - "postgres"
+
+  excluded_schemas:
+    - "pg_catalog"
+    - "information_schema"
+    - "pg_toast"
+
+optimization:
+  auto_vacuum_enabled: true
+  auto_analyze_enabled: true
+  index_recommendations_enabled: true
+  query_plan_analysis_enabled: true
+
+  vacuum:
+    threshold_scale_factor: 0.2
+    threshold_tuples: 1000
+    max_freeze_age: 200000000
+
+logging:
+  level: "info"
+  format: "json"
+  console_enabled: true
+  file_enabled: true
+  file_path: "/var/log/mcp-agents/db-optimizer.log"
+  max_size: "100m"
+  max_files: 10
+  error_patterns:
+    - "FATAL"
+    - "deadlock"
+    - "connection.*failed"
+    - "out of memory"
+
+alerts:
+  enabled: true
+  channels:
+    - "prometheus"
+    - "redis"
+  severity_levels:
+    critical: ["connection_pool_exhausted", "replication_lag_high", "disk_full"]
+    warning: ["cache_hit_low", "bloat_high", "slow_queries"]
+    info: ["vacuum_needed", "index_recommendation"]

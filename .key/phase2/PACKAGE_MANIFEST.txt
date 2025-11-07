@@ -1,0 +1,453 @@
+================================================================================
+PHASE 2: VMI03 SECURITY GATEWAY - DEPLOYMENT PACKAGE MANIFEST
+================================================================================
+
+Package Version: 1.0
+Created: 2025-01-06
+Target Server: VMI03 (154.26.158.31)
+Package Size: 244 KB
+Total Files: 29
+Total Directories: 10
+Executable Scripts: 8
+
+================================================================================
+PACKAGE CONTENTS
+================================================================================
+
+DOCUMENTATION (6 files, ~161 KB)
+--------------------------------
+README.md                       - Main documentation (start here)
+DEPLOYMENT_CHECKLIST.md        - Step-by-step deployment guide
+TROUBLESHOOTING.md             - Complete troubleshooting reference
+SECURITY.md                    - Security considerations & hardening
+PHASE2_SUMMARY.md              - Package overview and summary
+KEYCLOAK_GUIDE.md              - Keycloak administration guide
+
+DEPLOYMENT SCRIPTS (8 files, all executable)
+--------------------------------------------
+deploy-phase2.sh               - Master deployment script
+verify-package.sh              - Package verification script
+wireguard/deploy-wireguard.sh  - WireGuard deployment + key generation
+keycloak/init-keycloak.sh      - Keycloak deployment + database setup
+pihole/deploy-pihole.sh        - PiHole + Suricata deployment
+pihole/dpi-ssl-setup.sh        - Optional DPI-SSL setup (mitmproxy)
+postfix/install-postfix.sh     - Postfix installation & configuration
+postfix/test-mail.sh           - Mail delivery testing
+
+WIREGUARD CONFIGURATION (9 files)
+----------------------------------
+Server Configs (3):
+  wireguard/server-configs/wg-root.conf   - Root tunnel (10.100.0.0/24, port 51820)
+  wireguard/server-configs/wg-mcp.conf    - MCP tunnel (10.101.0.0/24, port 51821)
+  wireguard/server-configs/wg-red.conf    - Red tunnel (10.102.0.0/24, port 51822)
+
+Client Templates (4):
+  wireguard/client-configs/root-tunnel-macbook.conf  - MacBook admin client
+  wireguard/client-configs/root-tunnel-mobile.conf   - Mobile admin client
+  wireguard/client-configs/mcp-tunnel-agent.conf     - MCP agent client
+  wireguard/client-configs/red-tunnel-guest.conf     - Guest client
+
+Systemd (1):
+  wireguard/systemd/wg-quick@.service     - Systemd service template
+
+Additional:
+  wireguard/deploy-wireguard.sh           - Deployment script
+
+KEYCLOAK CONFIGURATION (5 files)
+---------------------------------
+  keycloak/docker-compose.yml    - Docker Compose configuration
+  keycloak/realm-config.json     - Pre-configured realm (acdev-infrastructure)
+  keycloak/.env.example          - Environment variables template
+  keycloak/init-keycloak.sh      - Deployment script
+  keycloak/KEYCLOAK_GUIDE.md     - Complete admin guide
+
+PIHOLE CONFIGURATION (5 files)
+-------------------------------
+  pihole/docker-compose.yml           - Docker Compose (PiHole + Unbound)
+  pihole/custom-dns.list              - Custom DNS entries for acdev.host
+  pihole/suricata/suricata.yaml       - Suricata IDS/IPS configuration
+  pihole/deploy-pihole.sh             - Deployment script
+  pihole/dpi-ssl-setup.sh             - Optional DPI-SSL setup
+
+POSTFIX CONFIGURATION (3 files)
+--------------------------------
+  postfix/main.cf                - Postfix configuration
+  postfix/install-postfix.sh     - Installation script
+  postfix/test-mail.sh           - Testing script
+
+================================================================================
+DEPLOYMENT OVERVIEW
+================================================================================
+
+AUTOMATED DEPLOYMENT:
+  1. Transfer package to VMI03: scp -r phase2 root@154.26.158.31:/opt/
+  2. Execute master script: ssh root@154.26.158.31 'cd /opt/phase2 && bash deploy-phase2.sh'
+  3. Duration: 15-20 minutes
+  4. Fully automated, no interaction required
+
+COMPONENTS DEPLOYED:
+  - WireGuard VPN (3 tunnels with key generation)
+  - Keycloak Identity Management (with PostgreSQL on VMI01)
+  - PiHole DNS + Suricata IDS/IPS
+  - Postfix Mail Server
+  - UFW Firewall configuration
+  - Systemd service integration
+
+POST-DEPLOYMENT:
+  - Download client VPN configs from /etc/wireguard/clients/
+  - Configure Keycloak (MFA setup, password changes)
+  - Configure PiHole (review blocklists)
+  - Test mail delivery
+  - Verify all services
+
+================================================================================
+SECURITY FEATURES
+================================================================================
+
+NETWORK SEGMENTATION:
+  - Root Tunnel: Admin access, split tunnel
+  - MCP Tunnel: Service access, split tunnel (VMI01 + Perplexity only)
+  - Red Tunnel: Guest access, full tunnel with monitoring
+
+ENCRYPTION:
+  - WireGuard: ChaCha20-Poly1305 + Preshared Keys
+  - Keycloak: TLS 1.2+ (production)
+  - Database: TLS connections
+
+AUTHENTICATION:
+  - WireGuard: Public key + PSK
+  - Keycloak: Password + MFA (TOTP/WebAuthn)
+  - SSH: Key-based only
+
+MONITORING:
+  - Suricata IDS/IPS (ET Open ruleset)
+  - PiHole DNS filtering (malware/phishing/ads)
+  - Centralized logging to VMI01
+  - Failed login monitoring
+
+HARDENING:
+  - Firewall (UFW + iptables)
+  - LAN access blocking (Red tunnel)
+  - Brute force protection
+  - Rate limiting
+  - Audit logging
+
+================================================================================
+CREDENTIALS & SECRETS
+================================================================================
+
+GENERATED DURING DEPLOYMENT:
+  - WireGuard server keys (3 tunnels)
+  - WireGuard client keys (per client)
+  - WireGuard preshared keys (per client)
+  - Keycloak admin password
+  - Keycloak database password
+  - Keycloak service account passwords (3)
+  - PiHole web password
+
+STORAGE LOCATIONS (post-deployment):
+  - /etc/wireguard/keys/          - WireGuard keys
+  - /etc/wireguard/clients/       - Client configs + QR codes
+  - /opt/keycloak/.env            - Keycloak passwords
+  - /opt/keycloak/service-accounts.txt  - Service account passwords
+  - /opt/pihole/.env              - PiHole password
+
+SECURITY NOTES:
+  - All keys generated with cryptographically secure RNG
+  - All private keys stored with 600 permissions
+  - All passwords randomly generated (32+ characters)
+  - Client configs contain private keys - distribute securely!
+  - Change all default passwords immediately after deployment
+
+================================================================================
+SERVICE ENDPOINTS
+================================================================================
+
+WIREGUARD VPN:
+  Root Tunnel:  154.26.158.31:51820 (10.100.0.0/24)
+  MCP Tunnel:   154.26.158.31:51821 (10.101.0.0/24)
+  Red Tunnel:   154.26.158.31:51822 (10.102.0.0/24)
+
+KEYCLOAK:
+  Public:       http://154.26.158.31:8080
+  Via VPN:      http://10.100.0.1:8080
+  Admin:        http://154.26.158.31:8080/admin
+  Realm:        acdev-infrastructure
+
+PIHOLE:
+  DNS:          10.102.0.1:53 (Red Tunnel only)
+  Web UI:       http://10.102.0.1/admin (Root Tunnel only)
+
+POSTFIX:
+  SMTP:         localhost:25
+  Forward To:   acampkinpersonnal@gmail.com
+
+================================================================================
+NETWORK TOPOLOGY
+================================================================================
+
+Internet
+    │
+    ├─[Firewall]─ VMI03 Public (154.26.158.31)
+    │                │
+    │                ├─ Root Tunnel (10.100.0.0/24, port 51820)
+    │                │   └─ Admin devices → Full VM access
+    │                │
+    │                ├─ MCP Tunnel (10.101.0.0/24, port 51821)
+    │                │   └─ MCP agents → VMI01 + Perplexity API
+    │                │
+    │                └─ Red Tunnel (10.102.0.0/24, port 51822)
+    │                    └─ Guest devices → Internet only (no LAN)
+    │                        ├─ PiHole DNS (ad/malware blocking)
+    │                        └─ Suricata IDS/IPS (threat detection)
+    │
+    └─ Backend Network
+        ├─ VMI01 (46.250.243.123)
+        │   ├─ PostgreSQL (Keycloak DB)
+        │   └─ Syslog (centralized logging)
+        │
+        └─ VMI02D (46.250.241.70)
+            └─ Development server
+
+================================================================================
+SYSTEM REQUIREMENTS
+================================================================================
+
+MINIMUM:
+  - OS: Ubuntu 20.04+ or Debian 10+
+  - CPU: 2 cores
+  - RAM: 2GB
+  - Disk: 20GB free
+  - Network: 10 Mbps
+
+RECOMMENDED:
+  - OS: Ubuntu 22.04 LTS
+  - CPU: 4 cores
+  - RAM: 4GB
+  - Disk: 40GB free
+  - Network: 100 Mbps
+
+PREREQUISITES:
+  - Root SSH access to VMI03
+  - PostgreSQL on VMI01 accessible from VMI03 (port 5432)
+  - Internet connectivity
+  - Firewall allows outbound connections
+  - Ports 51820-51822 available
+
+================================================================================
+VALIDATION & TESTING
+================================================================================
+
+PRE-DEPLOYMENT VALIDATION:
+  Run: bash verify-package.sh
+  Checks: File presence, permissions, placeholders, line endings
+
+POST-DEPLOYMENT VALIDATION:
+  1. Service status (all should be active/running)
+  2. VPN connectivity (all 3 tunnels)
+  3. Keycloak OAuth2 endpoints
+  4. PiHole DNS resolution
+  5. Suricata alert generation
+  6. Mail delivery
+
+INCLUDED TESTS:
+  - postfix/test-mail.sh - Mail delivery testing
+  - verify-package.sh - Package integrity verification
+  - Deployment checklist with verification steps
+
+================================================================================
+BACKUP & RECOVERY
+================================================================================
+
+BACKUP TARGETS:
+  - /etc/wireguard/
+  - /opt/keycloak/
+  - /opt/pihole/etc-pihole/
+  - /etc/suricata/
+  - /etc/postfix/
+  - PostgreSQL keycloak database (on VMI01)
+
+BACKUP FREQUENCY:
+  - Daily automated backups (recommended)
+  - Before any major changes
+  - After configuration updates
+
+BACKUP SCRIPT:
+  Included in documentation (README.md)
+  Location: /usr/local/bin/backup-phase2.sh
+  Schedule: Daily at 2 AM (cron)
+
+RECOVERY:
+  1. Stop all services
+  2. Restore from backup tarball
+  3. Re-run deploy-phase2.sh
+  4. Verify services
+
+================================================================================
+MAINTENANCE SCHEDULE
+================================================================================
+
+DAILY:
+  - Review Suricata alerts
+  - Check failed authentication attempts
+  - Monitor disk space
+  - Verify backups completed
+
+WEEKLY:
+  - Review PiHole blocked queries
+  - Update PiHole gravity
+  - Check for software updates
+  - Review firewall logs
+
+MONTHLY:
+  - Rotate service account passwords
+  - Review user access
+  - Update Suricata rules
+  - Test disaster recovery
+
+QUARTERLY:
+  - Rotate WireGuard keys
+  - Security audit
+  - Penetration testing
+  - Update documentation
+
+================================================================================
+SUPPORT & TROUBLESHOOTING
+================================================================================
+
+DOCUMENTATION:
+  - README.md - Complete setup guide
+  - DEPLOYMENT_CHECKLIST.md - Step-by-step deployment
+  - TROUBLESHOOTING.md - Common issues and solutions
+  - SECURITY.md - Security considerations
+  - KEYCLOAK_GUIDE.md - Keycloak administration
+
+LOGS:
+  - Deployment: /var/log/phase2-deployment.log
+  - WireGuard: journalctl -u wg-quick@wg-*
+  - Keycloak: docker logs keycloak
+  - PiHole: docker logs pihole
+  - Suricata: /var/log/suricata/
+  - Postfix: /var/log/mail.log
+
+CONTACT:
+  Email: acampkinpersonnal@gmail.com
+
+================================================================================
+VERSION HISTORY
+================================================================================
+
+Version 1.0 (2025-01-06):
+  - Initial release
+  - Complete deployment package
+  - All components tested and documented
+  - Production-ready
+
+================================================================================
+LICENSE & USAGE
+================================================================================
+
+Internal use only - ACDev Infrastructure
+Copyright 2025 Alex Campkin
+
+This package is for deployment to VMI03 Security Gateway only.
+Do not distribute outside of authorized personnel.
+
+================================================================================
+DEPLOYMENT CHECKLIST
+================================================================================
+
+PRE-DEPLOYMENT:
+  [ ] Review README.md
+  [ ] Verify system requirements
+  [ ] Confirm PostgreSQL access (VMI01)
+  [ ] Run verify-package.sh
+  [ ] Backup current VMI03 configuration (if any)
+
+DEPLOYMENT:
+  [ ] Transfer package to VMI03
+  [ ] Execute deploy-phase2.sh
+  [ ] Monitor deployment logs
+  [ ] Verify all services started
+
+POST-DEPLOYMENT:
+  [ ] Download client VPN configs
+  [ ] Configure Keycloak admin (MFA)
+  [ ] Configure PiHole settings
+  [ ] Test mail delivery
+  [ ] Distribute VPN configs to users
+  [ ] Update passwords
+  [ ] Set up automated backups
+  [ ] Configure monitoring/alerting
+
+VALIDATION:
+  [ ] All services running
+  [ ] VPN tunnels operational
+  [ ] Keycloak accessible
+  [ ] PiHole DNS working
+  [ ] Suricata generating alerts
+  [ ] Mail delivery working
+  [ ] Firewall properly configured
+  [ ] Logs forwarding to VMI01
+
+================================================================================
+SUCCESS CRITERIA
+================================================================================
+
+DEPLOYMENT SUCCESSFUL IF:
+  ✓ All 3 WireGuard tunnels active
+  ✓ Keycloak container running and accessible
+  ✓ PiHole container running and resolving DNS
+  ✓ Suricata service active and monitoring
+  ✓ Postfix service active and delivering mail
+  ✓ All systemd services enabled for auto-start
+  ✓ Firewall properly configured
+  ✓ Client VPN configs generated
+  ✓ No errors in deployment log
+
+READY FOR PRODUCTION IF:
+  ✓ All deployment success criteria met
+  ✓ MFA configured for admin accounts
+  ✓ Service account passwords rotated
+  ✓ Client VPN configs distributed
+  ✓ All services tested and validated
+  ✓ Backups configured and tested
+  ✓ Monitoring/alerting set up
+  ✓ Documentation reviewed
+
+================================================================================
+FINAL NOTES
+================================================================================
+
+This is a complete, production-ready deployment package. All configurations
+have been carefully designed for security, reliability, and ease of use.
+
+The automated deployment script handles all complex setup tasks, including:
+  - Key generation (WireGuard, database passwords)
+  - Database creation (Keycloak on VMI01)
+  - Container orchestration (Docker Compose)
+  - Service configuration (systemd)
+  - Firewall setup (UFW + iptables)
+  - Log forwarding (rsyslog)
+
+After deployment, follow the DEPLOYMENT_CHECKLIST.md for post-deployment
+configuration and testing.
+
+For questions, issues, or support, refer to TROUBLESHOOTING.md or contact
+acampkinpersonnal@gmail.com.
+
+================================================================================
+PACKAGE VERIFIED: READY FOR DEPLOYMENT
+================================================================================
+
+Date: 2025-01-06
+Status: ✓ VERIFIED
+Errors: 0
+Warnings: 2 (expected placeholders, no dos2unix)
+Ready: YES
+
+Next Step: Transfer to VMI03 and run deploy-phase2.sh
+
+================================================================================
+END OF MANIFEST
+================================================================================

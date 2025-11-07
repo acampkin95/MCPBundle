@@ -1,0 +1,8 @@
+# /etc Configuration Tracking Cron Jobs
+# Location: /etc/cron.d/etc-git-tracker
+
+# Commit /etc changes daily at 11:50 PM
+50 23 * * * root /opt/backup-scripts/etc-git-tracker.sh --push-to-s3 >> /var/log/etc-git-tracker.log 2>&1
+
+# Generate rebuild playbook weekly on Sunday at 4:00 AM
+0 4 * * 0 root /opt/backup-scripts/etc-git-tracker.sh --generate-playbook >> /var/log/etc-git-tracker.log 2>&1

@@ -1,0 +1,8 @@
+# Weekly Full Backup Cron Job
+# Location: /etc/cron.d/backup-weekly
+
+# Run every Sunday at 3:00 AM
+0 3 * * 0 root /opt/backup-scripts/full-backup-to-s3.sh >> /var/log/backups/cron-full-backup.log 2>&1
+
+# Cleanup old backups on Monday at 4:00 AM
+0 4 * * 1 root /opt/backup-scripts/cleanup-old-backups.sh >> /var/log/backups/cron-cleanup.log 2>&1

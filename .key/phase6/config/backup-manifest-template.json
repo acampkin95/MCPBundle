@@ -1,0 +1,38 @@
+{
+  "hostname": "string",
+  "backup_type": "daily-incremental|weekly-full|monthly-full",
+  "timestamp": "YYYY-MM-DD_HH-MM-SS",
+  "date": "YYYY-MM-DD",
+  "start_time": "ISO8601",
+  "end_time": "ISO8601",
+  "duration_seconds": 0,
+  "total_size_bytes": 0,
+  "file_count": 0,
+  "backup_paths": [
+    "/etc",
+    "/opt/mcp",
+    "/key",
+    "/root",
+    "/home"
+  ],
+  "databases": {
+    "postgres": false,
+    "redis": false,
+    "postgres_databases": [
+      "mcp_ecosystem",
+      "keycloak",
+      "nextcloud"
+    ]
+  },
+  "s3_path": "s3://bucket/hostname/date",
+  "compression": "zstd",
+  "compression_level": 3,
+  "encryption": "AES256-SSE",
+  "retention_days": 7,
+  "rclone_version": "string",
+  "script_version": "1.0.0",
+  "checksum_algorithm": "SHA256",
+  "verified": false,
+  "verification_date": null,
+  "notes": ""
+}

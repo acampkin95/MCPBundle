@@ -1,0 +1,39 @@
+{
+  "name": "it-mcp-tools",
+  "displayName": "IT MCP Toolkit",
+  "description": "VS Code helpers for the IT MCP server (tool catalog, mac diagnostics shortcuts).",
+  "version": "0.0.1",
+  "publisher": "it-mcp",
+  "engines": {
+    "vscode": "^1.84.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onCommand:itMcp.showToolCatalog",
+    "onCommand:itMcp.runMacPermissionsAudit"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "itMcp.showToolCatalog",
+        "title": "IT MCP: Show Tool Catalog"
+      },
+      {
+        "command": "itMcp.runMacPermissionsAudit",
+        "title": "IT MCP: Run Mac Permissions Audit"
+      }
+    ]
+  },
+  "scripts": {
+    "compile": "tsc -p .",
+    "watch": "tsc -w -p ."
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.30",
+    "@types/vscode": "^1.84.0",
+    "typescript": "^5.4.5"
+  }
+}

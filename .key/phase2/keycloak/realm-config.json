@@ -1,0 +1,317 @@
+{
+  "realm": "acdev-infrastructure",
+  "enabled": true,
+  "displayName": "ACDev Infrastructure Realm",
+  "displayNameHtml": "<strong>ACDev</strong> Infrastructure",
+  "sslRequired": "external",
+  "registrationAllowed": false,
+  "registrationEmailAsUsername": false,
+  "rememberMe": true,
+  "verifyEmail": true,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": true,
+  "editUsernameAllowed": false,
+  "bruteForceProtected": true,
+  "permanentLockout": false,
+  "maxFailureWaitSeconds": 900,
+  "minimumQuickLoginWaitSeconds": 60,
+  "waitIncrementSeconds": 60,
+  "quickLoginCheckMilliSeconds": 1000,
+  "maxDeltaTimeSeconds": 43200,
+  "failureFactor": 5,
+  "defaultSignatureAlgorithm": "RS256",
+  "offlineSessionMaxLifespanEnabled": false,
+  "offlineSessionMaxLifespan": 5184000,
+  "accessTokenLifespan": 300,
+  "accessTokenLifespanForImplicitFlow": 900,
+  "ssoSessionIdleTimeout": 1800,
+  "ssoSessionMaxLifespan": 36000,
+  "requiredCredentials": ["password"],
+  "otpPolicyType": "totp",
+  "otpPolicyAlgorithm": "HmacSHA1",
+  "otpPolicyInitialCounter": 0,
+  "otpPolicyDigits": 6,
+  "otpPolicyLookAheadWindow": 1,
+  "otpPolicyPeriod": 30,
+  "webAuthnPolicyRpEntityName": "ACDev Infrastructure",
+  "webAuthnPolicySignatureAlgorithms": ["ES256", "RS256"],
+  "webAuthnPolicyRpId": "auth.acdev.host",
+  "webAuthnPolicyAttestationConveyancePreference": "not specified",
+  "webAuthnPolicyAuthenticatorAttachment": "not specified",
+  "webAuthnPolicyRequireResidentKey": "not specified",
+  "webAuthnPolicyUserVerificationRequirement": "not specified",
+  "webAuthnPolicyCreateTimeout": 0,
+  "webAuthnPolicyAvoidSameAuthenticatorRegister": false,
+  "smtpServer": {
+    "host": "localhost",
+    "port": "25",
+    "from": "noreply@acdev.host",
+    "fromDisplayName": "ACDev Infrastructure",
+    "ssl": "false",
+    "starttls": "false"
+  },
+  "eventsEnabled": true,
+  "eventsListeners": ["jboss-logging"],
+  "enabledEventTypes": [
+    "LOGIN",
+    "LOGIN_ERROR",
+    "LOGOUT",
+    "REGISTER",
+    "REGISTER_ERROR",
+    "UPDATE_PASSWORD",
+    "UPDATE_PASSWORD_ERROR",
+    "UPDATE_PROFILE",
+    "UPDATE_PROFILE_ERROR",
+    "UPDATE_TOTP",
+    "REMOVE_TOTP",
+    "VERIFY_EMAIL",
+    "VERIFY_EMAIL_ERROR"
+  ],
+  "adminEventsEnabled": true,
+  "adminEventsDetailsEnabled": true,
+  "groups": [
+    {
+      "name": "infrastructure-admins",
+      "path": "/infrastructure-admins",
+      "attributes": {
+        "description": ["Full administrative access to all infrastructure services"]
+      },
+      "realmRoles": ["admin", "infrastructure-admin"]
+    },
+    {
+      "name": "mcp-agents",
+      "path": "/mcp-agents",
+      "attributes": {
+        "description": ["MCP agent services with database and API access"]
+      },
+      "realmRoles": ["mcp-agent", "database-access"]
+    },
+    {
+      "name": "guests",
+      "path": "/guests",
+      "attributes": {
+        "description": ["Guest users with limited access"]
+      },
+      "realmRoles": ["guest"]
+    }
+  ],
+  "roles": {
+    "realm": [
+      {
+        "name": "admin",
+        "description": "Full administrative privileges",
+        "composite": false
+      },
+      {
+        "name": "infrastructure-admin",
+        "description": "Infrastructure administration privileges",
+        "composite": false
+      },
+      {
+        "name": "mcp-agent",
+        "description": "MCP agent service role",
+        "composite": false
+      },
+      {
+        "name": "database-access",
+        "description": "Database access role",
+        "composite": false
+      },
+      {
+        "name": "guest",
+        "description": "Guest user role",
+        "composite": false
+      }
+    ]
+  },
+  "users": [
+    {
+      "username": "dev-admin",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "dev-admin@acdev.host",
+      "firstName": "Development",
+      "lastName": "Administrator",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "CHANGE_ME_DEV_ADMIN_PASSWORD",
+          "temporary": true
+        }
+      ],
+      "realmRoles": ["infrastructure-admin"],
+      "groups": ["/infrastructure-admins"],
+      "serviceAccountClientId": "dev-admin-sa",
+      "attributes": {
+        "description": ["Development administrator service account"]
+      }
+    },
+    {
+      "username": "data-admin",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "data-admin@acdev.host",
+      "firstName": "Data",
+      "lastName": "Administrator",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "CHANGE_ME_DATA_ADMIN_PASSWORD",
+          "temporary": true
+        }
+      ],
+      "realmRoles": ["database-access"],
+      "groups": ["/infrastructure-admins"],
+      "serviceAccountClientId": "data-admin-sa",
+      "attributes": {
+        "description": ["Database administrator service account"]
+      }
+    },
+    {
+      "username": "sec-admin",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "sec-admin@acdev.host",
+      "firstName": "Security",
+      "lastName": "Administrator",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "CHANGE_ME_SEC_ADMIN_PASSWORD",
+          "temporary": true
+        }
+      ],
+      "realmRoles": ["infrastructure-admin"],
+      "groups": ["/infrastructure-admins"],
+      "serviceAccountClientId": "sec-admin-sa",
+      "attributes": {
+        "description": ["Security administrator service account"]
+      }
+    }
+  ],
+  "clients": [
+    {
+      "clientId": "wireguard-dynamic",
+      "name": "WireGuard Dynamic IP Management",
+      "enabled": true,
+      "publicClient": false,
+      "serviceAccountsEnabled": true,
+      "authorizationServicesEnabled": true,
+      "protocol": "openid-connect",
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": true,
+      "redirectUris": ["https://auth.acdev.host/*"],
+      "webOrigins": ["*"],
+      "attributes": {
+        "oauth2.device.authorization.grant.enabled": "true",
+        "oidc.ciba.grant.enabled": "false",
+        "backchannel.logout.session.required": "true",
+        "backchannel.logout.revoke.offline.tokens": "false"
+      }
+    },
+    {
+      "clientId": "mcp-services",
+      "name": "MCP Services",
+      "enabled": true,
+      "publicClient": false,
+      "serviceAccountsEnabled": true,
+      "authorizationServicesEnabled": true,
+      "protocol": "openid-connect",
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": true,
+      "redirectUris": ["http://46.250.243.123/*"],
+      "webOrigins": ["*"]
+    },
+    {
+      "clientId": "nextcloud",
+      "name": "NextCloud",
+      "enabled": true,
+      "publicClient": false,
+      "serviceAccountsEnabled": false,
+      "protocol": "openid-connect",
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "redirectUris": ["https://cloud.acdev.host/*"],
+      "webOrigins": ["https://cloud.acdev.host"]
+    },
+    {
+      "clientId": "plex",
+      "name": "Plex Media Server",
+      "enabled": true,
+      "publicClient": false,
+      "serviceAccountsEnabled": false,
+      "protocol": "openid-connect",
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "redirectUris": ["https://plex.acdev.host/*"],
+      "webOrigins": ["https://plex.acdev.host"]
+    }
+  ],
+  "clientScopes": [
+    {
+      "name": "infrastructure-access",
+      "description": "Infrastructure service access scope",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "true",
+        "display.on.consent.screen": "true"
+      },
+      "protocolMappers": [
+        {
+          "name": "infrastructure-roles",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-realm-role-mapper",
+          "consentRequired": false,
+          "config": {
+            "multivalued": "true",
+            "userinfo.token.claim": "true",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "claim.name": "infrastructure_roles",
+            "jsonType.label": "String"
+          }
+        }
+      ]
+    }
+  ],
+  "authenticationFlows": [
+    {
+      "alias": "browser-with-otp",
+      "description": "Browser login with mandatory OTP",
+      "providerId": "basic-flow",
+      "topLevel": true,
+      "builtIn": false,
+      "authenticationExecutions": [
+        {
+          "authenticator": "auth-cookie",
+          "requirement": "ALTERNATIVE",
+          "priority": 10
+        },
+        {
+          "authenticator": "identity-provider-redirector",
+          "requirement": "ALTERNATIVE",
+          "priority": 25
+        },
+        {
+          "authenticator": "auth-username-password-form",
+          "requirement": "REQUIRED",
+          "priority": 30
+        },
+        {
+          "authenticator": "auth-otp-form",
+          "requirement": "REQUIRED",
+          "priority": 40
+        }
+      ]
+    }
+  ],
+  "browserFlow": "browser-with-otp",
+  "internationalizationEnabled": true,
+  "supportedLocales": ["en"],
+  "defaultLocale": "en"
+}

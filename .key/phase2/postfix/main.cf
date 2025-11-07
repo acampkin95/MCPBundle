@@ -1,0 +1,93 @@
+# Postfix main.cf configuration for VMI03
+# Local mail delivery and relay for system alerts
+
+# Basic settings
+myhostname = vmi03.acdev.host
+mydomain = acdev.host
+myorigin = $mydomain
+mydestination = $myhostname, localhost.$mydomain, localhost, $mydomain
+relayhost =
+mynetworks = 127.0.0.0/8, 10.100.0.0/24, 10.101.0.0/24, 10.102.0.0/24, [::ffff:127.0.0.0]/104, [::1]/128
+mailbox_size_limit = 0
+recipient_delimiter = +
+inet_interfaces = all
+inet_protocols = ipv4
+
+# Alias settings
+alias_maps = hash:/etc/aliases
+alias_database = hash:/etc/aliases
+
+# Local delivery
+home_mailbox = Maildir/
+mailbox_command =
+
+# SMTP settings
+smtpd_banner = $myhostname ESMTP
+biff = no
+append_dot_mydomain = no
+readme_directory = no
+compatibility_level = 2
+
+# TLS parameters for outgoing mail
+smtp_tls_security_level = may
+smtp_tls_CAfile = /etc/ssl/certs/ca-certificates.crt
+smtp_tls_session_cache_database = btree:${data_directory}/smtp_scache
+smtp_tls_loglevel = 1
+
+# TLS parameters for incoming mail
+smtpd_tls_cert_file = /etc/ssl/certs/ssl-cert-snakeoil.pem
+smtpd_tls_key_file = /etc/ssl/private/ssl-cert-snakeoil.key
+smtpd_tls_security_level = may
+smtpd_tls_session_cache_database = btree:${data_directory}/smtpd_scache
+smtpd_tls_loglevel = 1
+
+# SMTP relay for Gmail (if using Gmail as smarthost)
+# Uncomment and configure if you want to use Gmail for sending
+# relayhost = [smtp.gmail.com]:587
+# smtp_sasl_auth_enable = yes
+# smtp_sasl_password_maps = hash:/etc/postfix/sasl_passwd
+# smtp_sasl_security_options = noanonymous
+# smtp_sasl_mechanism_filter = plain
+
+# Size limits
+message_size_limit = 10485760
+mailbox_size_limit = 0
+
+# SMTPD restrictions
+smtpd_relay_restrictions =
+    permit_mynetworks,
+    permit_sasl_authenticated,
+    defer_unauth_destination
+
+smtpd_recipient_restrictions =
+    permit_mynetworks,
+    permit_sasl_authenticated,
+    reject_unauth_destination
+
+smtpd_helo_restrictions =
+    permit_mynetworks,
+    permit_sasl_authenticated,
+    reject_invalid_helo_hostname,
+    reject_non_fqdn_helo_hostname
+
+smtpd_sender_restrictions =
+    permit_mynetworks,
+    permit_sasl_authenticated,
+    reject_non_fqdn_sender,
+    reject_unknown_sender_domain
+
+# Virtual alias for forwarding root mail
+virtual_alias_maps = hash:/etc/postfix/virtual
+
+# Header checks
+header_checks = regexp:/etc/postfix/header_checks
+
+# Queue settings
+maximal_queue_lifetime = 1d
+bounce_queue_lifetime = 1d
+maximal_backoff_time = 4000s
+minimal_backoff_time = 300s
+queue_run_delay = 300s
+
+# Logging
+maillog_file = /var/log/postfix.log

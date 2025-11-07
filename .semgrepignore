@@ -1,0 +1,14 @@
+# Semgrep ignore patterns
+node_modules/
+dist/
+build/
+coverage/
+*.min.js
+*.bundle.js
+.git/
+.npm/
+.cache/
+*.log
+package-lock.json
+pnpm-lock.yaml
+yarn.lock

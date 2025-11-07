@@ -1,0 +1,87 @@
+version: '3.8'
+
+services:
+  pihole:
+    container_name: pihole
+    image: pihole/pihole:latest
+    hostname: pihole.acdev.host
+    restart: unless-stopped
+
+    environment:
+      TZ: 'UTC'
+      WEBPASSWORD: ${PIHOLE_WEB_PASSWORD}
+      PIHOLE_DNS_: '1.1.1.1;1.0.0.1;9.9.9.9'
+      DNSSEC: 'true'
+      DNSMASQ_LISTENING: 'all'
+      WEBTHEME: 'default-dark'
+      QUERY_LOGGING: 'true'
+      FTLCONF_LOCAL_IPV4: '10.102.0.1'
+      VIRTUAL_HOST: 'pihole.acdev.host'
+      ServerIP: '10.102.0.1'
+      # Performance tuning
+      FTLCONF_MAXDBDAYS: 30
+      FTLCONF_PRIVACYLEVEL: 0
+
+    volumes:
+      - './etc-pihole:/etc/pihole'
+      - './etc-dnsmasq.d:/etc/dnsmasq.d'
+      - './custom-dns.list:/etc/pihole/custom.list:ro'
+
+    # Ports exposed only on WireGuard Red tunnel interface
+    ports:
+      - '10.102.0.1:53:53/tcp'
+      - '10.102.0.1:53:53/udp'
+      - '10.102.0.1:80:80/tcp'   # Web UI accessible only via Red tunnel
+
+    dns:
+      - 127.0.0.1
+      - 1.1.1.1
+
+    cap_add:
+      - NET_ADMIN
+
+    networks:
+      pihole-net:
+        ipv4_address: 172.20.0.2
+
+    healthcheck:
+      test: ["CMD", "dig", "@127.0.0.1", "pi.hole", "+short"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+        reservations:
+          cpus: '0.5'
+          memory: 256M
+
+  unbound:
+    container_name: unbound
+    image: mvance/unbound:latest
+    hostname: unbound.acdev.host
+    restart: unless-stopped
+
+    volumes:
+      - './unbound:/opt/unbound/etc/unbound'
+
+    networks:
+      pihole-net:
+        ipv4_address: 172.20.0.3
+
+    healthcheck:
+      test: ["CMD", "dig", "@127.0.0.1", "cloudflare.com", "+short"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+networks:
+  pihole-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/24
