@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"path": "../.."
+		},
+		{
+			"path": "../../../SOC Hub"
+		}
+	],
+	"settings": {
+		"chatgpt.openOnStartup": true,
+		"claudeCode.useTerminal": true
+	}
+}

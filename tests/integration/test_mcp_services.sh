@@ -24,7 +24,12 @@ SERVICES["perplexity"]="46.250.241.70:3001"
 SERVICES["it_mcp"]="154.26.158.31:3002"
 
 # VM configuration
-VM_PASSWORD="C0nnaught"
+VM_PASSWORD="${VM_PASSWORD:-${MCP_ROOT_PASSWORD:-}}"
+
+if [[ -z "${VM_PASSWORD:-}" ]]; then
+    echo "VM_PASSWORD (or MCP_ROOT_PASSWORD) must be exported via Contabo Secrets (npm run secrets:pull) before running." >&2
+    exit 1
+fi
 declare -A VM_IPS
 VM_IPS["orchestrator"]="46.250.243.123"
 VM_IPS["perplexity"]="46.250.241.70"
@@ -104,7 +109,7 @@ for service_name in "${!VM_IPS[@]}"; do
         process_name="it-mcp"
     fi
 
-    process_count=$(sshpass -p "$VM_PASSWORD" ssh -o StrictHostKeyChecking=no root@$vm_ip \
+    process_count=$(SSHPASS="$VM_PASSWORD" sshpass -e ssh -o StrictHostKeyChecking=no root@$vm_ip \
         "ps aux | grep -v grep | grep -c '$process_name' || echo '0'" 2>/dev/null)
 
     end_time=$(date +%s%N)
@@ -133,7 +138,7 @@ for service_name in "${!VM_IPS[@]}"; do
         log_path="/var/log/it-mcp.log"
     fi
 
-    error_count=$(sshpass -p "$VM_PASSWORD" ssh -o StrictHostKeyChecking=no root@$vm_ip \
+    error_count=$(SSHPASS="$VM_PASSWORD" sshpass -e ssh -o StrictHostKeyChecking=no root@$vm_ip \
         "[ -f $log_path ] && tail -n 100 $log_path | grep -ci 'error\\|fatal\\|critical' || echo '0'" 2>/dev/null)
 
     end_time=$(date +%s%N)
@@ -164,7 +169,7 @@ for service_name in "${!VM_IPS[@]}"; do
     fi
 
     # Restart and wait
-    sshpass -p "$VM_PASSWORD" ssh -o StrictHostKeyChecking=no root@$vm_ip \
+    SSHPASS="$VM_PASSWORD" sshpass -e ssh -o StrictHostKeyChecking=no root@$vm_ip \
         "systemctl restart $service_unit 2>/dev/null || service $service_unit restart 2>/dev/null" 2>/dev/null
 
     # Wait for service to come up
@@ -190,8 +195,8 @@ for service_name in "${!VM_IPS[@]}"; do
     start_time=$(date +%s%N)
 
     # Test database connectivity from service VM
-    db_test=$(sshpass -p "$VM_PASSWORD" ssh -o StrictHostKeyChecking=no root@$vm_ip \
-        "PGPASSWORD='MCP#Secure2025!Prod' psql -h 46.250.243.123 -U mcp_admin -d mcp_ecosystem -c 'SELECT 1' 2>&1 | grep -c '1 row' || echo '0'" 2>/dev/null)
+    db_test=$(SSHPASS="$VM_PASSWORD" sshpass -e ssh -o StrictHostKeyChecking=no root@$vm_ip \
+        "PGPASSWORD='' psql -h 46.250.243.123 -U mcp_admin -d mcp_ecosystem -c 'SELECT 1' 2>&1 | grep -c '1 row' || echo '0'" 2>/dev/null)
 
     end_time=$(date +%s%N)
     duration=$(( (end_time - start_time) / 1000000 ))
@@ -251,7 +256,7 @@ for service_name in "${!VM_IPS[@]}"; do
     fi
 
     # Get memory usage percentage
-    mem_usage=$(sshpass -p "$VM_PASSWORD" ssh -o StrictHostKeyChecking=no root@$vm_ip \
+    mem_usage=$(SSHPASS="$VM_PASSWORD" sshpass -e ssh -o StrictHostKeyChecking=no root@$vm_ip \
         "ps aux | grep '$process_name' | grep -v grep | awk '{print \$4}' | head -1" 2>/dev/null || echo "0")
 
     end_time=$(date +%s%N)

@@ -4,7 +4,7 @@
 
 This guide details how to establish a completely local, file-based Model Context Protocol (MCP) system supporting advanced structured planning. It leverages a SQLite database with jsonb-emulating capabilities and FTS5 (for near-GIN speeds) for all persistent state, rooted at the workspace. The system bootstraps from user and workspace `.md` knowledge resources, ensuring planning is both systematic and fully local and auditable.[^1][^2][^3][^4][^5][^6]
 
-***
+---
 
 ## Architecture Overview
 
@@ -14,7 +14,7 @@ The local MCP stack centers on three core principles:
 - **Systematic bootstrap**: On initialization, the agent scans the workspace for all `.md` resources (such as `agents.md`, `CLAUDE.md`, architecture docs), auto-parses them, and encodes summaries/metadata for structured query.
 - **Advanced planning focus**: The system is designed for medium and long-term project planning; prompt-level short-term thinking should be filtered out. Each stored plan object is structured as a JSON blob, referencing the source `.md` files and maintaining full auditability.
 
-***
+---
 
 ## Local Server Deployment
 
@@ -38,29 +38,29 @@ Deploy a SQLite MCP server using the Node.js or Python implementations:[^2][^4]
 
 - This ensures all queries and persisted state are local, with zero cloud dependency.
 
-***
+---
 
 ## Workspace Bootstrapping Workflow
 
 1. **File Discovery**:
-    - Agent uses filesystem MCP or native server tools to enumerate `*.md` files in the workspace root.[^7][^5][^8]
+   - Agent uses filesystem MCP or native server tools to enumerate `*.md` files in the workspace root.[^7][^5][^8]
 2. **Markdown Parsing**:
-    - Each `.md` file is parsed by section and key metadata is extracted (e.g., filename, title, update time, tags).
-    - Parsed content and outlines are stored as JSON documents in SQLite database for rapid semantic access.
+   - Each `.md` file is parsed by section and key metadata is extracted (e.g., filename, title, update time, tags).
+   - Parsed content and outlines are stored as JSON documents in SQLite database for rapid semantic access.
 3. **Systematic Review**:
-    - Agent creates structured summaries for each imported `.md` file, tagging resources for traceability and reasoning.[^6]
+   - Agent creates structured summaries for each imported `.md` file, tagging resources for traceability and reasoning.[^6]
 4. **Structured Agent Initialization**:
-    - Agent uses both the parsed `.md` resources and user-provided input to synthesize new planning objects.[^9][^5][^8]
-    - These objects explicitly encode:
-        - Planning horizon (medium/long-term)
-        - Stage/context (e.g., upgrade roadmap, change window)
-        - Linked evidence from workspace files
-        - Reasoning score for metacognitive feedback
+   - Agent uses both the parsed `.md` resources and user-provided input to synthesize new planning objects.[^9][^5][^8]
+   - These objects explicitly encode:
+     - Planning horizon (medium/long-term)
+     - Stage/context (e.g., upgrade roadmap, change window)
+     - Linked evidence from workspace files
+     - Reasoning score for metacognitive feedback
 5. **Plan Storage**:
-    - Each plan/reasoning object is stored as a JSON document in the local database.
-    - Audit trail includes links to all referenced `.md` resources and encoded user/system input.
+   - Each plan/reasoning object is stored as a JSON document in the local database.
+   - Audit trail includes links to all referenced `.md` resources and encoded user/system input.
 
-***
+---
 
 ## JSON Schema for Thought Object
 
@@ -78,7 +78,7 @@ Deploy a SQLite MCP server using the Node.js or Python implementations:[^2][^4]
     "agents.md": {
       "title": "Agent Decision Logic",
       "sections": ["Goals", "Stages", "Criteria"],
-      "tags": ["planning","ops","automation"],
+      "tags": ["planning", "ops", "automation"],
       "latest_update": "2025-10-29T15:00:00Z"
     }
   },
@@ -97,8 +97,7 @@ Deploy a SQLite MCP server using the Node.js or Python implementations:[^2][^4]
 }
 ```
 
-
-***
+---
 
 ## Advanced Planning Stages Supported
 
@@ -108,7 +107,7 @@ Deploy a SQLite MCP server using the Node.js or Python implementations:[^2][^4]
 - **Branching/Revision**: Use MCP branching tools to model alternative strategies and what-if scenarios.[^5][^9]
 - **Audit/Traceability**: Capture all logic, file provenance, and decision reviews for downstream or compliance checks.
 
-***
+---
 
 ## Database Management Notes
 
@@ -117,7 +116,7 @@ Deploy a SQLite MCP server using the Node.js or Python implementations:[^2][^4]
 - Back up local plans manually if needed—no state is sent to the cloud by default.[^5]
 - Protect database location via strict OS/FS permissions and MCP server config: restrict tool access to just the workspace.
 
-***
+---
 
 ## Bootstrap and Best Practices
 
@@ -127,7 +126,7 @@ Deploy a SQLite MCP server using the Node.js or Python implementations:[^2][^4]
 - Score and tag all plans for review and future upgrades.
 - Use native MCP query and search tools to dynamically update, review, and branch plans as new files or requirements are added.
 
-***
+---
 
 **Version**: 1.0
 **Last Updated**: 2025-10-29
@@ -175,4 +174,3 @@ Deploy a SQLite MCP server using the Node.js or Python implementations:[^2][^4]
 [^19]: https://github.com/apappascs/mcp-servers-hub
 
 [^20]: https://www.reddit.com/r/ClaudeAI/comments/1jf4hnt/setting_up_mcp_servers_in_claude_code_a_tech/
-

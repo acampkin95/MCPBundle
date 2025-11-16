@@ -8,10 +8,12 @@
 ## Completed Infrastructure (Phase 1)
 
 ### 1. DatabaseSyncService (`src/services/databaseSync.ts`)
+
 ✅ **Created**: 231 lines
 **Purpose**: Hybrid SQLite/PostgreSQL synchronization
 
 **Features**:
+
 - Background sync worker (configurable interval)
 - Conflict resolution strategies (last-write-wins, manual, merge)
 - Health monitoring and status reporting
@@ -19,13 +21,14 @@
 - Batch upload optimization
 
 **Configuration**:
+
 ```typescript
 new DatabaseSyncService(planner, {
   postgresConnectionString: process.env.POSTGRES_URL,
   syncIntervalMs: 60000,
   batchSize: 50,
-  conflictResolution: "last-write-wins",
-  enableAutoSync: true
+  conflictResolution: 'last-write-wins',
+  enableAutoSync: true,
 });
 ```
 
@@ -34,10 +37,12 @@ new DatabaseSyncService(planner, {
 ---
 
 ### 2. CommandQueueService (`src/services/commandQueue.ts`)
+
 ✅ **Created**: 375 lines
 **Purpose**: Local command queue with retry logic
 
 **Features**:
+
 - SQLite persistence (`mcp_command_queue.db`)
 - Priority-based ordering (urgent > high > normal > low)
 - Automatic retry with max retry limits
@@ -46,6 +51,7 @@ new DatabaseSyncService(planner, {
 - Old command purging (configurable retention)
 
 **Schema**:
+
 ```sql
 CREATE TABLE command_queue (
   job_id TEXT PRIMARY KEY,
@@ -66,10 +72,12 @@ CREATE TABLE command_queue (
 ---
 
 ### 3. AutoDiscoveryService (`src/services/autoDiscovery.ts`)
+
 ✅ **Created**: 178 lines
 **Purpose**: MCP server registration and heartbeat
 
 **Features**:
+
 - Server capability advertisement
 - Auto-registration with central registry
 - Heartbeat mechanism (default 30s interval)
@@ -77,6 +85,7 @@ CREATE TABLE command_queue (
 - Graceful deregistration on shutdown
 
 **Advertised Data**:
+
 ```typescript
 {
   serverId: UUID,
@@ -94,10 +103,12 @@ CREATE TABLE command_queue (
 ---
 
 ### 4. KeycloakAuthService (`src/services/keycloakAuth.ts`)
+
 ✅ **Created**: 280 lines
 **Purpose**: JWT token lifecycle management
 
 **Features**:
+
 - Client credentials flow (service-to-service)
 - Password flow (user-based, optional)
 - Auto-refresh before expiry (90% of lifetime)
@@ -105,17 +116,18 @@ CREATE TABLE command_queue (
 - Graceful token revocation
 
 **Authentication Flows**:
+
 ```typescript
 // Client credentials (recommended for IT-MCP)
 const authService = new KeycloakAuthService({
-  serverUrl: "https://acdev.host:8080",
-  realm: "mcp-agents",
-  clientId: "it-mcp-server",
-  clientSecret: process.env.KEYCLOAK_CLIENT_SECRET
+  serverUrl: 'https://acdev.host:8080',
+  realm: 'mcp-agents',
+  clientId: 'it-mcp-server',
+  clientSecret: process.env.KEYCLOAK_CLIENT_SECRET,
 });
 
 const tokenSet = await authService.authenticate();
-const token = await authService.getAccessToken();  // Auto-refreshes
+const token = await authService.getAccessToken(); // Auto-refreshes
 ```
 
 **Status**: ⏳ Awaiting Keycloak realm configuration and client credentials
@@ -123,10 +135,12 @@ const token = await authService.getAccessToken();  // Auto-refreshes
 ---
 
 ### 5. CLAUDE.md Updated
+
 ✅ **Updated**: Now 790 lines (was 543)
 **Purpose**: Comprehensive hybrid architecture documentation
 
 **New Sections Added**:
+
 - Hybrid Architecture overview (local vs distributed mode)
 - Database Layer (SQLite + PostgreSQL schemas)
 - Integration Services (DatabaseSync, CommandQueue, AutoDiscovery, KeycloakAuth)
@@ -143,7 +157,9 @@ const token = await authService.getAccessToken();  // Auto-refreshes
 ### Awaiting from Server Team
 
 #### 1. OpenAPI Specification
+
 **Needed Endpoints**:
+
 - `POST /api/v1/servers/register` - Server registration
 - `POST /api/v1/servers/{id}/heartbeat` - Heartbeat submission
 - `GET /api/v1/commands/poll` - Poll for available commands
@@ -153,12 +169,15 @@ const token = await authService.getAccessToken();  // Auto-refreshes
 **Format**: OpenAPI 3.0 JSON/YAML for client generation
 
 #### 2. PostgreSQL Access
+
 **Needed**:
+
 - Connection string (host, port, database, user, password)
 - Schema setup scripts (create tables, indexes)
 - Migration guide from SQLite schema to PostgreSQL
 
 **Schema Tables Required**:
+
 - `thought_sessions`
 - `structured_thoughts`
 - `mcp_agents`
@@ -168,7 +187,9 @@ const token = await authService.getAccessToken();  // Auto-refreshes
 - `tool_runs`
 
 #### 3. Keycloak Configuration
+
 **Needed**:
+
 - Realm name (e.g., `mcp-agents`)
 - Client ID for IT-MCP
 - Client secret (for client credentials flow)
@@ -176,7 +197,9 @@ const token = await authService.getAccessToken();  // Auto-refreshes
 - Token lifetime configuration
 
 #### 4. Redis Specifications
+
 **Needed**:
+
 - Redis connection string
 - Pub/sub channel names for:
   - Agent heartbeats
@@ -189,12 +212,14 @@ const token = await authService.getAccessToken();  // Auto-refreshes
 ## Testing Completed
 
 ✅ **test-database.ts** - SQLite schema verification
+
 - 8 tables created successfully
 - WAL mode enabled
 - FTS5 index operational
 - 4 Markdown files ingested
 
 ✅ **test-structured-thinking.ts** - StructuredThinkingService integration
+
 - 5-stage framework loaded
 - Thought tracking working
 - Related thought analysis functional
@@ -202,6 +227,7 @@ const token = await authService.getAccessToken();  // Auto-refreshes
 - Diagnostic analysis operational
 
 **New Tests Needed**:
+
 - DatabaseSyncService integration test (requires PostgreSQL)
 - CommandQueueService load test (1000+ commands)
 - AutoDiscoveryService registration test (requires registry endpoint)
@@ -236,6 +262,7 @@ const token = await authService.getAccessToken();  // Auto-refreshes
 ## File Summary
 
 **New Files Created**:
+
 - `src/services/databaseSync.ts` (231 lines)
 - `src/services/commandQueue.ts` (375 lines)
 - `src/services/autoDiscovery.ts` (178 lines)
@@ -243,6 +270,7 @@ const token = await authService.getAccessToken();  // Auto-refreshes
 - `INTEGRATION_READINESS.md` (this file)
 
 **Updated Files**:
+
 - `CLAUDE.md` (543 → 790 lines, +247 lines)
 
 **Total New Code**: 1,064 lines
@@ -254,6 +282,7 @@ const token = await authService.getAccessToken();  // Auto-refreshes
 ## Current Capabilities
 
 ### ✅ Operational Now (Local Mode)
+
 - SQLite-backed structured thinking
 - Command queue with retry logic
 - Offline resilience
@@ -262,6 +291,7 @@ const token = await authService.getAccessToken();  // Auto-refreshes
 - Full diagnostic suite
 
 ### ⏳ Ready When Infrastructure Available (Distributed Mode)
+
 - PostgreSQL synchronization
 - Central agent registry
 - JWT authentication
@@ -273,13 +303,13 @@ const token = await authService.getAccessToken();  // Auto-refreshes
 
 ## Estimated Integration Timeline
 
-| Phase | Duration | Dependencies | Deliverable |
-|-------|----------|--------------|-------------|
-| **Phase 1** (Complete) | ✅ Done | None | Integration services created |
-| **Phase 2** (Waiting) | 1-2 weeks | Server OpenAPI specs | API client generated |
-| **Phase 3** (Waiting) | 1 week | PostgreSQL access | Database sync operational |
-| **Phase 4** (Waiting) | 1 week | Keycloak config | Auth flows active |
-| **Phase 5** (Testing) | 1-2 weeks | All above | Full integration tested |
+| Phase                  | Duration  | Dependencies         | Deliverable                  |
+| ---------------------- | --------- | -------------------- | ---------------------------- |
+| **Phase 1** (Complete) | ✅ Done   | None                 | Integration services created |
+| **Phase 2** (Waiting)  | 1-2 weeks | Server OpenAPI specs | API client generated         |
+| **Phase 3** (Waiting)  | 1 week    | PostgreSQL access    | Database sync operational    |
+| **Phase 4** (Waiting)  | 1 week    | Keycloak config      | Auth flows active            |
+| **Phase 5** (Testing)  | 1-2 weeks | All above            | Full integration tested      |
 
 **Total Remaining**: 4-6 weeks after server infrastructure ready
 

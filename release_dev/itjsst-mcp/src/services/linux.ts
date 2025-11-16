@@ -1,5 +1,5 @@
-import { CommandExecutionError } from "../utils/commandRunner.js";
-import { SshService, type SshExecutionOptions } from "./ssh.js";
+import { CommandExecutionError } from '../utils/commandRunner.js';
+import { SshService, type SshExecutionOptions } from './ssh.js';
 
 export interface RemoteHostConfig extends SshExecutionOptions {
   readonly host: string;
@@ -30,28 +30,28 @@ export class LinuxRemoteService {
   public async collectUbuntuHealth(config: RemoteHostConfig): Promise<LinuxHealthReport> {
     return this.collectHealth(config, [
       {
-        name: "Distribution",
-        command: "lsb_release -a",
+        name: 'Distribution',
+        command: 'lsb_release -a',
       },
       {
-        name: "Kernel",
-        command: "uname -a",
+        name: 'Kernel',
+        command: 'uname -a',
       },
       {
-        name: "Uptime",
-        command: "uptime",
+        name: 'Uptime',
+        command: 'uptime',
       },
       {
-        name: "Disk Usage",
-        command: "df -h",
+        name: 'Disk Usage',
+        command: 'df -h',
       },
       {
-        name: "Package Upgrades",
-        command: "apt list --upgradable",
+        name: 'Package Upgrades',
+        command: 'apt list --upgradable',
       },
       {
-        name: "Services Failed",
-        command: "systemctl --failed",
+        name: 'Services Failed',
+        command: 'systemctl --failed',
       },
     ]);
   }
@@ -59,35 +59,35 @@ export class LinuxRemoteService {
   public async collectDebianHealth(config: RemoteHostConfig): Promise<LinuxHealthReport> {
     return this.collectHealth(config, [
       {
-        name: "Distribution",
-        command: "cat /etc/debian_version",
+        name: 'Distribution',
+        command: 'cat /etc/debian_version',
       },
       {
-        name: "Kernel",
-        command: "uname -a",
+        name: 'Kernel',
+        command: 'uname -a',
       },
       {
-        name: "Uptime",
-        command: "uptime",
+        name: 'Uptime',
+        command: 'uptime',
       },
       {
-        name: "Disk Usage",
-        command: "df -h",
+        name: 'Disk Usage',
+        command: 'df -h',
       },
       {
-        name: "APT Pending Upgrades",
-        command: "apt list --upgradable",
+        name: 'APT Pending Upgrades',
+        command: 'apt list --upgradable',
       },
       {
-        name: "Services Failed",
-        command: "systemctl --failed",
+        name: 'Services Failed',
+        command: 'systemctl --failed',
       },
     ]);
   }
 
   private async collectHealth(
     config: RemoteHostConfig,
-    commands: Array<{ name: string; command: string }>,
+    commands: Array<{ name: string; command: string }>
   ): Promise<LinuxHealthReport> {
     const options: SshExecutionOptions = {
       port: config.port,
@@ -109,7 +109,7 @@ export class LinuxRemoteService {
             username: config.username,
             command: item.command,
           },
-          options,
+          options
         );
 
         checks.push({
@@ -132,7 +132,7 @@ export class LinuxRemoteService {
           checks.push({
             name: item.name,
             command: item.command,
-            stdout: "",
+            stdout: '',
             stderr: error instanceof Error ? error.message : String(error),
             exitCode: null,
           });

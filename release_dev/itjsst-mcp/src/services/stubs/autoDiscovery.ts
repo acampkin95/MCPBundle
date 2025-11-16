@@ -1,11 +1,11 @@
-import { randomUUID } from "node:crypto";
-import { hostname } from "node:os";
-import { logger } from "../../utils/logger.js";
-import type { Capability } from "../../config/capabilities.js";
+import { randomUUID } from 'node:crypto';
+import { hostname } from 'node:os';
+import { logger } from '../../utils/logger.js';
+import type { Capability } from '../../config/capabilities.js';
 
 export interface ServerCapabilities {
   readonly serverId: string;
-  readonly serverType: "mcp-server";
+  readonly serverType: 'mcp-server';
   readonly hostname: string;
   readonly capabilities: readonly Capability[];
   readonly tools: readonly string[];
@@ -54,14 +54,14 @@ export class AutoDiscoveryService {
   public constructor(
     capabilities: readonly Capability[],
     tools: readonly string[],
-    registryEndpoint?: string,
+    registryEndpoint?: string
   ) {
     this.serverId = process.env.IT_MCP_SERVER_ID ?? randomUUID();
     this.registryEndpoint = registryEndpoint ?? process.env.IT_MCP_REGISTRY_URL;
 
     this.serverCapabilities = {
       serverId: this.serverId,
-      serverType: "mcp-server",
+      serverType: 'mcp-server',
       hostname: hostname(),
       capabilities,
       tools,
@@ -73,7 +73,7 @@ export class AutoDiscoveryService {
       },
     };
 
-    logger.info("AutoDiscoveryService initialized", {
+    logger.info('AutoDiscoveryService initialized', {
       serverId: this.serverId,
       hostname: this.serverCapabilities.hostname,
       capabilities: capabilities.length,
@@ -86,7 +86,7 @@ export class AutoDiscoveryService {
    */
   public async register(): Promise<RegistrationResponse> {
     if (!this.registryEndpoint) {
-      logger.warn("Registry endpoint not configured, skipping registration");
+      logger.warn('Registry endpoint not configured, skipping registration');
       return {
         registered: false,
         serverId: this.serverId,
@@ -97,7 +97,7 @@ export class AutoDiscoveryService {
     }
 
     try {
-      logger.info("Registering with central registry", {
+      logger.info('Registering with central registry', {
         endpoint: this.registryEndpoint,
         serverId: this.serverId,
       });
@@ -114,7 +114,7 @@ export class AutoDiscoveryService {
       // this.isRegistered = true;
 
       // STUB: Return mock registration response
-      logger.warn("Registration not yet implemented - using stub");
+      logger.warn('Registration not yet implemented - using stub');
       const stubResponse: RegistrationResponse = {
         registered: false,
         serverId: this.serverId,
@@ -125,7 +125,7 @@ export class AutoDiscoveryService {
 
       return stubResponse;
     } catch (error) {
-      logger.error("Registration failed", { error });
+      logger.error('Registration failed', { error });
       throw new Error(`Failed to register with registry: ${error}`);
     }
   }
@@ -135,16 +135,16 @@ export class AutoDiscoveryService {
    */
   public startHeartbeat(): void {
     if (this.heartbeatTimer) {
-      logger.warn("Heartbeat already running");
+      logger.warn('Heartbeat already running');
       return;
     }
 
     if (!this.registryEndpoint) {
-      logger.warn("Registry endpoint not configured, heartbeat disabled");
+      logger.warn('Registry endpoint not configured, heartbeat disabled');
       return;
     }
 
-    logger.info("Starting heartbeat", { intervalMs: this.heartbeatIntervalMs });
+    logger.info('Starting heartbeat', { intervalMs: this.heartbeatIntervalMs });
 
     this.heartbeatTimer = setInterval(() => {
       void this.sendHeartbeat();
@@ -158,7 +158,7 @@ export class AutoDiscoveryService {
     if (this.heartbeatTimer) {
       clearInterval(this.heartbeatTimer);
       this.heartbeatTimer = null;
-      logger.info("Heartbeat stopped");
+      logger.info('Heartbeat stopped');
     }
   }
 
@@ -191,14 +191,14 @@ export class AutoDiscoveryService {
       // return await response.json();
 
       // STUB: Return mock heartbeat response
-      logger.debug("Heartbeat sent (stub)", { serverId: this.serverId });
+      logger.debug('Heartbeat sent (stub)', { serverId: this.serverId });
       return {
         acknowledged: true,
         nextHeartbeatMs: this.heartbeatIntervalMs,
         commandsAvailable: 0,
       };
     } catch (error) {
-      logger.error("Heartbeat failed", { error });
+      logger.error('Heartbeat failed', { error });
       return {
         acknowledged: false,
         nextHeartbeatMs: this.heartbeatIntervalMs,
@@ -223,7 +223,7 @@ export class AutoDiscoveryService {
       capabilities,
     };
 
-    logger.info("Capabilities updated", {
+    logger.info('Capabilities updated', {
       capabilities: capabilities.length,
     });
 
@@ -238,12 +238,12 @@ export class AutoDiscoveryService {
    */
   public async deregister(): Promise<void> {
     if (!this.registryEndpoint || !this.isRegistered) {
-      logger.info("Not registered, skipping deregistration");
+      logger.info('Not registered, skipping deregistration');
       return;
     }
 
     try {
-      logger.info("Deregistering from central registry");
+      logger.info('Deregistering from central registry');
 
       // TODO: Implement actual HTTP DELETE to registry
       // await fetch(`${this.registryEndpoint}/api/v1/servers/${this.serverId}`, {
@@ -251,9 +251,9 @@ export class AutoDiscoveryService {
       // });
 
       this.isRegistered = false;
-      logger.info("Deregistered successfully");
+      logger.info('Deregistered successfully');
     } catch (error) {
-      logger.error("Deregistration failed", { error });
+      logger.error('Deregistration failed', { error });
     }
   }
 
@@ -262,7 +262,7 @@ export class AutoDiscoveryService {
    */
   private getVersion(): string {
     // TODO: Read from package.json
-    return "0.1.0";
+    return '0.1.0';
   }
 
   /**
@@ -271,6 +271,6 @@ export class AutoDiscoveryService {
   public async destroy(): Promise<void> {
     this.stopHeartbeat();
     await this.deregister();
-    logger.info("AutoDiscoveryService destroyed");
+    logger.info('AutoDiscoveryService destroyed');
   }
 }

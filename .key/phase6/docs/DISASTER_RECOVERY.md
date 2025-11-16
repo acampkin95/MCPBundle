@@ -15,13 +15,13 @@ This document provides step-by-step procedures for recovering from catastrophic 
 
 ## Recovery Time Objectives (RTO)
 
-| Scenario | Target RTO | Maximum Acceptable Data Loss (RPO) |
-|----------|------------|-----------------------------------|
-| Single file restore | 15 minutes | 24 hours |
-| Single service failure | 1 hour | 24 hours |
-| Single VM failure | 4 hours | 24 hours |
-| Multiple VM failure | 8 hours | 24 hours |
-| Complete datacenter loss | 24 hours | 24 hours |
+| Scenario                 | Target RTO | Maximum Acceptable Data Loss (RPO) |
+| ------------------------ | ---------- | ---------------------------------- |
+| Single file restore      | 15 minutes | 24 hours                           |
+| Single service failure   | 1 hour     | 24 hours                           |
+| Single VM failure        | 4 hours    | 24 hours                           |
+| Multiple VM failure      | 8 hours    | 24 hours                           |
+| Complete datacenter loss | 24 hours   | 24 hours                           |
 
 ## Pre-Disaster Preparation
 
@@ -30,6 +30,7 @@ This document provides step-by-step procedures for recovering from catastrophic 
 Store the following information in a secure, offline location (password manager, printed copy in safe):
 
 1. **Wasabi S3 Credentials**
+
    ```
    Access Key ID: [WRITE DOWN]
    Secret Access Key: [WRITE DOWN]
@@ -39,6 +40,7 @@ Store the following information in a secure, offline location (password manager,
    ```
 
 2. **VM Credentials**
+
    ```
    VMI01 Root Password: [WRITE DOWN]
    VMI02D Root Password: [WRITE DOWN]
@@ -47,6 +49,7 @@ Store the following information in a secure, offline location (password manager,
    ```
 
 3. **Service Credentials**
+
    ```
    PostgreSQL postgres user password: [WRITE DOWN]
    Redis password (if set): [WRITE DOWN]
@@ -54,6 +57,7 @@ Store the following information in a secure, offline location (password manager,
    ```
 
 4. **Contact Information**
+
    ```
    Hosting Provider: [NAME]
    Support Phone: [NUMBER]
@@ -72,6 +76,7 @@ Store the following information in a secure, offline location (password manager,
 ### Regular DR Drills
 
 Conduct disaster recovery drills:
+
 - **Monthly**: Single service restore test
 - **Quarterly**: Full VM restore test
 - **Annually**: Complete infrastructure rebuild
@@ -105,13 +110,13 @@ ssh root@154.26.158.31 'systemctl status keycloak'
 
 #### 1.3 Make Decision
 
-| Condition | Action |
-|-----------|--------|
-| Service down, VM accessible | Restart service, check logs |
-| VM accessible, data intact | Selective restore |
-| VM accessible, data corrupted | Full restore |
-| VM inaccessible | Rebuild from backup |
-| Security breach | Isolate, investigate, rebuild |
+| Condition                     | Action                        |
+| ----------------------------- | ----------------------------- |
+| Service down, VM accessible   | Restart service, check logs   |
+| VM accessible, data intact    | Selective restore             |
+| VM accessible, data corrupted | Full restore                  |
+| VM inaccessible               | Rebuild from backup           |
+| Security breach               | Isolate, investigate, rebuild |
 
 ### Phase 2: Containment (Immediate)
 
@@ -134,11 +139,13 @@ dd if=/dev/vda of=/mnt/external/forensic-image.dd bs=4M status=progress
 #### 2.2 Notify Stakeholders
 
 **Immediate Notification:**
+
 - Email: acampkinpersonnal@gmail.com
 - Subject: `[CRITICAL] Disaster Recovery in Progress - [VM NAME]`
 - Body: Include scope, estimated recovery time, current status
 
 **Communication Template:**
+
 ```
 Subject: [CRITICAL] Disaster Recovery - [VM/Service Name]
 
@@ -156,6 +163,7 @@ Updates will be provided every [interval].
 #### 3.1 Single VM Failure - Complete Rebuild
 
 **Prerequisites:**
+
 - Access to VM console or new VM
 - Wasabi S3 credentials
 - Network connectivity
@@ -419,6 +427,7 @@ find /opt/mcp -type f -name "*.json" -exec jq empty {} \;
 #### 4.3 Application Verification
 
 Test all critical functions:
+
 - User login
 - API endpoints
 - Database queries
@@ -431,6 +440,7 @@ Test all critical functions:
 #### 5.1 Root Cause Analysis
 
 Document:
+
 - What happened?
 - When did it start?
 - How was it detected?
@@ -442,6 +452,7 @@ Document:
 #### 5.2 Update Procedures
 
 Based on lessons learned:
+
 - Update runbooks
 - Improve monitoring
 - Add alerts
@@ -451,6 +462,7 @@ Based on lessons learned:
 #### 5.3 Stakeholder Report
 
 Provide formal report:
+
 ```
 DISASTER RECOVERY REPORT
 
@@ -544,6 +556,7 @@ jq . /tmp/backup-manifest.json
 ### Quarterly Full Restore Test
 
 Spin up test VM and perform complete restore. Document:
+
 - Time taken
 - Issues encountered
 - Data verification results
@@ -569,12 +582,12 @@ Level 3: Wasabi Support
 
 ## Recovery Decision Matrix
 
-| Data Loss | Downtime Acceptable | Recovery Method |
-|-----------|-------------------|-----------------|
-| < 1 hour | < 15 min | Service restart |
-| < 24 hours | < 1 hour | Selective restore |
-| < 1 week | < 4 hours | Full VM restore |
-| > 1 week | Any | Rebuild from oldest backup |
+| Data Loss  | Downtime Acceptable | Recovery Method            |
+| ---------- | ------------------- | -------------------------- |
+| < 1 hour   | < 15 min            | Service restart            |
+| < 24 hours | < 1 hour            | Selective restore          |
+| < 1 week   | < 4 hours           | Full VM restore            |
+| > 1 week   | Any                 | Rebuild from oldest backup |
 
 ## Appendices
 
@@ -599,12 +612,12 @@ systemctl status postgresql redis-server nginx
 
 ### B. Common Error Messages
 
-| Error | Cause | Solution |
-|-------|-------|----------|
-| "Permission denied" | SSH key issue | Use password or VM console |
-| "Connection refused" | Service down | systemctl start SERVICE |
-| "No such file" | Missing backup | Check backup date |
-| "Disk full" | No space | Clean /tmp, /var/backups |
+| Error                | Cause          | Solution                   |
+| -------------------- | -------------- | -------------------------- |
+| "Permission denied"  | SSH key issue  | Use password or VM console |
+| "Connection refused" | Service down   | systemctl start SERVICE    |
+| "No such file"       | Missing backup | Check backup date          |
+| "Disk full"          | No space       | Clean /tmp, /var/backups   |
 
 ### C. Recovery Time Log Template
 

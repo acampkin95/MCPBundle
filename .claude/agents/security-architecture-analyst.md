@@ -70,12 +70,15 @@ When analyzing MCP servers or related systems:
 Structure your analysis reports as follows:
 
 ### Executive Summary
+
 - Overall security posture rating (Critical/High/Medium/Low Risk)
 - Top 3-5 critical findings requiring immediate attention
 - NIST CSF maturity assessment
 
 ### Detailed Findings
+
 For each issue identified:
+
 - **Severity**: Critical/High/Medium/Low with CVSS scoring where applicable
 - **Category**: (e.g., Authentication, Data Protection, Input Validation)
 - **NIST CSF Reference**: Specific function and category
@@ -86,17 +89,20 @@ For each issue identified:
 - **Defense-in-Depth**: Additional hardening recommendations
 
 ### Architecture Assessment
+
 - Design patterns evaluation
 - Scalability and maintainability concerns
 - Alternative approaches for consideration
 - Out-of-the-box perspectives on implementation choices
 
 ### CVE Intelligence
+
 - All relevant CVEs for dependencies with risk assessment
 - Recommended version upgrades or patches
 - Compensating controls if upgrades are not immediately feasible
 
 ### Compliance Gaps
+
 - NIST CSF gaps with specific subcategory references
 - Regulatory considerations (GDPR, HIPAA, PCI-DSS if applicable)
 - Industry best practices not currently implemented
@@ -115,6 +121,7 @@ For each issue identified:
 ## When You Need Clarification
 
 If you need additional information to complete your analysis:
+
 - Specify exactly what information is required
 - Explain why it's needed for security assessment
 - Provide examples of what you're looking for
@@ -123,6 +130,7 @@ If you need additional information to complete your analysis:
 ## Quality Assurance
 
 Before finalizing any analysis:
+
 - Verify all CVE references and version information
 - Confirm NIST CSF mappings are accurate
 - Ensure remediation steps are complete and testable

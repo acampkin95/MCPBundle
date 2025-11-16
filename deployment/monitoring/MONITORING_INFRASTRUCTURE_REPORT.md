@@ -3,6 +3,7 @@
 ## Deployment Status: ✅ COMPLETE
 
 ### Deployment Date: November 7, 2024
+
 ### Infrastructure Specialist: Cloud Architect
 
 ---
@@ -10,11 +11,13 @@
 ## 📊 Deployed Components
 
 ### 1. HAProxy Load Balancer ✅
+
 **Location**: VMI03 (154.26.158.31)
 **Status**: Active and Running
 **Version**: 2.8.x
 
 #### Configuration:
+
 - **HTTP Port**: 80 (redirects to services)
 - **HTTPS Port**: 443 (future SSL termination)
 - **Stats Port**: 8404
@@ -24,23 +27,27 @@
   - IT Service MCP: 46.250.243.123:3002
 
 #### Health Check Status:
+
 - Checking backend services every 5 seconds
 - Currently showing backend servers as DOWN (MCP services need to be started)
 
 ---
 
 ### 2. Prometheus Metrics Server ✅
+
 **Location**: VMI03 (154.26.158.31)
 **Status**: Active and Running
 **Version**: 2.45.0
 
 #### Configuration:
+
 - **Web UI Port**: 9090
 - **Data Retention**: 30 days
 - **Scrape Interval**: 15 seconds
 - **Storage Path**: /var/lib/prometheus/
 
 #### Monitored Targets:
+
 - Prometheus (self-monitoring)
 - Node Exporter VMI03 (localhost:9100)
 - Node Exporter VMI01 (46.250.243.123:9100)
@@ -50,11 +57,13 @@
 ---
 
 ### 3. Grafana Visualization ✅
+
 **Location**: VMI03 (154.26.158.31)
 **Status**: Active and Running
 **Version**: 12.2.1
 
 #### Configuration:
+
 - **Web UI Port**: 3000
 - **Data Source**: Prometheus (configured)
 - **Authentication**: Admin access + Anonymous viewer
@@ -63,11 +72,14 @@
 ---
 
 ### 4. Node Exporters ✅
+
 **Deployed On**:
+
 - VMI03 (154.26.158.31) - ✅ Running
 - VMI01 (46.250.243.123) - ✅ Running
 
 **Metrics Collected**:
+
 - CPU utilization
 - Memory usage
 - Disk I/O
@@ -80,6 +92,7 @@
 ## 🔑 Access Credentials
 
 ### HAProxy Statistics Page
+
 ```
 URL: http://154.26.158.31:8404
 Username: admin
@@ -87,6 +100,7 @@ Password: HAProxyStats2024!
 ```
 
 ### Grafana Dashboard
+
 ```
 URL: http://154.26.158.31:3000
 Admin Username: admin
@@ -95,6 +109,7 @@ Anonymous Access: Read-only enabled
 ```
 
 ### Prometheus Web UI
+
 ```
 URL: http://154.26.158.31:9090
 Authentication: None (recommend adding reverse proxy with auth)
@@ -105,12 +120,14 @@ Authentication: None (recommend adding reverse proxy with auth)
 ## 📈 Monitoring Dashboards
 
 ### Available Dashboards:
+
 1. **System Overview** - CPU, Memory, Disk usage across all nodes
 2. **HAProxy Statistics** - Request rates, backend health, response times
 3. **Service Health** - MCP service availability and performance
 4. **Alert Manager** - Active alerts and notification history
 
 ### Key Metrics Being Monitored:
+
 - **System Metrics**:
   - CPU usage (alert threshold: >80%)
   - Memory usage (alert threshold: >85%)
@@ -134,11 +151,13 @@ Authentication: None (recommend adding reverse proxy with auth)
 ## 🚨 Alert Rules Configured
 
 ### Critical Alerts:
+
 1. **Service Down**: Any monitored service unavailable for >1 minute
 2. **Disk Space Critical**: Less than 20% free space
 3. **Database Down**: PostgreSQL not responding
 
 ### Warning Alerts:
+
 1. **High CPU Usage**: CPU >80% for 5 minutes
 2. **High Memory Usage**: Memory >85% for 5 minutes
 3. **High Response Time**: 99th percentile >2 seconds
@@ -149,6 +168,7 @@ Authentication: None (recommend adding reverse proxy with auth)
 ## 🛠️ Maintenance Procedures
 
 ### Daily Health Checks:
+
 ```bash
 # Run on VMI03
 /usr/local/bin/health_check.sh
@@ -158,6 +178,7 @@ systemctl status haproxy prometheus grafana-server node_exporter
 ```
 
 ### Service Management:
+
 ```bash
 # Restart services if needed
 systemctl restart haproxy
@@ -172,6 +193,7 @@ journalctl -u grafana-server -f
 ```
 
 ### Backup Commands:
+
 ```bash
 # Backup Prometheus data
 tar -czf prometheus_backup_$(date +%Y%m%d).tar.gz /var/lib/prometheus/
@@ -191,6 +213,7 @@ tar -czf monitoring_configs_$(date +%Y%m%d).tar.gz \
 ## 🔒 Security Configurations
 
 ### Firewall Rules Applied:
+
 ```
 Port 80/tcp   - HTTP (HAProxy)
 Port 443/tcp  - HTTPS (HAProxy)
@@ -201,6 +224,7 @@ Port 9100/tcp - Node Exporter
 ```
 
 ### Recommended Security Enhancements:
+
 1. **SSL/TLS Certificates**: Install Let's Encrypt certificates for HTTPS
 2. **IP Whitelisting**: Restrict admin interfaces to specific IPs
 3. **Authentication Proxy**: Add nginx with basic auth for Prometheus
@@ -212,12 +236,14 @@ Port 9100/tcp - Node Exporter
 ## 📊 Cost Analysis
 
 ### Monthly Infrastructure Costs:
+
 - **Monitoring Stack**: ~$0 (open source components)
 - **Storage (30-day retention)**: ~10GB estimated
 - **Network Traffic**: Minimal internal traffic
 - **Total Additional Cost**: $0 (using existing infrastructure)
 
 ### Resource Utilization:
+
 - **CPU**: ~5-10% average
 - **Memory**: ~500MB-1GB total
 - **Disk**: ~10GB for 30-day retention
@@ -228,18 +254,21 @@ Port 9100/tcp - Node Exporter
 ## 🚀 Next Steps & Recommendations
 
 ### Immediate Actions:
+
 1. ✅ Start MCP services on VMI01 to enable monitoring
 2. ✅ Configure PostgreSQL exporters on database servers
 3. ✅ Import additional Grafana dashboards
 4. ✅ Set up email/Slack alerting
 
 ### Short-term Improvements (1-2 weeks):
+
 1. Install SSL certificates for secure access
 2. Configure automated backups
 3. Set up log aggregation (ELK stack)
 4. Implement distributed tracing
 
 ### Long-term Enhancements (1-3 months):
+
 1. Implement auto-scaling based on metrics
 2. Add custom application metrics
 3. Set up multi-region monitoring
@@ -250,6 +279,7 @@ Port 9100/tcp - Node Exporter
 ## 📝 Testing & Validation
 
 ### Component Status:
+
 - ✅ HAProxy installed and running
 - ✅ Prometheus collecting metrics
 - ✅ Grafana dashboards accessible
@@ -258,6 +288,7 @@ Port 9100/tcp - Node Exporter
 - ⏳ MCP services health checks pending
 
 ### Test Commands:
+
 ```bash
 # Test HAProxy
 curl -u admin:HAProxyStats2024! http://154.26.158.31:8404/stats
@@ -277,11 +308,13 @@ curl http://154.26.158.31:9100/metrics | grep node_
 ## 📞 Support Information
 
 ### Monitoring Stack Access URLs:
+
 - **HAProxy Stats**: http://154.26.158.31:8404
 - **Prometheus**: http://154.26.158.31:9090
 - **Grafana**: http://154.26.158.31:3000
 
 ### SSH Access for Maintenance:
+
 ```bash
 # VMI03 (Monitoring Server)
 ssh root@154.26.158.31
@@ -291,6 +324,7 @@ ssh root@46.250.243.123
 ```
 
 ### Documentation Location:
+
 - `/Users/alex/Projects/MCP Bundle/deployment/monitoring/`
 - Configuration files backed up in deployment directory
 
@@ -331,6 +365,7 @@ ssh root@46.250.243.123
 ## Appendix: Quick Reference
 
 ### Service Control:
+
 ```bash
 # All-in-one status check
 for service in haproxy prometheus grafana-server node_exporter; do
@@ -343,6 +378,7 @@ systemctl restart haproxy prometheus grafana-server node_exporter
 ```
 
 ### Troubleshooting:
+
 ```bash
 # Check if ports are listening
 ss -tlnp | grep -E ':(80|443|3000|8404|9090|9100)'
@@ -357,6 +393,7 @@ echo "show stat" | socat /run/haproxy/admin.sock stdio
 ```
 
 ### Performance Tuning:
+
 ```bash
 # Increase Prometheus retention (edit /etc/systemd/system/prometheus.service)
 --storage.tsdb.retention.time=60d

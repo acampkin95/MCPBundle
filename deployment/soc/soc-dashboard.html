@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ACDev SOC Hub - Security Operations Center</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 100%);
+            color: #e0e0e0;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            padding: 30px 0;
+            border-bottom: 2px solid #00d4ff;
+            margin-bottom: 40px;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            color: #00d4ff;
+            margin-bottom: 10px;
+            text-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+        }
+
+        .subtitle {
+            color: #888;
+            font-size: 1.1em;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            border-radius: 10px;
+            padding: 25px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 212, 255, 0.3);
+            border-color: #00d4ff;
+        }
+
+        .card h2 {
+            color: #00d4ff;
+            font-size: 1.5em;
+            margin-bottom: 10px;
+        }
+
+        .card p {
+            color: #bbb;
+            margin-bottom: 15px;
+            line-height: 1.6;
+        }
+
+        .card a {
+            display: inline-block;
+            background: #00d4ff;
+            color: #0f0f23;
+            padding: 10px 20px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .card a:hover {
+            background: #00a3cc;
+            transform: scale(1.05);
+        }
+
+        .status {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.85em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .status.online {
+            background: rgba(0, 255, 0, 0.2);
+            color: #00ff00;
+            border: 1px solid #00ff00;
+        }
+
+        .status.offline {
+            background: rgba(255, 0, 0, 0.2);
+            color: #ff0000;
+            border: 1px solid #ff0000;
+        }
+
+        .info-section {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 30px;
+        }
+
+        .info-section h3 {
+            color: #00d4ff;
+            margin-bottom: 15px;
+        }
+
+        .info-section ul {
+            list-style: none;
+            line-height: 2;
+        }
+
+        .info-section li::before {
+            content: "▸ ";
+            color: #00d4ff;
+            font-weight: bold;
+            margin-right: 8px;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(0, 212, 255, 0.2);
+            color: #666;
+        }
+
+        .keycloak-link {
+            background: rgba(255, 215, 0, 0.1);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+        }
+
+        .keycloak-link:hover {
+            border-color: #ffd700;
+        }
+
+        .keycloak-link h2 {
+            color: #ffd700;
+        }
+
+        .keycloak-link a {
+            background: #ffd700;
+            color: #0f0f23;
+        }
+
+        .keycloak-link a:hover {
+            background: #ffed4e;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🛡️ ACDev SOC Hub</h1>
+            <p class="subtitle">Security Operations Center Dashboard | VMI03 (154.26.158.31)</p>
+        </header>
+
+        <div class="grid">
+            <!-- Grafana -->
+            <div class="card">
+                <span class="status online">● ONLINE</span>
+                <h2>📊 Grafana</h2>
+                <p>Real-time monitoring dashboards and metrics visualization</p>
+                <a href="http://soc.acdev.host:3000" target="_blank">Open Grafana →</a>
+            </div>
+
+            <!-- TheHive -->
+            <div class="card">
+                <span class="status online">● ONLINE</span>
+                <h2>🔍 TheHive</h2>
+                <p>Incident response platform and case management</p>
+                <a href="http://soc.acdev.host:9000" target="_blank">Open TheHive →</a>
+            </div>
+
+            <!-- Elasticsearch -->
+            <div class="card">
+                <span class="status online">● ONLINE</span>
+                <h2>🔎 Elasticsearch</h2>
+                <p>SIEM and security event analysis (LAN/VPN only)</p>
+                <a href="http://soc.acdev.host:9200" target="_blank">Open Elasticsearch →</a>
+            </div>
+
+            <!-- Prometheus -->
+            <div class="card">
+                <span class="status online">● ONLINE</span>
+                <h2>📈 Prometheus</h2>
+                <p>Metrics collection and monitoring</p>
+                <a href="http://soc.acdev.host:9090" target="_blank">Open Prometheus →</a>
+            </div>
+
+            <!-- Wazuh API -->
+            <div class="card">
+                <span class="status offline">● PARTIAL</span>
+                <h2>🛡️ Wazuh API</h2>
+                <p>Security monitoring and compliance (API only)</p>
+                <a href="https://soc.acdev.host:55000" target="_blank">Open Wazuh API →</a>
+            </div>
+
+            <!-- SOC Hub MCP API -->
+            <div class="card">
+                <span class="status online">● ONLINE</span>
+                <h2>🔌 SOC Hub MCP</h2>
+                <p>Unified SOC data aggregation API (port 3200)</p>
+                <a href="http://soc.acdev.host:3200" target="_blank">Open SOC API →</a>
+            </div>
+
+            <!-- Keycloak SSO -->
+            <div class="card keycloak-link">
+                <span class="status online">● ONLINE</span>
+                <h2>🔐 Keycloak SSO</h2>
+                <p>Single Sign-On authentication and user management</p>
+                <a href="https://acdev.host:8443/admin/" target="_blank">Open Keycloak →</a>
+            </div>
+        </div>
+
+        <div class="info-section">
+            <h3>📝 Quick Reference</h3>
+            <ul>
+                <li><strong>Keycloak Admin:</strong> admin / (see SOC_CREDENTIALS.md)</li>
+                <li><strong>Grafana:</strong> admin / GrafanaAdmin2024!</li>
+                <li><strong>TheHive:</strong> First-time setup required</li>
+                <li><strong>Elasticsearch:</strong> No authentication (LAN/VPN access only)</li>
+                <li><strong>Server:</strong> VMI03 (acdev-vmi03) - 154.26.158.31</li>
+                <li><strong>Documentation:</strong> SOC_CREDENTIALS.md, SOC_KEYCLOAK_SSO_GUIDE.md</li>
+            </ul>
+        </div>
+
+        <div class="info-section">
+            <h3>🔧 Keycloak SSO Integration</h3>
+            <ul>
+                <li>Grafana, TheHive, Prometheus can use Keycloak SSO</li>
+                <li>See <strong>SOC_KEYCLOAK_SSO_GUIDE.md</strong> for setup instructions</li>
+                <li>Automated deployment script: <code>deployment/soc/deploy-keycloak-sso-complete.sh</code></li>
+                <li>Keycloak Realm: <strong>mcp-agents</strong></li>
+            </ul>
+        </div>
+
+        <footer>
+            <p>ACDev SOC Hub v2.0 | Powered by MCP Infrastructure</p>
+            <p>For support, see documentation in SOC_CREDENTIALS.md</p>
+        </footer>
+    </div>
+</body>
+</html>

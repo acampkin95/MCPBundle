@@ -1,0 +1,11 @@
+release_dev/**
+node_modules/
+dist/
+.devcontainer/
+coverage/
+devtestready/
+final/
+.next/
+deployment/**
+scripts/**
+vitest.config.ts

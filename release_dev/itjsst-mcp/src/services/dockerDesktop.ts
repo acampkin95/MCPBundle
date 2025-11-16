@@ -1,4 +1,4 @@
-import { CommandExecutionError, CommandRunner } from "../utils/commandRunner.js";
+import { CommandExecutionError, CommandRunner } from '../utils/commandRunner.js';
 
 export interface DockerContainerSummary {
   readonly name: string;
@@ -20,7 +20,7 @@ export class DockerDesktopService {
     if (!available) {
       return {
         cliAvailable: false,
-        error: "Docker CLI not found in PATH",
+        error: 'Docker CLI not found in PATH',
       };
     }
 
@@ -44,7 +44,7 @@ export class DockerDesktopService {
 
   private async hasDocker(): Promise<boolean> {
     try {
-      await this.runner.run("command -v docker");
+      await this.runner.run('command -v docker');
       return true;
     } catch {
       return false;
@@ -55,14 +55,14 @@ export class DockerDesktopService {
     try {
       const result = await this.runner.run("docker ps --format '{{.Names}}|{{.Status}}'");
       return result.stdout
-        .split("\n")
+        .split('\n')
         .map((line) => line.trim())
         .filter(Boolean)
         .map((line) => {
-          const [name, status] = line.split("|");
+          const [name, status] = line.split('|');
           return {
-            name: name ?? "unknown",
-            status: status ?? "unknown",
+            name: name ?? 'unknown',
+            status: status ?? 'unknown',
           };
         });
     } catch (error) {

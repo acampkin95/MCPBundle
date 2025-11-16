@@ -1,16 +1,20 @@
 # MCP Ecosystem Database Migration v0.1 → v0.2
+
 # Execution Instructions for VMI01
 
 ## Overview
+
 This package contains all necessary files to upgrade the MCP Ecosystem database from v0.1 to v0.2, adding enhanced structured thought capabilities.
 
 ## Target Environment
+
 - **Server**: VMI01 (46.250.243.123)
 - **Database**: PostgreSQL 16
 - **Database Name**: mcp_ecosystem
 - **User**: mcp_admin
 
 ## Package Contents
+
 ```
 migration-v02/
 ├── deploy-migration.sh           # Automated migration script
@@ -21,6 +25,7 @@ migration-v02/
 ```
 
 ## Pre-Migration Checklist
+
 - [ ] SSH access to VMI01 as dev-admin or root
 - [ ] PostgreSQL 16 is running
 - [ ] At least 1GB free disk space in /var/backups/postgresql
@@ -30,6 +35,7 @@ migration-v02/
 ## Step-by-Step Execution
 
 ### 1. Transfer Files to VMI01
+
 ```bash
 # From your local machine
 scp -r migration-v02/ dev-admin@46.250.243.123:/tmp/
@@ -42,6 +48,7 @@ chmod +x *.sh
 ```
 
 ### 2. Run Pre-Flight Checks
+
 ```bash
 # Verify PostgreSQL is running
 sudo systemctl status postgresql
@@ -50,12 +57,13 @@ sudo systemctl status postgresql
 sudo -u postgres psql -lqt | grep mcp_ecosystem
 
 # Check current schema version
-PGPASSWORD="TeBsn4f2cS0O7vfdvYFTb37L6SdJFL+mpOgksTwgHy0=" \
+PGPASSWORD="" \
   psql -h localhost -U mcp_admin -d mcp_ecosystem \
   -c "SELECT version FROM schema_version ORDER BY applied_at DESC LIMIT 1"
 ```
 
 ### 3. Execute Automated Migration
+
 ```bash
 # Run the migration script
 sudo ./deploy-migration.sh
@@ -69,6 +77,7 @@ sudo ./deploy-migration.sh
 ```
 
 ### 4. Manual Migration (if automated fails)
+
 ```bash
 # Step 1: Create backup
 sudo -u postgres pg_dump -Fc mcp_ecosystem > /var/backups/postgresql/mcp_pre_v2_$(date +%Y%m%d).backup
@@ -77,7 +86,7 @@ sudo -u postgres pg_dump -Fc mcp_ecosystem > /var/backups/postgresql/mcp_pre_v2_
 sudo systemctl stop mcp-orchestrator perplexity-mcp it-mcp
 
 # Step 3: Run migration
-PGPASSWORD="TeBsn4f2cS0O7vfdvYFTb37L6SdJFL+mpOgksTwgHy0=" \
+PGPASSWORD="" \
   psql -h localhost -U mcp_admin -d mcp_ecosystem \
   -f migrate_v01_to_v02.sql
 
@@ -90,14 +99,16 @@ sudo systemctl start mcp-orchestrator perplexity-mcp it-mcp
 ## Validation Tests
 
 ### Run Validation Script
+
 ```bash
 ./validate-migration.sh
 ```
 
 ### Manual Validation
+
 ```bash
 # Connect to database
-PGPASSWORD="TeBsn4f2cS0O7vfdvYFTb37L6SdJFL+mpOgksTwgHy0=" \
+PGPASSWORD="" \
   psql -h localhost -U mcp_admin -d mcp_ecosystem
 
 -- Check new tables
@@ -124,12 +135,14 @@ SELECT * FROM schema_version ORDER BY applied_at DESC LIMIT 1;
 ## Expected Results
 
 ### New Tables (4)
+
 - `thought_branches` - Branch analytics
 - `feedback_signals` - Metacognitive feedback
 - `thought_relationships` - Thought connections
 - `thought_sync_queue` - Sync management
 
 ### New Functions (5)
+
 - `search_thoughts()` - Full-text search
 - `get_thought_branch()` - Branch retrieval
 - `get_branch_health()` - Health monitoring
@@ -137,6 +150,7 @@ SELECT * FROM schema_version ORDER BY applied_at DESC LIMIT 1;
 - `update_branch_analytics()` - Metrics updates
 
 ### Enhanced Features
+
 - Full-text search with tsvector
 - Branch tracking and analytics
 - Feedback signal system
@@ -146,11 +160,13 @@ SELECT * FROM schema_version ORDER BY applied_at DESC LIMIT 1;
 ## Rollback Procedure
 
 ### Automated Rollback
+
 ```bash
 ./rollback-migration.sh /var/backups/postgresql/<backup-file>
 ```
 
 ### Manual Rollback
+
 ```bash
 # Stop services
 sudo systemctl stop mcp-orchestrator perplexity-mcp it-mcp
@@ -168,6 +184,7 @@ sudo systemctl start mcp-orchestrator perplexity-mcp it-mcp
 ### Common Issues
 
 #### 1. Permission Denied
+
 ```bash
 # Fix ownership
 sudo chown -R postgres:postgres /var/lib/postgresql
@@ -175,6 +192,7 @@ sudo chmod 700 /var/lib/postgresql/16/main
 ```
 
 #### 2. Connection Refused
+
 ```bash
 # Check PostgreSQL is listening
 sudo netstat -tlnp | grep 5432
@@ -182,6 +200,7 @@ sudo systemctl restart postgresql
 ```
 
 #### 3. Migration Fails Mid-Way
+
 ```bash
 # Check transaction status
 PGPASSWORD="..." psql -U mcp_admin -d mcp_ecosystem -c "\l"
@@ -191,6 +210,7 @@ sudo -u postgres psql -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity
 ```
 
 #### 4. Services Won't Start After Migration
+
 ```bash
 # Check service logs
 journalctl -u mcp-orchestrator -n 50
@@ -204,6 +224,7 @@ PGPASSWORD="..." psql -h localhost -U mcp_admin -d mcp_ecosystem -c "SELECT 1"
 ## Post-Migration Tasks
 
 ### 1. Test New Features
+
 ```sql
 -- Test full-text search
 SELECT * FROM search_thoughts('analysis', 20);
@@ -219,6 +240,7 @@ SELECT * FROM v_branch_summary;
 ```
 
 ### 2. Monitor Performance
+
 ```bash
 # Watch PostgreSQL logs
 sudo tail -f /var/log/postgresql/postgresql-16-main.log
@@ -231,7 +253,9 @@ PGPASSWORD="..." psql -U mcp_admin -d mcp_ecosystem \
 ```
 
 ### 3. Update Service Configurations
+
 If services need the new features, update their configuration files:
+
 ```bash
 # Update environment variables if needed
 sudo nano /etc/mcp-orchestrator/config.env
@@ -246,23 +270,29 @@ sudo systemctl restart mcp-orchestrator perplexity-mcp it-mcp
 ## Support Information
 
 ### Log Locations
+
 - Migration log: `/var/log/mcp/migration_v02_*.log`
 - PostgreSQL log: `/var/log/postgresql/postgresql-16-main.log`
 - Service logs: `journalctl -u <service-name>`
 
 ### Backup Locations
+
 - Database backups: `/var/backups/postgresql/`
 - Migration report: `/opt/mcp/migration-v02/migration_report_*.md`
 
 ### Contact
+
 For issues during migration:
+
 1. Check the troubleshooting section
 2. Review logs for specific errors
 3. Ensure rollback procedure is available
 4. Document any errors for support
 
 ## Success Criteria
+
 The migration is successful when:
+
 - [x] All 4 new tables exist
 - [x] All 5 new functions are callable
 - [x] Schema version shows 0.2.0
@@ -271,4 +301,5 @@ The migration is successful when:
 - [x] Full-text search returns results
 
 ---
+
 **Important**: Keep the backup file safe until the system has been running stable for at least 24 hours post-migration.

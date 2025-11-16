@@ -1,4 +1,5 @@
 # Phase 0: Pre-Flight Check - System State Report
+
 **Date:** 2025-11-06
 **Your Public IP (IPv6):** `2405:dc00:ed5b:61b4:2068:1ff7:63be:74e9`
 
@@ -7,6 +8,7 @@
 ## VM Inventory & Current State
 
 ### VMI01 - Dev/MCP Server (46.250.243.123)
+
 - **Hostname:** vmi2870958
 - **OS:** Ubuntu 24.04.3 LTS (Noble Numbat)
 - **Kernel:** 6.8.0-86-generic (x86_64)
@@ -20,6 +22,7 @@
 - **Services:** Minimal Ubuntu installation, SSH active
 
 ### VMI02D - Storage Server (46.250.241.70)
+
 - **Hostname:** vmi2888815
 - **OS:** Ubuntu 24.04.3 LTS (Noble Numbat)
 - **Kernel:** 6.8.0-86-generic (x86_64)
@@ -31,6 +34,7 @@
 - **Services:** Minimal Ubuntu installation, SSH active
 
 ### VMI03 - Security Gateway (154.26.158.31)
+
 - **Hostname:** vmi2889604
 - **OS:** Ubuntu 24.04.3 LTS (Noble Numbat)
 - **Kernel:** 6.8.0-86-generic (x86_64)
@@ -46,11 +50,13 @@
 ## Credentials & Keys Generated
 
 ### Root Access
+
 - **Username:** root
 - **Password:** caxr84di@f1GLlCv
 - **Status:** ✅ All three VMs accessible
 
 ### Admin SSH Keys Generated
+
 1. **dev-admin** (VMI01)
    - Private key: `.key/ssh/dev-admin_id_ed25519`
    - Public key: `.key/ssh/dev-admin_id_ed25519.pub`
@@ -67,10 +73,12 @@
    - Fingerprint: SHA256:b3c6jql+op1MTgkJnbdfuTKQtNz+A6RYLUOmCz0xjXY
 
 ### API Keys
+
 - **Perplexity API:** `[REDACTED]`
 - **Cloudflare DNS:** `[REDACTED]`
 
 ### Backup Configuration
+
 - **Provider:** Wasabi S3 (AP Southeast 2)
 - **Bucket:** vmibackups
 - **Endpoint:** s3.ap-southeast-2.wasabisys.com
@@ -99,6 +107,7 @@ Internet
 ---
 
 ## Whitelist Configuration
+
 - **Your Public IP:** `2405:dc00:ed5b:61b4:2068:1ff7:63be:74e9`
 - **Whitelisted Device:** FOTW_XVP7W61TJM (MAC: 6e:d9:d3:17:f6:48)
 - **Whitelisted User:** alex.campkin
@@ -108,6 +117,7 @@ Internet
 ## Security Baseline Assessment
 
 ### Current State: ⚠️ **Minimal Security**
+
 - ✅ SSH enabled (good for remote access)
 - ❌ Password authentication enabled for root (HIGH RISK)
 - ❌ No firewall configured
@@ -118,6 +128,7 @@ Internet
 - ❌ Default Ubuntu services exposed
 
 ### Target State: ✅ **8/10 Security Standard** (Phase 1)
+
 - SSH key-only authentication
 - UFW firewall with strict rules
 - Fail2Ban with IP whitelisting

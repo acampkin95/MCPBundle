@@ -2,11 +2,11 @@
 
 ## Emergency Contacts
 
-| Issue Type | Contact | Method |
-|------------|---------|--------|
-| Database | DBA Team | dba@example.com |
-| Application | DevOps | devops@example.com |
-| Security | SecOps | security@example.com |
+| Issue Type     | Contact  | Method               |
+| -------------- | -------- | -------------------- |
+| Database       | DBA Team | dba@example.com      |
+| Application    | DevOps   | devops@example.com   |
+| Security       | SecOps   | security@example.com |
 | Infrastructure | Platform | platform@example.com |
 
 ---
@@ -239,27 +239,27 @@ monitoring:
 
 ## Port Reference
 
-| Port | Agent | VM | Purpose |
-|------|-------|-----|---------|
-| 9100 | db-optimizer | VMI01 | Health/Metrics |
-| 9101 | app-health | VMI01 | Health/Metrics |
-| 9200 | storage-mgmt | VMI02D | Health/Metrics |
-| 9201 | service-health | VMI02D | Health/Metrics |
-| 9300 | network-sec | VMI03 | Health/Metrics |
-| 9301 | identity-mgmt | VMI03 | Health/Metrics |
-| 9091 | pushgateway | VMI01 | Metrics aggregation |
-| 9090 | prometheus | VMI01 | Metrics storage |
-| 3030 | grafana | VMI01 | Visualization |
+| Port | Agent          | VM     | Purpose             |
+| ---- | -------------- | ------ | ------------------- |
+| 9100 | db-optimizer   | VMI01  | Health/Metrics      |
+| 9101 | app-health     | VMI01  | Health/Metrics      |
+| 9200 | storage-mgmt   | VMI02D | Health/Metrics      |
+| 9201 | service-health | VMI02D | Health/Metrics      |
+| 9300 | network-sec    | VMI03  | Health/Metrics      |
+| 9301 | identity-mgmt  | VMI03  | Health/Metrics      |
+| 9091 | pushgateway    | VMI01  | Metrics aggregation |
+| 9090 | prometheus     | VMI01  | Metrics storage     |
+| 3030 | grafana        | VMI01  | Visualization       |
 
 ---
 
 ## Alert Severity
 
-| Level | Examples | Action |
-|-------|----------|--------|
+| Level        | Examples                                     | Action             |
+| ------------ | -------------------------------------------- | ------------------ |
 | **Critical** | Service down, disk full, auto-restart failed | Immediate response |
-| **Warning** | High CPU (>80%), cache hit low | Investigate soon |
-| **Info** | Service restarted, vacuum needed | Awareness only |
+| **Warning**  | High CPU (>80%), cache hit low               | Investigate soon   |
+| **Info**     | Service restarted, vacuum needed             | Awareness only     |
 
 ---
 
@@ -367,13 +367,13 @@ ORDER BY n_dead_tup DESC;
 
 ### Normal Operating Ranges
 
-| Metric | Normal | Warning | Critical |
-|--------|--------|---------|----------|
-| CPU per agent | <5% | 5-10% | >10% |
-| Memory per agent | 100-200MB | 200-400MB | >400MB |
-| DB cache hit ratio | >95% | 90-95% | <90% |
-| Disk usage | <70% | 70-85% | >85% |
-| Response time | <100ms | 100-500ms | >500ms |
+| Metric             | Normal    | Warning   | Critical |
+| ------------------ | --------- | --------- | -------- |
+| CPU per agent      | <5%       | 5-10%     | >10%     |
+| Memory per agent   | 100-200MB | 200-400MB | >400MB   |
+| DB cache hit ratio | >95%      | 90-95%    | <90%     |
+| Disk usage         | <70%      | 70-85%    | >85%     |
+| Response time      | <100ms    | 100-500ms | >500ms   |
 
 ### Typical Rates
 

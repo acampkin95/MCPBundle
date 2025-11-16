@@ -22,8 +22,18 @@ PRIMARY_HOST="46.250.243.123"
 STANDBY_HOST="46.250.241.70"
 DB_NAME="mcp_ecosystem"
 DB_USER="mcp_admin"
-DB_PASSWORD="MCP#Secure2025!Prod"
-VM_PASSWORD="C0nnaught"
+DB_PASSWORD="${DB_PASSWORD:-${DB_ADMIN_PASSWORD:-}}"
+VM_PASSWORD="${VM_PASSWORD:-${MCP_ROOT_PASSWORD:-}}"
+
+if [[ -z "${DB_PASSWORD:-}" ]]; then
+    echo "DB_PASSWORD (or DB_ADMIN_PASSWORD) must be exported via Contabo Secrets (npm run secrets:pull) before running." >&2
+    exit 1
+fi
+
+if [[ -z "${VM_PASSWORD:-}" ]]; then
+    echo "VM_PASSWORD (or MCP_ROOT_PASSWORD) must be exported via Contabo Secrets (npm run secrets:pull) before running." >&2
+    exit 1
+fi
 
 # Initialize report
 echo "{" > "$REPORT_FILE"
@@ -108,7 +118,7 @@ fi
 echo ""
 echo "Testing Replication Status..."
 start_time=$(date +%s%N)
-replication_status=$(sshpass -p "$VM_PASSWORD" ssh -o StrictHostKeyChecking=no root@$PRIMARY_HOST \
+replication_status=$(SSHPASS="$VM_PASSWORD" sshpass -e ssh -o StrictHostKeyChecking=no root@$PRIMARY_HOST \
     "sudo -u postgres psql -c \"SELECT state, sync_state FROM pg_stat_replication;\" 2>/dev/null | grep streaming" || echo "")
 
 end_time=$(date +%s%N)

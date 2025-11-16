@@ -1,6 +1,7 @@
 # Dependencies
 node_modules/
 .npm-cache/
+.next/
 
 # Build outputs
 dist/
@@ -39,10 +40,25 @@ coverage/
 .DS_Store
 Thumbs.db
 
-# Environment
+# Environment Variables (CRITICAL SECURITY)
+# NEVER commit .env files containing real credentials!
+# Only .env.example templates should be committed
+
+# Production environment files (NEVER commit)
 .env
+.env.production
+.env.staging
+
+# Local environment overrides (NEVER commit)
 .env.local
 .env.*.local
+.env.development.local
+.env.test.local
+
+# Allow .env.example templates (safe to commit)
+!.env.example
+!.env.production.example
+!**/.env.example
 
 # Database
 *.db
@@ -59,11 +75,46 @@ tmp/
 temp/
 *.tmp
 
-# Credentials (should be managed securely)
+# Credentials and Secrets (CRITICAL SECURITY)
+# All credential files must be excluded from git
 **/credentials*.txt
 **/secrets*.txt
+**/credentials*.json
+**/secrets*.json
+**/credentials*.yaml
+**/secrets*.yaml
 .keys/
 **/.keys/
+*.key
+*.pem
+*.p12
+*.pfx
+**/.credentials/
+**/.secrets/
+
+# API keys and tokens
+**/api-keys.txt
+**/tokens.txt
+**/.api-keys/
+**/.tokens/
+
+# SSH keys (should use SSH agent, not repo)
+id_rsa
+id_rsa.pub
+id_ed25519
+id_ed25519.pub
+*.ppk
+
+# GPG keys
+*.gpg
+*.asc
+secring.gpg
+
+# Certificate files
+*.crt
+*.cer
+*.der
+!**/ca-bundle.crt  # Allow CA bundles
 
 # Husky
 .husky/_

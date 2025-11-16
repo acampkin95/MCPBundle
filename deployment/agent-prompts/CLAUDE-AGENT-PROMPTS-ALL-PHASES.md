@@ -1,7 +1,9 @@
 # Claude Agent Prompts - Complete 3-VM Infrastructure Deployment
+
 ## 27 Specialized Agents Across 6 Phases
 
 **Target Infrastructure:**
+
 - **VMI01** (46.250.243.123): Dev Server + PostgreSQL + MCP Bundle
 - **VMI02D** (46.250.241.70): Storage Server (NextCloud + Plex)
 - **VMI03** (154.26.158.31): Security Gateway (WireGuard + Keycloak + pfSense)
@@ -14,18 +16,19 @@
 
 ## 📋 Quick Reference: Agent Execution Order
 
-| Phase | Agents | Parallel Group | Dependencies |
-|-------|--------|----------------|--------------|
-| Phase 1 | 1-6 | Groups 1-2 (6 parallel) | None |
-| Phase 2 | 7-10 | Groups 3-4 (4 parallel) | Phase 1 complete |
-| Phase 3 | 11-13 | Group 5 (3 parallel) | Phase 2 complete |
-| Phase 4 | 14-18 | Groups 6-7 (5 parallel) | Phase 3 complete |
-| Phase 5 | 19-24 | Groups 8-9 (6 parallel) | Phase 4 complete |
-| Phase 6 | 25-27 | Sequential | Phase 5 complete |
+| Phase   | Agents | Parallel Group          | Dependencies     |
+| ------- | ------ | ----------------------- | ---------------- |
+| Phase 1 | 1-6    | Groups 1-2 (6 parallel) | None             |
+| Phase 2 | 7-10   | Groups 3-4 (4 parallel) | Phase 1 complete |
+| Phase 3 | 11-13  | Group 5 (3 parallel)    | Phase 2 complete |
+| Phase 4 | 14-18  | Groups 6-7 (5 parallel) | Phase 3 complete |
+| Phase 5 | 19-24  | Groups 8-9 (6 parallel) | Phase 4 complete |
+| Phase 6 | 25-27  | Sequential              | Phase 5 complete |
 
 ---
 
 # PHASE 1: Base Infrastructure & Security Foundation
+
 ## ⏱️ Duration: 2-3 hours | 🔄 Parallel: 6 agents simultaneously
 
 ### Parallel Group 1: System Hardening (Run agents 1-3 simultaneously)
@@ -57,7 +60,7 @@ You are the security hardening specialist for VMI01 (Dev Server). Your mission i
 
 2. **Restricted User Creation**
    - Create user: `AccessService`
-   - Password: `Jeremylikestosuckbigdicks8==>`
+   - Password: ``
    - Home directory: `/home/AccessService` (restricted permissions)
    - Shell: `/bin/rbash` (restricted bash)
    - No sudo privileges
@@ -163,7 +166,7 @@ You are the security hardening specialist for VMI02D (Storage Server). This serv
 
 2. **Restricted User Creation**
    - Create user: `AccessService`
-   - Password: `Jeremylikestosuckbigdicks8==>`
+   - Password: ``
    - Restricted shell and permissions (same as VMI01)
    - No sudo, no config access
 
@@ -248,7 +251,7 @@ You are the security hardening specialist for VMI03 (Security Gateway). This is 
 
 2. **Restricted User Creation**
    - Create user: `AccessService`
-   - Password: `Jeremylikestosuckbigdicks8==>`
+   - Password: ``
    - Heavily restricted (more than other servers)
    - Chroot jail environment
    - Audit all AccessService actions
@@ -476,6 +479,7 @@ Set up security-focused monitoring for VMI03 (Security Gateway). Network traffic
 ---
 
 # PHASE 2: Core Services Deployment
+
 ## ⏱️ Duration: 3-4 hours | 🔄 Parallel: 4 agents simultaneously
 
 ### Parallel Group 3: Database & Caching (Run agents 7-8 simultaneously)
@@ -488,13 +492,13 @@ Set up security-focused monitoring for VMI03 (Security Gateway). Network traffic
 **Target:** VMI01 (46.250.243.123)
 **Duration:** ~90 minutes
 
-```
+````
 Deploy and optimize PostgreSQL 16 for the MCP Ecosystem. The schema is ALREADY deployed (from previous work), but you need to verify, optimize, and configure remote access.
 
 **Background:**
 The `mcp_ecosystem` database exists on VMI01 with full schema (97 indexes, 16 tables, 3 partitioned tables, 5 triggers, 49 functions). Credentials:
 - User: mcp_admin
-- Password: TeBsn4f2cS0O7vfdvYFTb37L6SdJFL+mpOgksTwgHy0=
+- Password:
 - Database: mcp_ecosystem
 
 **Tasks:**
@@ -585,7 +589,7 @@ The `mcp_ecosystem` database exists on VMI01 with full schema (97 indexes, 16 ta
 - Backup test results
 - Schema validation report
 - Performance baseline metrics
-```
+````
 
 ---
 
@@ -674,7 +678,7 @@ Deploy and configure Redis 7 for MCP workload: caching, pub/sub, and command que
 **Target:** VMI02D (46.250.241.70)
 **Duration:** ~90 minutes
 
-```
+````
 Install NextCloud on VMI02D but keep it DISABLED by default. Prepare for future activation with all security measures in place.
 
 **IMPORTANT:** NextCloud should be installed but NOT started. Create control scripts to enable/disable easily.
@@ -762,7 +766,7 @@ Install NextCloud on VMI02D but keep it DISABLED by default. Prepare for future 
 - Control script locations
 - Admin credentials (secure storage)
 - Future activation instructions
-```
+````
 
 ---
 
@@ -772,7 +776,7 @@ Install NextCloud on VMI02D but keep it DISABLED by default. Prepare for future 
 **Target:** VMI02D (46.250.241.70)
 **Duration:** ~60 minutes
 
-```
+````
 Install Plex Media Server on VMI02D but keep it DISABLED. Prepare for future media library management.
 
 **IMPORTANT:** Plex should be installed but NOT started. Create control scripts for easy enable/disable.
@@ -839,11 +843,12 @@ Install Plex Media Server on VMI02D but keep it DISABLED. Prepare for future med
 - Control script locations
 - Configuration summary
 - Security settings documented
-```
+````
 
 ---
 
 # PHASE 3: MCP Ecosystem Integration
+
 ## ⏱️ Duration: 2-3 hours | 🔄 Parallel: 3 agents simultaneously
 
 ### Parallel Group 5: MCP Services (Run agents 11-13 simultaneously)
@@ -856,7 +861,7 @@ Install Plex Media Server on VMI02D but keep it DISABLED. Prepare for future med
 **Target:** VMI01 (46.250.243.123)
 **Duration:** ~60 minutes
 
-```
+````
 Deploy MCP-Orchestrator from the release_dev directory. This is the central command orchestration service.
 
 **Source Code:** /Users/alex/Projects/MCP Bundle/release_dev/mcp-orchestrator/
@@ -871,7 +876,7 @@ Deploy MCP-Orchestrator from the release_dev directory. This is the central comm
 2. **Environment Configuration**
    - Create /opt/mcp-orchestrator/.env:
      ```env
-     POSTGRES_CONNECTION_STRING=postgresql://mcp_admin:TeBsn4f2cS0O7vfdvYFTb37L6SdJFL+mpOgksTwgHy0=@localhost:5432/mcp_ecosystem
+     POSTGRES_CONNECTION_STRING=postgresql://mcp_admin:@localhost:5432/mcp_ecosystem
      REDIS_URL=redis://<password>@localhost:6379
      KEYCLOAK_SERVER_URL=https://auth.acdev.host:8080
      KEYCLOAK_REALM=mcp-ecosystem
@@ -935,7 +940,7 @@ Deploy MCP-Orchestrator from the release_dev directory. This is the central comm
 - Deployment report
 - Service status
 - Configuration summary
-```
+````
 
 ---
 
@@ -945,7 +950,7 @@ Deploy MCP-Orchestrator from the release_dev directory. This is the central comm
 **Target:** VMI01 (46.250.243.123)
 **Duration:** ~60 minutes
 
-```
+````
 Deploy Perplexity-MCP from release_dev directory. This provides business intelligence and research via Perplexity API.
 
 **Source Code:** /Users/alex/Projects/MCP Bundle/release_dev/perplexity-mcp/
@@ -966,7 +971,7 @@ Deploy Perplexity-MCP from release_dev directory. This provides business intelli
    - Create /opt/perplexity-mcp/.env:
      ```env
      PERPLEXITY_API_KEY=pplx-<YOUR_KEY>
-     DATABASE_URL=postgresql://mcp_admin:TeBsn4f2cS0O7vfdvYFTb37L6SdJFL+mpOgksTwgHy0=@localhost:5432/mcp_ecosystem
+     DATABASE_URL=postgresql://mcp_admin:@localhost:5432/mcp_ecosystem
      MCP_MODE=acdev
      REDIS_URL=redis://<password>@localhost:6379
      KEYCLOAK_URL=https://auth.acdev.host:8080/auth
@@ -1016,7 +1021,7 @@ Deploy Perplexity-MCP from release_dev directory. This provides business intelli
 - API connectivity test
 - Budget configuration
 - Service status
-```
+````
 
 ---
 
@@ -1026,7 +1031,7 @@ Deploy Perplexity-MCP from release_dev directory. This provides business intelli
 **Target:** VMI01 (46.250.243.123)
 **Duration:** ~45 minutes
 
-```
+````
 Deploy IT-MCP (ITJSST-MCP) server instance for cross-platform diagnostics on VMI01.
 
 **Source Code:** /Users/alex/Projects/MCP Bundle/release_dev/itjsst-mcp/
@@ -1044,7 +1049,7 @@ Deploy IT-MCP (ITJSST-MCP) server instance for cross-platform diagnostics on VMI
      IT_MCP_ALLOW_SUDO=true
      IT_MCP_LOG_LEVEL=info
      IT_MCP_CAPTURE_DIR=/var/log/it-mcp/captures
-     POSTGRES_URL=postgresql://mcp_admin:TeBsn4f2cS0O7vfdvYFTb37L6SdJFL+mpOgksTwgHy0=@localhost:5432/mcp_ecosystem
+     POSTGRES_URL=postgresql://mcp_admin:@localhost:5432/mcp_ecosystem
      IT_MCP_REGISTRY_URL=http://localhost:9090/api/v1
      IT_MCP_SERVER_ID=vmi01-server
      KEYCLOAK_SERVER_URL=https://auth.acdev.host:8080
@@ -1087,11 +1092,12 @@ Deploy IT-MCP (ITJSST-MCP) server instance for cross-platform diagnostics on VMI
 - Deployment report
 - Diagnostic capabilities list
 - Service status
-```
+````
 
 ---
 
 # PHASE 4: Security Gateway & VPN Infrastructure
+
 ## ⏱️ Duration: 4-5 hours | 🔄 Parallel: Groups 6-7
 
 ### Parallel Group 6: WireGuard VPN Tunnels (Run agents 14-16 simultaneously)
@@ -1104,7 +1110,7 @@ Deploy IT-MCP (ITJSST-MCP) server instance for cross-platform diagnostics on VMI
 **Target:** All 3 VMs (VMI01, VMI02D, VMI03)
 **Duration:** ~60 minutes
 
-```
+````
 You are the network security specialist establishing the Root VPN tunnel (port 51820) connecting all three infrastructure VMs. This is the primary secure backbone for all infrastructure communication.
 
 **Tunnel Purpose:** Root Infrastructure Communication
@@ -1123,9 +1129,10 @@ You are the network security specialist establishing the Root VPN tunnel (port 5
    ```bash
    sudo apt update
    sudo apt install wireguard wireguard-tools -y
-   ```
+````
 
 2. **Generate Keypairs for Each VM**
+
    ```bash
    # On each VM
    wg genkey | tee /etc/wireguard/root_privatekey | wg pubkey > /etc/wireguard/root_publickey
@@ -1135,6 +1142,7 @@ You are the network security specialist establishing the Root VPN tunnel (port 5
 
 3. **Configure VMI01 (Hub Server)**
    Create `/etc/wireguard/wg-root.conf`:
+
    ```ini
    [Interface]
    Address = 10.0.50.1/24
@@ -1164,6 +1172,7 @@ You are the network security specialist establishing the Root VPN tunnel (port 5
 
 4. **Configure VMI02D (Storage Server)**
    Create `/etc/wireguard/wg-root.conf`:
+
    ```ini
    [Interface]
    Address = 10.0.50.2/24
@@ -1180,6 +1189,7 @@ You are the network security specialist establishing the Root VPN tunnel (port 5
 
 5. **Configure VMI03 (Security Gateway)**
    Create `/etc/wireguard/wg-root.conf`:
+
    ```ini
    [Interface]
    Address = 10.0.50.3/24
@@ -1196,18 +1206,21 @@ You are the network security specialist establishing the Root VPN tunnel (port 5
 
 6. **UFW Firewall Rules**
    On all VMs:
+
    ```bash
    sudo ufw allow 51820/udp comment 'WireGuard Root Tunnel'
    ```
 
 7. **Enable and Start WireGuard**
    On all VMs:
+
    ```bash
    sudo systemctl enable wg-quick@wg-root
    sudo systemctl start wg-quick@wg-root
    ```
 
 8. **Verify Connectivity**
+
    ```bash
    # From VMI01
    ping -c 3 10.0.50.2  # Ping VMI02D
@@ -1221,6 +1234,7 @@ You are the network security specialist establishing the Root VPN tunnel (port 5
    ```
 
 9. **Security Validation**
+
    ```bash
    # Check tunnel status on each VM
    sudo wg show wg-root
@@ -1236,6 +1250,7 @@ You are the network security specialist establishing the Root VPN tunnel (port 5
     - Record MTU settings (typically 1420)
 
 **Validation:**
+
 - All 3 VMs can ping each other via 10.0.50.x addresses
 - WireGuard interface `wg-root` is up on all VMs
 - Handshakes are recent (< 2 minutes)
@@ -1244,6 +1259,7 @@ You are the network security specialist establishing the Root VPN tunnel (port 5
 - `systemctl status wg-quick@wg-root` shows active on all VMs
 
 **Output Required:**
+
 - Network topology diagram showing 10.0.50.x assignments
 - Public keys for all VMs (for documentation)
 - Connectivity test results
@@ -1251,10 +1267,12 @@ You are the network security specialist establishing the Root VPN tunnel (port 5
 - Any connection issues and resolutions
 
 **SECURITY NOTES:**
+
 - NEVER share private keys in logs or output
 - Use PSK (preshared keys) for additional quantum resistance
 - Verify all keys are chmod 600
 - Test connectivity before closing external SSH sessions
+
 ```
 
 ---
@@ -1266,6 +1284,7 @@ You are the network security specialist establishing the Root VPN tunnel (port 5
 **Duration:** ~45 minutes
 
 ```
+
 You are configuring the dedicated MCP tunnel (port 51821) for secure MCP protocol communication between VMI01 and VMI03, isolated from root infrastructure traffic.
 
 **Tunnel Purpose:** MCP Inter-Service Communication
@@ -1274,6 +1293,7 @@ You are configuring the dedicated MCP tunnel (port 51821) for secure MCP protoco
 **Participants:** VMI01 (MCP servers) ↔ VMI03 (Gateway/Proxy)
 
 **Network Assignment:**
+
 - **VMI01**: 10.0.51.1/24 (MCP Hub)
 - **VMI03**: 10.0.51.3/24 (MCP Gateway)
 
@@ -1281,6 +1301,7 @@ You are configuring the dedicated MCP tunnel (port 51821) for secure MCP protoco
 
 1. **Generate Keypairs**
    On VMI01 and VMI03:
+
    ```bash
    wg genkey | tee /etc/wireguard/mcp_privatekey | wg pubkey > /etc/wireguard/mcp_publickey
    wg genpsk > /etc/wireguard/mcp_psk
@@ -1289,6 +1310,7 @@ You are configuring the dedicated MCP tunnel (port 51821) for secure MCP protoco
 
 2. **Configure VMI01 (MCP Hub)**
    Create `/etc/wireguard/wg-mcp.conf`:
+
    ```ini
    [Interface]
    Address = 10.0.51.1/24
@@ -1314,6 +1336,7 @@ You are configuring the dedicated MCP tunnel (port 51821) for secure MCP protoco
 
 3. **Configure VMI03 (MCP Gateway)**
    Create `/etc/wireguard/wg-mcp.conf`:
+
    ```ini
    [Interface]
    Address = 10.0.51.3/24
@@ -1331,18 +1354,21 @@ You are configuring the dedicated MCP tunnel (port 51821) for secure MCP protoco
 
 4. **UFW Configuration**
    On VMI01:
+
    ```bash
    sudo ufw allow 51821/udp comment 'WireGuard MCP Tunnel'
    sudo ufw allow from 10.0.51.0/24 to any port 3000:3002 proto tcp comment 'MCP Services via tunnel'
    ```
 
    On VMI03:
+
    ```bash
    sudo ufw allow 51821/udp comment 'WireGuard MCP Tunnel'
    ```
 
 5. **Enable MCP Tunnel**
    On both VMs:
+
    ```bash
    sudo systemctl enable wg-quick@wg-mcp
    sudo systemctl start wg-quick@wg-mcp
@@ -1350,6 +1376,7 @@ You are configuring the dedicated MCP tunnel (port 51821) for secure MCP protoco
 
 6. **MCP Service Access Verification**
    From VMI03:
+
    ```bash
    # Test MCP orchestrator (port 3000)
    curl -v http://10.0.51.1:3000/health
@@ -1363,6 +1390,7 @@ You are configuring the dedicated MCP tunnel (port 51821) for secure MCP protoco
 
 7. **QoS Configuration (Optional)**
    On VMI01 (prioritize MCP traffic):
+
    ```bash
    sudo tc qdisc add dev wg-mcp root fq_codel
    ```
@@ -1375,6 +1403,7 @@ You are configuring the dedicated MCP tunnel (port 51821) for secure MCP protoco
    ```
 
 **Validation:**
+
 - MCP tunnel established (wg show wg-mcp)
 - VMI03 can reach all MCP services on 10.0.51.1:3000-3002
 - Handshakes are active
@@ -1383,6 +1412,7 @@ You are configuring the dedicated MCP tunnel (port 51821) for secure MCP protoco
 - iptables rules active
 
 **Output Required:**
+
 - Tunnel status report
 - MCP service connectivity test results
 - Bandwidth test results (iperf3 if available)
@@ -1390,10 +1420,12 @@ You are configuring the dedicated MCP tunnel (port 51821) for secure MCP protoco
 - Configuration summary
 
 **SECURITY NOTES:**
+
 - MCP tunnel isolated from root tunnel traffic
 - Only MCP ports (3000-3002) accessible via tunnel
 - All MCP traffic encrypted in transit
 - PSK provides post-quantum security layer
+
 ```
 
 ---
@@ -1405,6 +1437,7 @@ You are configuring the dedicated MCP tunnel (port 51821) for secure MCP protoco
 **Duration:** ~45 minutes
 
 ```
+
 You are establishing the Red tunnel (port 51822) for secure media streaming and storage access between VMI02D (storage) and VMI03 (gateway). This tunnel handles high-bandwidth traffic.
 
 **Tunnel Purpose:** Media/Storage Communication (NextCloud, Plex)
@@ -1413,6 +1446,7 @@ You are establishing the Red tunnel (port 51822) for secure media streaming and 
 **Participants:** VMI02D (Storage) ↔ VMI03 (Gateway)
 
 **Network Assignment:**
+
 - **VMI02D**: 10.0.52.2/24 (Storage Server)
 - **VMI03**: 10.0.52.3/24 (Gateway)
 
@@ -1420,6 +1454,7 @@ You are establishing the Red tunnel (port 51822) for secure media streaming and 
 
 1. **Generate Keypairs**
    On VMI02D and VMI03:
+
    ```bash
    wg genkey | tee /etc/wireguard/red_privatekey | wg pubkey > /etc/wireguard/red_publickey
    wg genpsk > /etc/wireguard/red_psk
@@ -1428,6 +1463,7 @@ You are establishing the Red tunnel (port 51822) for secure media streaming and 
 
 2. **Configure VMI02D (Storage Hub)**
    Create `/etc/wireguard/wg-red.conf`:
+
    ```ini
    [Interface]
    Address = 10.0.52.2/24
@@ -1453,6 +1489,7 @@ You are establishing the Red tunnel (port 51822) for secure media streaming and 
 
 3. **Configure VMI03 (Gateway)**
    Create `/etc/wireguard/wg-red.conf`:
+
    ```ini
    [Interface]
    Address = 10.0.52.3/24
@@ -1470,6 +1507,7 @@ You are establishing the Red tunnel (port 51822) for secure media streaming and 
 
 4. **UFW Configuration**
    On VMI02D:
+
    ```bash
    sudo ufw allow 51822/udp comment 'WireGuard Red Tunnel'
    sudo ufw allow from 10.0.52.0/24 to any port 80 proto tcp comment 'NextCloud HTTP'
@@ -1478,12 +1516,14 @@ You are establishing the Red tunnel (port 51822) for secure media streaming and 
    ```
 
    On VMI03:
+
    ```bash
    sudo ufw allow 51822/udp comment 'WireGuard Red Tunnel'
    ```
 
 5. **Enable Red Tunnel**
    On both VMs:
+
    ```bash
    sudo systemctl enable wg-quick@wg-red
    sudo systemctl start wg-quick@wg-red
@@ -1491,6 +1531,7 @@ You are establishing the Red tunnel (port 51822) for secure media streaming and 
 
 6. **Bandwidth Optimization**
    On VMI02D (optimize for streaming):
+
    ```bash
    # TCP tuning for high-bandwidth transfers
    sudo sysctl -w net.core.rmem_max=134217728
@@ -1505,6 +1546,7 @@ You are establishing the Red tunnel (port 51822) for secure media streaming and 
 
 7. **Storage Service Connectivity Test**
    From VMI03:
+
    ```bash
    # Test NextCloud (when deployed)
    curl -I http://10.0.52.2:80
@@ -1515,6 +1557,7 @@ You are establishing the Red tunnel (port 51822) for secure media streaming and 
    ```
 
 8. **Bandwidth Testing**
+
    ```bash
    # Install iperf3 on both VMs
    sudo apt install iperf3 -y
@@ -1535,6 +1578,7 @@ You are establishing the Red tunnel (port 51822) for secure media streaming and 
    ```
 
 **Validation:**
+
 - Red tunnel established (wg show wg-red)
 - VMI03 can reach VMI02D on 10.0.52.2
 - Bandwidth >= 500 Mbps (iperf3 test)
@@ -1543,6 +1587,7 @@ You are establishing the Red tunnel (port 51822) for secure media streaming and 
 - Handshakes active
 
 **Output Required:**
+
 - Tunnel status report
 - iperf3 bandwidth test results
 - Latency measurements (mtr or ping)
@@ -1550,10 +1595,12 @@ You are establishing the Red tunnel (port 51822) for secure media streaming and 
 - Configuration summary
 
 **NOTES:**
+
 - Red tunnel optimized for high-bandwidth media streaming
 - MTU set to 1500 (higher than other tunnels) for throughput
 - TCP optimizations applied for large file transfers
 - Services (NextCloud, Plex) currently disabled - tunnel ready for future use
+
 ```
 
 ---
@@ -1569,6 +1616,7 @@ You are establishing the Red tunnel (port 51822) for secure media streaming and 
 **Duration:** ~90 minutes
 
 ```
+
 You are the identity and access management specialist deploying Keycloak SSO on VMI03 to provide centralized authentication for all MCP services and infrastructure components.
 
 **Deployment Target:** VMI03 (Security Gateway)
@@ -1579,6 +1627,7 @@ You are the identity and access management specialist deploying Keycloak SSO on 
 **Tasks to Complete:**
 
 1. **PostgreSQL Installation for Keycloak**
+
    ```bash
    sudo apt install postgresql-16 postgresql-contrib -y
    sudo systemctl enable postgresql
@@ -1586,6 +1635,7 @@ You are the identity and access management specialist deploying Keycloak SSO on 
    ```
 
 2. **Create Keycloak Database**
+
    ```bash
    sudo -u postgres psql <<EOF
    CREATE DATABASE keycloak;
@@ -1596,12 +1646,14 @@ You are the identity and access management specialist deploying Keycloak SSO on 
    ```
 
 3. **Install Java 21 (Required for Keycloak)**
+
    ```bash
    sudo apt install openjdk-21-jdk -y
    java -version  # Verify installation
    ```
 
 4. **Download and Install Keycloak**
+
    ```bash
    cd /opt
    sudo wget https://github.com/keycloak/keycloak/releases/download/23.0.3/keycloak-23.0.3.tar.gz
@@ -1611,6 +1663,7 @@ You are the identity and access management specialist deploying Keycloak SSO on 
    ```
 
 5. **Create Keycloak User**
+
    ```bash
    sudo useradd -r -s /bin/false -d /opt/keycloak keycloak
    sudo chown -R keycloak:keycloak /opt/keycloak
@@ -1618,6 +1671,7 @@ You are the identity and access management specialist deploying Keycloak SSO on 
 
 6. **Configure Keycloak Database**
    Create `/opt/keycloak/conf/keycloak.conf`:
+
    ```properties
    # Database
    db=postgres
@@ -1640,6 +1694,7 @@ You are the identity and access management specialist deploying Keycloak SSO on 
    ```
 
 7. **Create Admin User**
+
    ```bash
    cd /opt/keycloak
    sudo -u keycloak bin/kc.sh bootstrap-admin \
@@ -1649,6 +1704,7 @@ You are the identity and access management specialist deploying Keycloak SSO on 
    ```
 
 8. **Build Keycloak (Optimized)**
+
    ```bash
    cd /opt/keycloak
    sudo -u keycloak bin/kc.sh build \
@@ -1658,6 +1714,7 @@ You are the identity and access management specialist deploying Keycloak SSO on 
 
 9. **Create Systemd Service**
    Create `/etc/systemd/system/keycloak.service`:
+
    ```ini
    [Unit]
    Description=Keycloak SSO Server
@@ -1680,6 +1737,7 @@ You are the identity and access management specialist deploying Keycloak SSO on 
    ```
 
 10. **UFW Configuration**
+
     ```bash
     sudo ufw allow 8080/tcp comment 'Keycloak HTTP'
     sudo ufw allow 8443/tcp comment 'Keycloak HTTPS'
@@ -1687,6 +1745,7 @@ You are the identity and access management specialist deploying Keycloak SSO on 
     ```
 
 11. **Start Keycloak**
+
     ```bash
     sudo systemctl daemon-reload
     sudo systemctl enable keycloak
@@ -1697,6 +1756,7 @@ You are the identity and access management specialist deploying Keycloak SSO on 
     ```
 
 12. **Create MCP Realm**
+
     ```bash
     # Access admin console: http://154.26.158.31:8080
     # Login with admin credentials
@@ -1732,6 +1792,7 @@ You are the identity and access management specialist deploying Keycloak SSO on 
     - Valid Redirect URIs: `http://10.0.51.1:3002/*`
 
 14. **Create User Roles**
+
     ```
     Roles to create in mcp-ecosystem realm:
     - mcp-admin: Full administrative access
@@ -1741,6 +1802,7 @@ You are the identity and access management specialist deploying Keycloak SSO on 
     ```
 
 15. **Create Test Users**
+
     ```
     User: dev-admin
     - Email: dev@acdev.host
@@ -1770,6 +1832,7 @@ You are the identity and access management specialist deploying Keycloak SSO on 
     - Set as required for admin role
 
 **Validation:**
+
 - Keycloak accessible at http://154.26.158.31:8080
 - Admin console login works
 - MCP-ecosystem realm created
@@ -1779,6 +1842,7 @@ You are the identity and access management specialist deploying Keycloak SSO on 
 - Password policies enforced
 
 **Output Required:**
+
 - Keycloak admin credentials (secure storage)
 - Client secrets for all 3 MCP services
 - Realm export (JSON backup)
@@ -1789,11 +1853,13 @@ You are the identity and access management specialist deploying Keycloak SSO on 
   - Userinfo: http://auth.acdev.host:8080/realms/mcp-ecosystem/protocol/openid-connect/userinfo
 
 **SECURITY NOTES:**
+
 - HTTPS should be configured in production (Let's Encrypt)
 - Admin console access restricted to VPN only
 - Regular realm exports for backup
 - Audit logging enabled
 - Session timeout: 15 minutes idle
+
 ```
 
 ---
@@ -1805,6 +1871,7 @@ You are the identity and access management specialist deploying Keycloak SSO on 
 **Duration:** ~60 minutes
 
 ```
+
 You are the network security specialist configuring pfSense firewall rules and Pi-Hole DNS filtering for the MCP ecosystem, blocking Pentanet (100.64.0.0/10) and malicious domains.
 
 **Target:** VMI03 (Security Gateway)
@@ -1814,6 +1881,7 @@ You are the network security specialist configuring pfSense firewall rules and P
 **Tasks to Complete:**
 
 1. **Install Pi-Hole**
+
    ```bash
    curl -sSL https://install.pi-hole.net | sudo bash
 
@@ -1827,6 +1895,7 @@ You are the network security specialist configuring pfSense firewall rules and P
    ```
 
 2. **Configure Pi-Hole**
+
    ```bash
    # Set admin password
    sudo pihole -a -p 'SecurePiHolePassword123!'
@@ -1836,6 +1905,7 @@ You are the network security specialist configuring pfSense firewall rules and P
 
 3. **Add Custom Block Lists**
    Settings > Blocklists > Add:
+
    ```
    # Malware domains
    https://malware-filter.gitlab.io/malware-filter/urlhaus-filter-hosts.txt
@@ -1849,18 +1919,21 @@ You are the network security specialist configuring pfSense firewall rules and P
 
 4. **Pentanet Blocking (100.64.0.0/10)**
    Create `/etc/pihole/custom-blocks.conf`:
+
    ```
    # Block Pentanet CGNAT range
    address=/100.64.0.0/10/0.0.0.0
    ```
 
    Add to Pi-Hole:
+
    ```bash
    echo "conf-file=/etc/pihole/custom-blocks.conf" | sudo tee -a /etc/dnsmasq.d/99-custom.conf
    sudo pihole restartdns
    ```
 
 5. **Install UFW and Configure pfSense-like Rules**
+
    ```bash
    sudo apt install ufw -y
 
@@ -1897,6 +1970,7 @@ You are the network security specialist configuring pfSense firewall rules and P
 
 6. **Configure iptables for Advanced Filtering**
    Create `/etc/iptables/pentanet-block.rules`:
+
    ```bash
    #!/bin/bash
 
@@ -1912,6 +1986,7 @@ You are the network security specialist configuring pfSense firewall rules and P
    ```
 
    Make persistent:
+
    ```bash
    sudo chmod +x /etc/iptables/pentanet-block.rules
    echo "/etc/iptables/pentanet-block.rules" | sudo tee -a /etc/rc.local
@@ -1921,18 +1996,21 @@ You are the network security specialist configuring pfSense firewall rules and P
    Update DNS on VMI01, VMI02D, VMI03 to use Pi-Hole:
 
    `/etc/resolv.conf`:
+
    ```
    nameserver 10.0.50.3  # Pi-Hole via root tunnel
    nameserver 1.1.1.1    # Fallback
    ```
 
    Make immutable:
+
    ```bash
    sudo chattr +i /etc/resolv.conf
    ```
 
 8. **Device Whitelisting (IP-based)**
    Create `/etc/ufw/before.rules` section:
+
    ```bash
    # Whitelisted devices (add your devices)
    -A ufw-before-input -s 192.168.1.100 -j ACCEPT -m comment --comment "Admin Laptop"
@@ -1940,12 +2018,14 @@ You are the network security specialist configuring pfSense firewall rules and P
    ```
 
 9. **Enable IP Forwarding**
+
    ```bash
    sudo sysctl -w net.ipv4.ip_forward=1
    echo "net.ipv4.ip_forward=1" | sudo tee -a /etc/sysctl.conf
    ```
 
 10. **Configure Logging**
+
     ```bash
     # UFW logging
     sudo ufw logging medium
@@ -1968,6 +2048,7 @@ You are the network security specialist configuring pfSense firewall rules and P
 
 11. **Fail2Ban for Pi-Hole Web Interface**
     Create `/etc/fail2ban/jail.local`:
+
     ```ini
     [pihole-web]
     enabled = true
@@ -1979,6 +2060,7 @@ You are the network security specialist configuring pfSense firewall rules and P
     ```
 
     Create filter `/etc/fail2ban/filter.d/pihole-web.conf`:
+
     ```ini
     [Definition]
     failregex = ^.* authentication failed for user .* from <HOST>$
@@ -1986,6 +2068,7 @@ You are the network security specialist configuring pfSense firewall rules and P
     ```
 
 12. **Test Pentanet Blocking**
+
     ```bash
     # Should fail/timeout
     ping -c 3 100.64.0.1
@@ -1996,6 +2079,7 @@ You are the network security specialist configuring pfSense firewall rules and P
     ```
 
 13. **Test DNS Filtering**
+
     ```bash
     # Should be blocked by Pi-Hole
     nslookup ads.google.com 10.0.50.3
@@ -2006,6 +2090,7 @@ You are the network security specialist configuring pfSense firewall rules and P
     ```
 
 **Validation:**
+
 - Pi-Hole web interface accessible at http://10.0.50.3/admin
 - Pentanet range (100.64.0.0/10) completely blocked
 - UFW rules active and correct
@@ -2017,6 +2102,7 @@ You are the network security specialist configuring pfSense firewall rules and P
 - Logging enabled and working
 
 **Output Required:**
+
 - Pi-Hole admin password (secure storage)
 - UFW status output (`sudo ufw status verbose`)
 - iptables rules (`sudo iptables -L -n -v`)
@@ -2026,11 +2112,13 @@ You are the network security specialist configuring pfSense firewall rules and P
 - Firewall rule documentation
 
 **SECURITY NOTES:**
+
 - Pi-Hole web interface only accessible via VPN tunnels
 - Pentanet blocking at multiple layers (UFW + iptables)
 - Device whitelisting recommended for SSH access
 - Regular blocklist updates scheduled
 - Query logging for security auditing
+
 ```
 
 ---
@@ -2049,6 +2137,7 @@ You are the network security specialist configuring pfSense firewall rules and P
 **Duration:** ~60 minutes
 
 ```
+
 You are the observability specialist deploying Prometheus for metrics collection across all infrastructure components and MCP services.
 
 **Target:** VMI01 (Dev Server)
@@ -2059,6 +2148,7 @@ You are the observability specialist deploying Prometheus for metrics collection
 **Tasks to Complete:**
 
 1. **Install Prometheus**
+
    ```bash
    cd /tmp
    wget https://github.com/prometheus/prometheus/releases/download/v2.48.0/prometheus-2.48.0.linux-amd64.tar.gz
@@ -2069,6 +2159,7 @@ You are the observability specialist deploying Prometheus for metrics collection
    ```
 
 2. **Create Prometheus Directories**
+
    ```bash
    sudo mkdir -p /etc/prometheus /var/lib/prometheus
    sudo chown prometheus:prometheus /etc/prometheus /var/lib/prometheus
@@ -2076,6 +2167,7 @@ You are the observability specialist deploying Prometheus for metrics collection
 
 3. **Configure Prometheus**
    Create `/etc/prometheus/prometheus.yml`:
+
    ```yaml
    global:
      scrape_interval: 15s
@@ -2154,6 +2246,7 @@ You are the observability specialist deploying Prometheus for metrics collection
 
 4. **Install Node Exporter on All VMs**
    Run on VMI01, VMI02D, VMI03:
+
    ```bash
    cd /tmp
    wget https://github.com/prometheus/node_exporter/releases/download/v1.7.0/node_exporter-1.7.0.linux-amd64.tar.gz
@@ -2164,6 +2257,7 @@ You are the observability specialist deploying Prometheus for metrics collection
 
 5. **Create Node Exporter Systemd Service**
    On all VMs, create `/etc/systemd/system/node_exporter.service`:
+
    ```ini
    [Unit]
    Description=Node Exporter
@@ -2182,6 +2276,7 @@ You are the observability specialist deploying Prometheus for metrics collection
    ```
 
    Enable and start:
+
    ```bash
    sudo systemctl daemon-reload
    sudo systemctl enable node_exporter
@@ -2190,6 +2285,7 @@ You are the observability specialist deploying Prometheus for metrics collection
 
 6. **Install PostgreSQL Exporter**
    On VMI01:
+
    ```bash
    cd /tmp
    wget https://github.com/prometheus-community/postgres_exporter/releases/download/v0.15.0/postgres_exporter-0.15.0.linux-amd64.tar.gz
@@ -2198,6 +2294,7 @@ You are the observability specialist deploying Prometheus for metrics collection
    ```
 
    Create `/etc/systemd/system/postgres_exporter.service`:
+
    ```ini
    [Unit]
    Description=PostgreSQL Exporter
@@ -2205,7 +2302,7 @@ You are the observability specialist deploying Prometheus for metrics collection
 
    [Service]
    User=postgres
-   Environment="DATA_SOURCE_NAME=postgresql://mcp_admin:TeBsn4f2cS0O7vfdvYFTb37L6SdJFL+mpOgksTwgHy0=@localhost:5432/mcp_ecosystem?sslmode=disable"
+   Environment="DATA_SOURCE_NAME=postgresql://mcp_admin:@localhost:5432/mcp_ecosystem?sslmode=disable"
    ExecStart=/usr/local/bin/postgres_exporter
    Restart=always
 
@@ -2215,6 +2312,7 @@ You are the observability specialist deploying Prometheus for metrics collection
 
 7. **Install Redis Exporter**
    On VMI01:
+
    ```bash
    cd /tmp
    wget https://github.com/oliver006/redis_exporter/releases/download/v1.55.0/redis_exporter-v1.55.0.linux-amd64.tar.gz
@@ -2223,6 +2321,7 @@ You are the observability specialist deploying Prometheus for metrics collection
    ```
 
    Create `/etc/systemd/system/redis_exporter.service`:
+
    ```ini
    [Unit]
    Description=Redis Exporter
@@ -2239,6 +2338,7 @@ You are the observability specialist deploying Prometheus for metrics collection
 
 8. **Create Alert Rules**
    Create `/etc/prometheus/rules/alerts.yml`:
+
    ```yaml
    groups:
      - name: infrastructure
@@ -2250,8 +2350,8 @@ You are the observability specialist deploying Prometheus for metrics collection
            labels:
              severity: critical
            annotations:
-             summary: "Instance {{ $labels.instance }} down"
-             description: "{{ $labels.job }} has been down for more than 5 minutes"
+             summary: 'Instance {{ $labels.instance }} down'
+             description: '{{ $labels.job }} has been down for more than 5 minutes'
 
          - alert: HighCPU
            expr: 100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
@@ -2259,8 +2359,8 @@ You are the observability specialist deploying Prometheus for metrics collection
            labels:
              severity: warning
            annotations:
-             summary: "High CPU on {{ $labels.instance }}"
-             description: "CPU usage is {{ $value }}%"
+             summary: 'High CPU on {{ $labels.instance }}'
+             description: 'CPU usage is {{ $value }}%'
 
          - alert: HighMemory
            expr: (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes * 100 > 85
@@ -2268,8 +2368,8 @@ You are the observability specialist deploying Prometheus for metrics collection
            labels:
              severity: warning
            annotations:
-             summary: "High memory on {{ $labels.instance }}"
-             description: "Memory usage is {{ $value }}%"
+             summary: 'High memory on {{ $labels.instance }}'
+             description: 'Memory usage is {{ $value }}%'
 
          - alert: DiskSpaceLow
            expr: (node_filesystem_avail_bytes / node_filesystem_size_bytes) * 100 < 15
@@ -2277,8 +2377,8 @@ You are the observability specialist deploying Prometheus for metrics collection
            labels:
              severity: critical
            annotations:
-             summary: "Low disk space on {{ $labels.instance }}"
-             description: "Disk {{ $labels.mountpoint }} has {{ $value }}% free"
+             summary: 'Low disk space on {{ $labels.instance }}'
+             description: 'Disk {{ $labels.mountpoint }} has {{ $value }}% free'
 
      - name: databases
        interval: 30s
@@ -2289,7 +2389,7 @@ You are the observability specialist deploying Prometheus for metrics collection
            labels:
              severity: critical
            annotations:
-             summary: "PostgreSQL is down"
+             summary: 'PostgreSQL is down'
 
          - alert: PostgreSQLTooManyConnections
            expr: sum by(datname) (pg_stat_database_numbackends) / pg_settings_max_connections * 100 > 80
@@ -2297,7 +2397,7 @@ You are the observability specialist deploying Prometheus for metrics collection
            labels:
              severity: warning
            annotations:
-             summary: "PostgreSQL too many connections"
+             summary: 'PostgreSQL too many connections'
 
          - alert: RedisDown
            expr: redis_up == 0
@@ -2305,10 +2405,11 @@ You are the observability specialist deploying Prometheus for metrics collection
            labels:
              severity: critical
              annotations:
-               summary: "Redis is down"
+               summary: 'Redis is down'
    ```
 
 9. **UFW Configuration**
+
    ```bash
    sudo ufw allow 9090/tcp comment 'Prometheus'
    sudo ufw allow from 10.0.50.0/24 to any port 9100 comment 'Node Exporter'
@@ -2316,6 +2417,7 @@ You are the observability specialist deploying Prometheus for metrics collection
 
 10. **Create Prometheus Systemd Service**
     Create `/etc/systemd/system/prometheus.service`:
+
     ```ini
     [Unit]
     Description=Prometheus
@@ -2339,6 +2441,7 @@ You are the observability specialist deploying Prometheus for metrics collection
     ```
 
 11. **Start Prometheus**
+
     ```bash
     sudo systemctl daemon-reload
     sudo systemctl enable prometheus postgres_exporter redis_exporter
@@ -2346,6 +2449,7 @@ You are the observability specialist deploying Prometheus for metrics collection
     ```
 
 12. **Verify Metrics Collection**
+
     ```bash
     # Check Prometheus targets
     curl http://localhost:9090/api/v1/targets | jq
@@ -2355,6 +2459,7 @@ You are the observability specialist deploying Prometheus for metrics collection
     ```
 
 **Validation:**
+
 - Prometheus accessible at http://46.250.243.123:9090
 - All 3 VMs reporting metrics (node_exporter)
 - PostgreSQL metrics available
@@ -2364,6 +2469,7 @@ You are the observability specialist deploying Prometheus for metrics collection
 - No scrape errors in targets page
 
 **Output Required:**
+
 - Prometheus web UI URL
 - List of active targets with status
 - Sample PromQL queries for MCP metrics
@@ -2371,10 +2477,12 @@ You are the observability specialist deploying Prometheus for metrics collection
 - Retention and storage configuration
 
 **NOTES:**
+
 - Prometheus data stored in /var/lib/prometheus (30 day retention)
 - Alert rules evaluated every 30 seconds
 - Metrics scraped every 15 seconds
 - All exporters accessible via root tunnel
+
 ```
 
 ---
@@ -2386,6 +2494,7 @@ You are the observability specialist deploying Prometheus for metrics collection
 **Duration:** ~75 minutes
 
 ```
+
 You are the visualization specialist deploying Grafana and creating comprehensive dashboards for monitoring the MCP ecosystem infrastructure and services.
 
 **Target:** VMI01 (Dev Server)
@@ -2395,6 +2504,7 @@ You are the visualization specialist deploying Grafana and creating comprehensiv
 **Tasks to Complete:**
 
 1. **Install Grafana**
+
    ```bash
    sudo apt-get install -y software-properties-common
    sudo add-apt-repository "deb https://packages.grafana.com/oss/deb stable main"
@@ -2405,6 +2515,7 @@ You are the visualization specialist deploying Grafana and creating comprehensiv
 
 2. **Configure Grafana**
    Edit `/etc/grafana/grafana.ini`:
+
    ```ini
    [server]
    http_port = 3500
@@ -2431,11 +2542,13 @@ You are the visualization specialist deploying Grafana and creating comprehensiv
    ```
 
 3. **UFW Configuration**
+
    ```bash
    sudo ufw allow 3500/tcp comment 'Grafana'
    ```
 
 4. **Start Grafana**
+
    ```bash
    sudo systemctl enable grafana-server
    sudo systemctl start grafana-server
@@ -2561,6 +2674,7 @@ You are the visualization specialist deploying Grafana and creating comprehensiv
     - Any MCP service down > 2 minutes
 
 11. **Install Dashboard Plugins**
+
     ```bash
     sudo grafana-cli plugins install grafana-piechart-panel
     sudo grafana-cli plugins install grafana-worldmap-panel
@@ -2578,6 +2692,7 @@ You are the visualization specialist deploying Grafana and creating comprehensiv
 
 13. **Configure Dashboard Variables**
     For reusable dashboards:
+
     ```
     Variable: $vm
     Query: label_values(up, instance)
@@ -2591,6 +2706,7 @@ You are the visualization specialist deploying Grafana and creating comprehensiv
     ```
 
 14. **Export Dashboards**
+
     ```bash
     # Export each dashboard as JSON for version control
     mkdir -p /opt/grafana/dashboards
@@ -2608,6 +2724,7 @@ You are the visualization specialist deploying Grafana and creating comprehensiv
     ```
 
 **Validation:**
+
 - Grafana accessible at http://46.250.243.123:3500
 - Prometheus data source connected
 - All 4 dashboards created and populated with data
@@ -2617,6 +2734,7 @@ You are the visualization specialist deploying Grafana and creating comprehensiv
 - Email notifications working
 
 **Output Required:**
+
 - Grafana admin credentials (secure storage)
 - Dashboard URLs for each created dashboard
 - Screenshot of MCP Ecosystem Overview dashboard
@@ -2624,6 +2742,7 @@ You are the visualization specialist deploying Grafana and creating comprehensiv
 - Dashboard JSON exports (for backup)
 
 **Sample PromQL Queries for MCP Dashboards:**
+
 ```promql
 # Total thoughts created
 sum(postgres_pg_stat_database_tup_inserted{datname="mcp_ecosystem"})
@@ -2642,10 +2761,12 @@ redis_memory_used_bytes / redis_memory_max_bytes * 100
 ```
 
 **NOTES:**
+
 - Dashboards automatically refresh every 30 seconds
 - Historical data available for 30 days (Prometheus retention)
 - Use template variables for multi-VM/service views
 - Dashboard snapshots disabled for security
+
 ```
 
 ---
@@ -2657,15 +2778,18 @@ redis_memory_used_bytes / redis_memory_max_bytes * 100
 **Duration:** ~90 minutes
 
 ```
+
 You are the logging infrastructure specialist deploying Elasticsearch, Logstash, and Kibana (ELK Stack) for centralized log aggregation and analysis across all MCP infrastructure and services.
 
 **Target:** VMI01 (Dev Server)
 **Ports:**
+
 - Elasticsearch: 9200 (HTTP), 9300 (Transport)
 - Logstash: 5044 (Beats), 9600 (API)
 - Kibana: 5601 (Web UI)
 
 **Log Sources:**
+
 - All 3 VMs (syslog, auth, firewall)
 - PostgreSQL query logs
 - Redis logs
@@ -2677,12 +2801,14 @@ You are the logging infrastructure specialist deploying Elasticsearch, Logstash,
 **Tasks to Complete:**
 
 1. **Install Java (Required for ELK)**
+
    ```bash
    sudo apt install openjdk-11-jdk -y
    java -version
    ```
 
 2. **Install Elasticsearch**
+
    ```bash
    wget -qO - https://artifacts.elastic.co/GPG-KEY-elasticsearch | sudo gpg --dearmor -o /usr/share/keyrings/elasticsearch-keyring.gpg
    echo "deb [signed-by=/usr/share/keyrings/elasticsearch-keyring.gpg] https://artifacts.elastic.co/packages/8.x/apt stable main" | sudo tee /etc/apt/sources.list.d/elastic-8.x.list
@@ -2692,6 +2818,7 @@ You are the logging infrastructure specialist deploying Elasticsearch, Logstash,
 
 3. **Configure Elasticsearch**
    Edit `/etc/elasticsearch/elasticsearch.yml`:
+
    ```yaml
    cluster.name: mcp-ecosystem-logs
    node.name: vmi01-es-node
@@ -2711,6 +2838,7 @@ You are the logging infrastructure specialist deploying Elasticsearch, Logstash,
 
 4. **Configure Elasticsearch JVM Heap**
    Edit `/etc/elasticsearch/jvm.options.d/heap.options`:
+
    ```
    # Use 2GB for heap (adjust based on available RAM)
    -Xms2g
@@ -2718,6 +2846,7 @@ You are the logging infrastructure specialist deploying Elasticsearch, Logstash,
    ```
 
 5. **Enable and Start Elasticsearch**
+
    ```bash
    sudo systemctl daemon-reload
    sudo systemctl enable elasticsearch
@@ -2728,6 +2857,7 @@ You are the logging infrastructure specialist deploying Elasticsearch, Logstash,
    ```
 
 6. **Set Elasticsearch Password**
+
    ```bash
    sudo /usr/share/elasticsearch/bin/elasticsearch-reset-password -u elastic -i
    # Set password: ElasticSearchSecure123!
@@ -2738,17 +2868,20 @@ You are the logging infrastructure specialist deploying Elasticsearch, Logstash,
    ```
 
 7. **Verify Elasticsearch**
+
    ```bash
    curl -u elastic:ElasticSearchSecure123! http://localhost:9200
    ```
 
 8. **Install Logstash**
+
    ```bash
    sudo apt install logstash -y
    ```
 
 9. **Configure Logstash Pipeline**
    Create `/etc/logstash/conf.d/mcp-pipeline.conf`:
+
    ```ruby
    input {
      # Beats input (for Filebeat from all VMs)
@@ -2835,30 +2968,34 @@ You are the logging infrastructure specialist deploying Elasticsearch, Logstash,
    ```
 
 10. **Enable and Start Logstash**
+
     ```bash
     sudo systemctl enable logstash
     sudo systemctl start logstash
     ```
 
 11. **Install Kibana**
+
     ```bash
     sudo apt install kibana -y
     ```
 
 12. **Configure Kibana**
     Edit `/etc/kibana/kibana.yml`:
+
     ```yaml
     server.port: 5601
-    server.host: "0.0.0.0"
-    server.name: "vmi01-kibana"
-    elasticsearch.hosts: ["http://localhost:9200"]
-    elasticsearch.username: "elastic"
-    elasticsearch.password: "ElasticSearchSecure123!"
-    kibana.index: ".kibana"
+    server.host: '0.0.0.0'
+    server.name: 'vmi01-kibana'
+    elasticsearch.hosts: ['http://localhost:9200']
+    elasticsearch.username: 'elastic'
+    elasticsearch.password: 'ElasticSearchSecure123!'
+    kibana.index: '.kibana'
     logging.dest: /var/log/kibana/kibana.log
     ```
 
 13. **Enable and Start Kibana**
+
     ```bash
     sudo systemctl enable kibana
     sudo systemctl start kibana
@@ -2869,12 +3006,14 @@ You are the logging infrastructure specialist deploying Elasticsearch, Logstash,
 
 14. **Install Filebeat on All VMs**
     Run on VMI01, VMI02D, VMI03:
+
     ```bash
     sudo apt install filebeat -y
     ```
 
 15. **Configure Filebeat on Each VM**
     Edit `/etc/filebeat/filebeat.yml` on each VM:
+
     ```yaml
     filebeat.inputs:
       # System logs
@@ -2915,7 +3054,7 @@ You are the logging infrastructure specialist deploying Elasticsearch, Logstash,
           hostname: vmi03
 
     output.logstash:
-      hosts: ["10.0.50.1:5044"]  # Logstash on VMI01 via root tunnel
+      hosts: ['10.0.50.1:5044'] # Logstash on VMI01 via root tunnel
 
     processors:
       - add_host_metadata:
@@ -2924,6 +3063,7 @@ You are the logging infrastructure specialist deploying Elasticsearch, Logstash,
     ```
 
 16. **Enable Filebeat on All VMs**
+
     ```bash
     sudo filebeat modules enable system
     sudo filebeat setup
@@ -2933,6 +3073,7 @@ You are the logging infrastructure specialist deploying Elasticsearch, Logstash,
 
 17. **UFW Configuration**
     On VMI01:
+
     ```bash
     sudo ufw allow 5601/tcp comment 'Kibana'
     sudo ufw allow from 10.0.50.0/24 to any port 5044 comment 'Logstash Beats'
@@ -2976,6 +3117,7 @@ You are the logging infrastructure specialist deploying Elasticsearch, Logstash,
 
 20. **Configure Log Retention**
     Create ILM policy for log rotation:
+
     ```bash
     curl -X PUT "localhost:9200/_ilm/policy/mcp-logs-policy" -H 'Content-Type: application/json' -u elastic:ElasticSearchSecure123! -d'
     {
@@ -3016,6 +3158,7 @@ You are the logging infrastructure specialist deploying Elasticsearch, Logstash,
     - Action: Log to Slack/Email
 
 **Validation:**
+
 - Elasticsearch responding at http://localhost:9200
 - Logstash receiving logs on port 5044
 - Kibana accessible at http://46.250.243.123:5601
@@ -3026,6 +3169,7 @@ You are the logging infrastructure specialist deploying Elasticsearch, Logstash,
 - Alerts configured and tested
 
 **Output Required:**
+
 - Elasticsearch credentials (secure storage)
 - Kibana URL and credentials
 - List of index patterns created
@@ -3034,6 +3178,7 @@ You are the logging infrastructure specialist deploying Elasticsearch, Logstash,
 - Log retention policy summary
 
 **Sample Kibana Queries:**
+
 ```
 # Failed SSH attempts in last hour
 failed AND ssh AND @timestamp:[now-1h TO now]
@@ -3052,13 +3197,16 @@ service:pihole AND action:blocked | stats count() by domain | sort count desc | 
 ```
 
 **NOTES:**
+
 - ELK stack requires significant resources (4GB+ RAM recommended)
 - Logs retained for 30 days, then automatically deleted
 - Index lifecycle management (ILM) prevents disk space issues
 - All log shipping encrypted via WireGuard tunnels
 - Kibana should be behind HTTPS in production (NGINX proxy)
+
 ```
 
 ---
 
 (Due to length, continuing in separate response with Agents 22-27...)
+```

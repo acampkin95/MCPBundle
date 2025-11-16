@@ -144,6 +144,7 @@ These roles map 1:1 to IT-MCP capabilities.
 2. Click "Create role" for each capability:
 
 **Basic Capabilities:**
+
 - Role name: `local-shell`
   - Description: Local shell command execution
 - Role name: `local-sudo`
@@ -152,6 +153,7 @@ These roles map 1:1 to IT-MCP capabilities.
   - Description: macOS wireless diagnostics
 
 **Remote Access:**
+
 - Role name: `ssh-linux`
   - Description: SSH access to Linux servers
 - Role name: `ssh-mac`
@@ -160,6 +162,7 @@ These roles map 1:1 to IT-MCP capabilities.
   - Description: Windows PowerShell remoting
 
 **Administrative:**
+
 - Role name: `system-modify`
   - Description: System configuration changes
 - Role name: `service-control`
@@ -197,6 +200,7 @@ Create role groups for common permission sets.
 3. Create these composite roles:
 
 **read-only-operator**:
+
 - Name: `read-only-operator`
 - Description: Read-only system diagnostics
 - Composite: ON
@@ -204,6 +208,7 @@ Create role groups for common permission sets.
   - ✅ local-shell
 
 **linux-admin**:
+
 - Name: `linux-admin`
 - Description: Linux system administrator
 - Composite: ON
@@ -215,6 +220,7 @@ Create role groups for common permission sets.
   - ✅ service-control
 
 **windows-admin**:
+
 - Name: `windows-admin`
 - Description: Windows system administrator
 - Composite: ON
@@ -225,6 +231,7 @@ Create role groups for common permission sets.
   - ✅ service-control
 
 **security-admin**:
+
 - Name: `security-admin`
 - Description: Security and firewall administrator
 - Composite: ON
@@ -235,6 +242,7 @@ Create role groups for common permission sets.
   - ✅ firewall-admin
 
 **super-admin**:
+
 - Name: `super-admin`
 - Description: Full administrative access
 - Composite: ON
@@ -282,18 +290,22 @@ Create role groups for common permission sets.
 Repeat for different permission levels:
 
 **Operator User** (read-only):
+
 - Username: `operator@example.com`
 - Role: `read-only-operator`
 
 **Linux Admin**:
+
 - Username: `linux-admin@example.com`
 - Role: `linux-admin`
 
 **Windows Admin**:
+
 - Username: `windows-admin@example.com`
 - Role: `windows-admin`
 
 **Security Admin**:
+
 - Username: `security-admin@example.com`
 - Role: `security-admin`
 
@@ -356,13 +368,7 @@ echo $ACCESS_TOKEN | cut -d'.' -f2 | base64 -d 2>/dev/null | jq
   "typ": "Bearer",
   "azp": "it-mcp-server",
   "realm_access": {
-    "roles": [
-      "local-shell",
-      "local-sudo",
-      "ssh-linux",
-      "system-modify",
-      "service-control"
-    ]
+    "roles": ["local-shell", "local-sudo", "ssh-linux", "system-modify", "service-control"]
   },
   "resource_access": {
     "it-mcp-server": {
@@ -444,6 +450,7 @@ ENABLE_POLICY_ENFORCEMENT=true npm start
 ### Check Logs
 
 Look for these messages:
+
 ```
 INFO: Initializing policy enforcement layer...
 INFO: KeycloakAuthService initialized {
@@ -469,6 +476,7 @@ The server will now extract capabilities from JWT tokens automatically.
 **Cause**: Network connectivity or SSL certificate issues
 
 **Fix**:
+
 ```bash
 # Test connectivity
 curl -v https://acdev.host:8080/realms/mcp-agents/.well-known/openid-configuration
@@ -485,6 +493,7 @@ NODE_TLS_REJECT_UNAUTHORIZED=0 npm start
 **Cause**: Wrong client secret or client ID
 
 **Fix**:
+
 1. Go to Keycloak Admin Console
 2. Navigate to Clients → it-mcp-server → Credentials
 3. Regenerate client secret
@@ -495,6 +504,7 @@ NODE_TLS_REJECT_UNAUTHORIZED=0 npm start
 **Cause**: Service account not assigned roles
 
 **Fix**:
+
 1. Go to Clients → it-mcp-server → Service account roles
 2. Assign required roles
 3. Get new token
@@ -504,6 +514,7 @@ NODE_TLS_REJECT_UNAUTHORIZED=0 npm start
 **Cause**: Token signed by different realm or expired JWKS cache
 
 **Fix**:
+
 ```bash
 # Verify issuer matches
 echo $ACCESS_TOKEN | cut -d'.' -f2 | base64 -d 2>/dev/null | jq '.iss'
@@ -529,6 +540,7 @@ echo $ACCESS_TOKEN | cut -d'.' -f2 | base64 -d 2>/dev/null | jq '.iss'
 ### 2. Use Short Token Lifespans
 
 Recommended settings:
+
 - Access token lifespan: 1 hour (3600s)
 - Refresh token lifespan: 8 hours (28800s)
 - SSO session idle: 30 minutes (1800s)
@@ -558,18 +570,18 @@ Never use HTTP in production. Always use HTTPS with valid certificates.
 
 ## Role-to-Capability Mapping Reference
 
-| Keycloak Role | IT-MCP Capability | Description |
-|--------------|------------------|-------------|
-| `local-shell` | local-shell | Local command execution |
-| `local-sudo` | local-sudo | Elevated privileges |
-| `macos-wireless` | macos-wireless | macOS wireless diagnostics |
-| `ssh-linux` | ssh-linux | SSH to Linux servers |
-| `ssh-mac` | ssh-mac | SSH to macOS servers |
-| `winrm` | winrm | Windows PowerShell remoting |
-| `system-modify` | system-modify | System configuration changes |
-| `service-control` | service-control | Service management |
-| `firewall-admin` | firewall-admin | Firewall rule management |
-| `remote-exec` | remote-exec | Remote command execution |
+| Keycloak Role     | IT-MCP Capability | Description                  |
+| ----------------- | ----------------- | ---------------------------- |
+| `local-shell`     | local-shell       | Local command execution      |
+| `local-sudo`      | local-sudo        | Elevated privileges          |
+| `macos-wireless`  | macos-wireless    | macOS wireless diagnostics   |
+| `ssh-linux`       | ssh-linux         | SSH to Linux servers         |
+| `ssh-mac`         | ssh-mac           | SSH to macOS servers         |
+| `winrm`           | winrm             | Windows PowerShell remoting  |
+| `system-modify`   | system-modify     | System configuration changes |
+| `service-control` | service-control   | Service management           |
+| `firewall-admin`  | firewall-admin    | Firewall rule management     |
+| `remote-exec`     | remote-exec       | Remote command execution     |
 
 ---
 

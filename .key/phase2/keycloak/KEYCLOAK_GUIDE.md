@@ -1,4 +1,5 @@
 # Keycloak Administration Guide
+
 ## VMI03 Security Gateway - Identity Management
 
 ### Overview
@@ -63,6 +64,7 @@ docker exec keycloak /opt/keycloak/bin/kcadm.sh create users \
 ```
 
 Or via Admin UI:
+
 1. Navigate to Users → Add User
 2. Fill in required fields
 3. Set credentials in Credentials tab
@@ -162,6 +164,7 @@ docker exec keycloak /opt/keycloak/bin/kcadm.sh update users/USER_ID/groups/GROU
 ```
 
 Or via Admin UI:
+
 1. Users → Select User → Groups
 2. Select group from Available Groups
 3. Click Join
@@ -316,6 +319,7 @@ curl http://localhost:8080/metrics
 **Symptom**: Keycloak fails to start, database connection errors
 
 **Solution**:
+
 ```bash
 # Test PostgreSQL connection from VMI03
 nc -zv 46.250.243.123 5432
@@ -332,6 +336,7 @@ ssh root@46.250.243.123 "su - postgres -c 'psql -l' | grep keycloak"
 **Symptom**: Cannot access Keycloak admin console
 
 **Solution**:
+
 ```bash
 # Check if container is running
 docker ps | grep keycloak
@@ -351,6 +356,7 @@ ufw allow from 10.100.0.0/24 to any port 8080
 **Symptom**: TOTP codes rejected
 
 **Solution**:
+
 - Ensure system time is synchronized (NTP)
 - Check time on client device
 - Regenerate TOTP secret
@@ -361,6 +367,7 @@ ufw allow from 10.100.0.0/24 to any port 8080
 **Symptom**: Keycloak slow or crashing
 
 **Solution**:
+
 ```bash
 # Check container resources
 docker stats keycloak

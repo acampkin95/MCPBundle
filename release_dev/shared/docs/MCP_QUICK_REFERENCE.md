@@ -10,11 +10,12 @@ psql -h localhost -U mcp_admin -d mcp_ecosystem
 psql -h 46.250.243.123 -U mcp_admin -d mcp_ecosystem
 ```
 
-**Password:** `TeBsn4f2cS0O7vfdvYFTb37L6SdJFL+mpOgksTwgHy0=`
+**Password:** ``
 
 **Connection String:**
+
 ```
-postgresql://mcp_admin:TeBsn4f2cS0O7vfdvYFTb37L6SdJFL+mpOgksTwgHy0=@localhost:5432/mcp_ecosystem
+postgresql://mcp_admin:@localhost:5432/mcp_ecosystem
 ```
 
 ---
@@ -22,34 +23,40 @@ postgresql://mcp_admin:TeBsn4f2cS0O7vfdvYFTb37L6SdJFL+mpOgksTwgHy0=@localhost:54
 ## Common Operations
 
 ### Register an Agent
+
 ```sql
 INSERT INTO mcp_agents (agent_id, agent_name, agent_type, capabilities, hostname, status)
 VALUES ('my-agent-01', 'My Agent', 'server', ARRAY['postgres-admin'], 'host.local', 'online');
 ```
 
 ### Send Heartbeat
+
 ```sql
 INSERT INTO agent_heartbeats (agent_id, cpu_percent, memory_percent, disk_percent)
 VALUES ('my-agent-01', 45.5, 60.2, 70.8);
 ```
 
 ### Queue a Command
+
 ```sql
 INSERT INTO command_queue (tool_name, operation, parameters, target_agent_id, priority)
 VALUES ('postgres-manage', 'vacuum', '{"database": "mydb"}'::jsonb, 'my-agent-01', 5);
 ```
 
 ### Find Best Agent
+
 ```sql
 SELECT get_least_loaded_agent(ARRAY['postgres-admin', 'redis-admin']);
 ```
 
 ### View Active Agents
+
 ```sql
 SELECT * FROM active_agents;
 ```
 
 ### View Command Queue
+
 ```sql
 SELECT * FROM queue_summary;
 ```
@@ -59,6 +66,7 @@ SELECT * FROM queue_summary;
 ## Monitoring Queries
 
 ### Agent Health
+
 ```sql
 SELECT agent_id, agent_name, status, health_score,
        current_load || '/' || max_concurrent_commands AS load
@@ -67,6 +75,7 @@ ORDER BY status, health_score DESC;
 ```
 
 ### Command Backlog
+
 ```sql
 SELECT status, COUNT(*) AS count, MIN(created_at) AS oldest
 FROM command_queue
@@ -75,6 +84,7 @@ GROUP BY status;
 ```
 
 ### Active Alerts
+
 ```sql
 SELECT a.alert_id, ar.rule_name, ar.severity, a.status, a.fired_at
 FROM alerts a
@@ -88,16 +98,19 @@ ORDER BY a.fired_at DESC;
 ## Maintenance
 
 ### Refresh Service Directory
+
 ```sql
 REFRESH MATERIALIZED VIEW service_directory;
 ```
 
 ### Cleanup Old Data
+
 ```sql
 SELECT * FROM cleanup_old_data(90);  -- 90 days retention
 ```
 
 ### Create New Partition (January 2026)
+
 ```sql
 CREATE TABLE agent_heartbeats_2026_01 PARTITION OF agent_heartbeats
     FOR VALUES FROM ('2026-01-01') TO ('2026-02-01');
@@ -110,11 +123,13 @@ CREATE TABLE system_metrics_2026_01 PARTITION OF system_metrics
 ```
 
 ### Backup Database
+
 ```bash
 pg_dump -U mcp_admin -d mcp_ecosystem -Fc -f mcp_ecosystem_$(date +%Y%m%d).backup
 ```
 
 ### Restore Database
+
 ```bash
 pg_restore -U mcp_admin -d mcp_ecosystem -c mcp_ecosystem_backup.backup
 ```

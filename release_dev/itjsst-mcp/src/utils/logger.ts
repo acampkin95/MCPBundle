@@ -1,9 +1,19 @@
-import { createLogger, format, transports } from "winston";
-import type { TransformableInfo } from "logform";
+import { createLogger, format, transports } from 'winston';
+import type { TransformableInfo } from 'logform';
+import { AutoInvestigationService } from './autoInvestigationService.js';
+import { LogForwarderStream } from './logForwarderStream.js';
 
 const { combine, timestamp, errors, splat, metadata, printf } = format;
 
-const LOG_LEVEL = process.env.IT_MCP_LOG_LEVEL ?? (process.env.NODE_ENV === "production" ? "info" : "debug");
+const LOG_LEVEL =
+  process.env.IT_MCP_LOG_LEVEL ?? (process.env.NODE_ENV === 'production' ? 'info' : 'debug');
+const LOG_INGEST_URL = process.env.IT_MCP_LOG_INGEST_URL ?? process.env.LOG_AGGREGATOR_URL;
+const LOG_INGEST_TOKEN = process.env.IT_MCP_LOG_INGEST_TOKEN ?? process.env.LOG_AGGREGATOR_TOKEN;
+
+const autoInvestigator = new AutoInvestigationService({
+  serviceName: 'it-mcp',
+  pm2ProcessName: process.env.PM2_PROCESS_NAME ?? process.env.name,
+});
 
 type LoggerInfo = TransformableInfo & {
   timestamp?: string;
@@ -12,16 +22,9 @@ type LoggerInfo = TransformableInfo & {
 };
 
 const logFormat = printf((info: LoggerInfo) => {
-  const {
-    timestamp: ts,
-    level,
-    message,
-    stack,
-    metadata: meta = {},
-  } = info;
+  const { timestamp: ts, level, message, stack, metadata: meta = {} } = info;
 
-  const normalizedMessage =
-    typeof message === "string" ? message : JSON.stringify(message);
+  const normalizedMessage = typeof message === 'string' ? message : JSON.stringify(message);
 
   const payload: Record<string, unknown> = {
     timestamp: ts,
@@ -38,17 +41,25 @@ const logFormat = printf((info: LoggerInfo) => {
 
 export const logger = createLogger({
   level: LOG_LEVEL,
-  defaultMeta: { service: "it-mcp" },
+  defaultMeta: { service: 'it-mcp' },
   format: combine(
     timestamp(),
     errors({ stack: true }),
     splat(),
-    metadata({ fillExcept: ["timestamp", "level", "message", "stack"] }),
-    logFormat,
+    metadata({ fillExcept: ['timestamp', 'level', 'message', 'stack'] }),
+    logFormat
   ),
   transports: [
     new transports.Console({
-      stderrLevels: ["error", "warn"],
+      stderrLevels: ['error', 'warn'],
+    }),
+    new transports.Stream({
+      stream: new LogForwarderStream({
+        serviceName: 'it-mcp',
+        endpoint: LOG_INGEST_URL,
+        token: LOG_INGEST_TOKEN,
+        autoInvestigator,
+      }),
     }),
   ],
 });

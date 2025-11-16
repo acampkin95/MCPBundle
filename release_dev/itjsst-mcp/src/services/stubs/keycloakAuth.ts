@@ -1,5 +1,5 @@
-import { logger } from "../../utils/logger.js";
-import { createRemoteJWKSet, jwtVerify } from "jose";
+import { logger } from '../../utils/logger.js';
+import { createRemoteJWKSet, jwtVerify } from 'jose';
 
 export interface KeycloakConfig {
   readonly serverUrl: string;
@@ -53,7 +53,7 @@ export class KeycloakAuthService {
 
   public constructor(config: KeycloakConfig) {
     this.config = config;
-    logger.info("KeycloakAuthService initialized", {
+    logger.info('KeycloakAuthService initialized', {
       serverUrl: config.serverUrl,
       realm: config.realm,
       clientId: config.clientId,
@@ -65,7 +65,7 @@ export class KeycloakAuthService {
    */
   public async authenticate(): Promise<TokenSet> {
     try {
-      logger.info("Authenticating with Keycloak");
+      logger.info('Authenticating with Keycloak');
 
       // Determine authentication flow
       const tokenSet = this.config.clientSecret
@@ -75,13 +75,13 @@ export class KeycloakAuthService {
       this.currentTokenSet = tokenSet;
       this.scheduleTokenRefresh(tokenSet);
 
-      logger.info("Authentication successful", {
+      logger.info('Authentication successful', {
         expiresAt: new Date(tokenSet.expiresAt).toISOString(),
       });
 
       return tokenSet;
     } catch (error) {
-      logger.error("Authentication failed", { error });
+      logger.error('Authentication failed', { error });
       throw new Error(`Failed to authenticate with Keycloak: ${error}`);
     }
   }
@@ -91,20 +91,20 @@ export class KeycloakAuthService {
    */
   private async clientCredentialsFlow(): Promise<TokenSet> {
     if (!this.config.clientSecret) {
-      throw new Error("Client secret required for client credentials flow");
+      throw new Error('Client secret required for client credentials flow');
     }
 
     const tokenEndpoint = `${this.config.serverUrl}/realms/${this.config.realm}/protocol/openid-connect/token`;
 
-    logger.debug("Requesting token with client credentials", { tokenEndpoint });
+    logger.debug('Requesting token with client credentials', { tokenEndpoint });
 
     const response = await fetch(tokenEndpoint, {
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
+        'Content-Type': 'application/x-www-form-urlencoded',
       },
       body: new URLSearchParams({
-        grant_type: "client_credentials",
+        grant_type: 'client_credentials',
         client_id: this.config.clientId,
         client_secret: this.config.clientSecret,
       }),
@@ -133,20 +133,20 @@ export class KeycloakAuthService {
    */
   private async passwordFlow(): Promise<TokenSet> {
     if (!this.config.username || !this.config.password) {
-      throw new Error("Username and password required for password flow");
+      throw new Error('Username and password required for password flow');
     }
 
     const tokenEndpoint = `${this.config.serverUrl}/realms/${this.config.realm}/protocol/openid-connect/token`;
 
-    logger.debug("Requesting token with password flow", { tokenEndpoint });
+    logger.debug('Requesting token with password flow', { tokenEndpoint });
 
     const response = await fetch(tokenEndpoint, {
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
+        'Content-Type': 'application/x-www-form-urlencoded',
       },
       body: new URLSearchParams({
-        grant_type: "password",
+        grant_type: 'password',
         client_id: this.config.clientId,
         username: this.config.username,
         password: this.config.password,
@@ -176,22 +176,22 @@ export class KeycloakAuthService {
    */
   public async refreshToken(): Promise<TokenSet> {
     if (!this.currentTokenSet?.refreshToken) {
-      logger.warn("No refresh token available, re-authenticating");
+      logger.warn('No refresh token available, re-authenticating');
       return this.authenticate();
     }
 
     try {
-      logger.debug("Refreshing access token");
+      logger.debug('Refreshing access token');
 
       const tokenEndpoint = `${this.config.serverUrl}/realms/${this.config.realm}/protocol/openid-connect/token`;
 
       const response = await fetch(tokenEndpoint, {
-        method: "POST",
+        method: 'POST',
         headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
+          'Content-Type': 'application/x-www-form-urlencoded',
         },
         body: new URLSearchParams({
-          grant_type: "refresh_token",
+          grant_type: 'refresh_token',
           client_id: this.config.clientId,
           refresh_token: this.currentTokenSet.refreshToken,
         }),
@@ -217,10 +217,10 @@ export class KeycloakAuthService {
       this.currentTokenSet = newTokenSet;
       this.scheduleTokenRefresh(newTokenSet);
 
-      logger.info("Token refreshed successfully");
+      logger.info('Token refreshed successfully');
       return newTokenSet;
     } catch (error) {
-      logger.error("Token refresh failed, re-authenticating", { error });
+      logger.error('Token refresh failed, re-authenticating', { error });
       return this.authenticate();
     }
   }
@@ -249,12 +249,12 @@ export class KeycloakAuthService {
    */
   public decodeToken(token: string): TokenInfo | null {
     try {
-      const parts = token.split(".");
+      const parts = token.split('.');
       if (parts.length !== 3) {
         return null;
       }
 
-      const payload = JSON.parse(Buffer.from(parts[1], "base64").toString());
+      const payload = JSON.parse(Buffer.from(parts[1], 'base64').toString());
 
       return {
         sub: payload.sub,
@@ -267,7 +267,7 @@ export class KeycloakAuthService {
         capabilities: payload.capabilities,
       };
     } catch (error) {
-      logger.error("Failed to decode token", { error });
+      logger.error('Failed to decode token', { error });
       return null;
     }
   }
@@ -303,7 +303,7 @@ export class KeycloakAuthService {
     const lifetime = tokenSet.expiresAt - Date.now();
     const refreshAt = lifetime * 0.9;
 
-    logger.debug("Scheduling token refresh", {
+    logger.debug('Scheduling token refresh', {
       refreshInMs: refreshAt,
       refreshAt: new Date(Date.now() + refreshAt).toISOString(),
     });
@@ -318,29 +318,29 @@ export class KeycloakAuthService {
    */
   public async revoke(): Promise<void> {
     if (!this.currentTokenSet) {
-      logger.warn("No active token to revoke");
+      logger.warn('No active token to revoke');
       return;
     }
 
     try {
-      logger.info("Revoking access token");
+      logger.info('Revoking access token');
 
       const revokeEndpoint = `${this.config.serverUrl}/realms/${this.config.realm}/protocol/openid-connect/revoke`;
 
       const response = await fetch(revokeEndpoint, {
-        method: "POST",
+        method: 'POST',
         headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
+          'Content-Type': 'application/x-www-form-urlencoded',
         },
         body: new URLSearchParams({
           client_id: this.config.clientId,
           token: this.currentTokenSet.accessToken,
-          token_type_hint: "access_token",
+          token_type_hint: 'access_token',
         }),
       });
 
       if (!response.ok) {
-        logger.warn("Token revocation returned non-OK status", {
+        logger.warn('Token revocation returned non-OK status', {
           status: response.status,
         });
       }
@@ -351,9 +351,9 @@ export class KeycloakAuthService {
         this.refreshTimer = null;
       }
 
-      logger.info("Token revoked successfully");
+      logger.info('Token revoked successfully');
     } catch (error) {
-      logger.error("Token revocation failed", { error });
+      logger.error('Token revocation failed', { error });
       // Clear local state anyway
       this.currentTokenSet = null;
       if (this.refreshTimer) {
@@ -387,14 +387,14 @@ export class KeycloakAuthService {
       const realmAccess = payload.realm_access as { roles?: string[] } | undefined;
       const roles = realmAccess?.roles || [];
 
-      logger.debug("JWT verified successfully", {
+      logger.debug('JWT verified successfully', {
         sub: payload.sub,
         roles: roles.length,
       });
 
       return roles;
     } catch (error) {
-      logger.error("JWT verification failed", { error });
+      logger.error('JWT verification failed', { error });
       throw new Error(`JWT verification failed: ${error}`);
     }
   }
@@ -404,6 +404,6 @@ export class KeycloakAuthService {
    */
   public async destroy(): Promise<void> {
     await this.revoke();
-    logger.info("KeycloakAuthService destroyed");
+    logger.info('KeycloakAuthService destroyed');
   }
 }

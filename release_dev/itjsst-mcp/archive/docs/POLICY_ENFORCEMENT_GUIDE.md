@@ -60,6 +60,7 @@ This guide documents the hardened, capability-scoped authorization layer impleme
 **Purpose**: Core types for authorization system
 
 **Key Types**:
+
 - `AuthorizationContext`: Who, what, when, where
 - `OperationPolicy`: Risk level, required capabilities, approval flags
 - `PolicyDecision`: allow, deny, or require_approval
@@ -76,14 +77,15 @@ This guide documents the hardened, capability-scoped authorization layer impleme
 
 **Risk Classifications**:
 
-| Risk Level | Description | Examples | Approval Required |
-|-----------|-------------|----------|------------------|
-| **LOW** | Read-only, no system changes | system-overview, network-diagnostics | No |
-| **MEDIUM** | Diagnostic operations | mac-diagnostics, ubuntu-diagnostics | No |
-| **HIGH** | Privileged operations | cleanup-runbook (with sudo) | Yes |
-| **CRITICAL** | Destructive operations | service restarts, firewall changes, SSH sudo | Always |
+| Risk Level   | Description                  | Examples                                     | Approval Required |
+| ------------ | ---------------------------- | -------------------------------------------- | ----------------- |
+| **LOW**      | Read-only, no system changes | system-overview, network-diagnostics         | No                |
+| **MEDIUM**   | Diagnostic operations        | mac-diagnostics, ubuntu-diagnostics          | No                |
+| **HIGH**     | Privileged operations        | cleanup-runbook (with sudo)                  | Yes               |
+| **CRITICAL** | Destructive operations       | service restarts, firewall changes, SSH sudo | Always            |
 
 **Example Policy**:
+
 ```typescript
 "ssh-execute": {
   tool: "ssh-execute",
@@ -112,6 +114,7 @@ This guide documents the hardened, capability-scoped authorization layer impleme
 **Purpose**: Evaluate tool invocations and enforce policies
 
 **Key Methods**:
+
 - `evaluateToolInvocation(context)`: Returns allow/deny/require_approval
 - `checkCapabilities(user, required)`: Validates capability authorization
 - `assessNeedForApproval(context, policy)`: Risk-based approval logic
@@ -129,10 +132,12 @@ This guide documents the hardened, capability-scoped authorization layer impleme
 **Purpose**: Immutable audit trail with dual persistence
 
 **Storage**:
+
 - **SQLite** (`mcp_audit.db`): Queryable compliance records
 - **Winston**: Structured JSON logs for SIEM integration
 
 **Schema**:
+
 ```sql
 CREATE TABLE audit_logs (
   id TEXT PRIMARY KEY,
@@ -156,6 +161,7 @@ CREATE TABLE audit_logs (
 ```
 
 **Key Methods**:
+
 - `logDecision(context, decision)`: Record authorization decision
 - `logExecution(auditId, status, duration, sideEffects, error)`: Track execution
 - `logApproval(auditId, approvedBy, approved)`: Record approval/rejection
@@ -172,6 +178,7 @@ CREATE TABLE audit_logs (
 **Purpose**: Intercept all tool invocations for policy enforcement
 
 **Integration Pattern**:
+
 ```typescript
 // Before (unprotected):
 server.registerTool("system-overview", { ... }, async ({ args }) => {
@@ -187,6 +194,7 @@ server.registerTool("system-overview", { ... },
 ```
 
 **Wrapper Flow**:
+
 1. Build `AuthorizationContext` from invocation
 2. Evaluate against policy rules
 3. Log decision to audit trail
@@ -205,24 +213,23 @@ server.registerTool("system-overview", { ... },
 ### Enable Policy Enforcement
 
 **Environment Variable**:
+
 ```bash
 export ENABLE_POLICY_ENFORCEMENT=true
 ```
 
 **Programmatic Configuration** (in `src/server.ts` or main entry point):
+
 ```typescript
-import { CommandQueueService } from "./services/commandQueue.js";
-import { initializePolicyEnforcer } from "./services/policyEnforcer.js";
-import { initializeAuditLogger, createAuditLogCallback } from "./utils/auditLogger.js";
-import { configurePolicyEnforcement } from "./tools/registerTools.js";
+import { CommandQueueService } from './services/commandQueue.js';
+import { initializePolicyEnforcer } from './services/policyEnforcer.js';
+import { initializeAuditLogger, createAuditLogCallback } from './utils/auditLogger.js';
+import { configurePolicyEnforcement } from './tools/registerTools.js';
 
 // Initialize services
 const commandQueue = new CommandQueueService();
 const auditLogger = initializeAuditLogger();
-const policyEnforcer = initializePolicyEnforcer(
-  commandQueue,
-  createAuditLogCallback(auditLogger)
-);
+const policyEnforcer = initializePolicyEnforcer(commandQueue, createAuditLogCallback(auditLogger));
 
 // Configure policy enforcement BEFORE registering tools
 configurePolicyEnforcement(policyEnforcer, auditLogger, true);
@@ -236,6 +243,7 @@ registerTools(server, deps);
 ### Applying Wrappers to Tools
 
 **Option 1: Manual Wrapping (Selective)**
+
 ```typescript
 // Wrap specific high-risk tools
 server.registerTool(
@@ -255,6 +263,7 @@ server.registerTool(
 **Option 2: Automatic Wrapping (Global)**
 
 Modify `registerTools()` to apply wrapper to all tools:
+
 ```typescript
 export const registerTools = (server: McpServer, deps: ToolDependencies): void => {
   // Helper to register with automatic wrapping
@@ -294,6 +303,7 @@ export const registerTools = (server: McpServer, deps: ToolDependencies): void =
 ### Capability Mapping (Keycloak Integration)
 
 **Keycloak Realm Configuration**:
+
 1. Create realm: `mcp-agents`
 2. Create client: `it-mcp-server`
 3. Define roles (map 1:1 to capabilities):
@@ -309,6 +319,7 @@ export const registerTools = (server: McpServer, deps: ToolDependencies): void =
    - `remote-exec`
 
 **JWT Claims Mapping**:
+
 ```json
 {
   "sub": "73f7c4a3-2676-48e0-9238-2473ceda7c6b",
@@ -319,9 +330,10 @@ export const registerTools = (server: McpServer, deps: ToolDependencies): void =
 ```
 
 **Extract Capabilities in Wrapper**:
+
 ```typescript
 // TODO: Replace hardcoded userCapabilities with JWT extraction
-import { jwtVerify } from "jose";
+import { jwtVerify } from 'jose';
 
 async function extractCapabilitiesFromJWT(token: string): Promise<string[]> {
   const jwks = createRemoteJWKSet(
@@ -355,14 +367,15 @@ const { jobId } = await policyEnforcer.requestApproval(context, decision);
 ### Viewing Pending Approvals
 
 **CLI Query** (example):
+
 ```typescript
 const commandQueue = new CommandQueueService();
 const pending = await commandQueue.query({
-  status: "queued",
-  priority: "urgent"  // CRITICAL risk operations
+  status: 'queued',
+  priority: 'urgent', // CRITICAL risk operations
 });
 
-console.log("Pending Approvals:");
+console.log('Pending Approvals:');
 for (const cmd of pending) {
   console.log(`- ${cmd.jobId}: ${cmd.toolName} (${cmd.priority})`);
 }
@@ -371,7 +384,7 @@ for (const cmd of pending) {
 ### Granting Approval
 
 ```typescript
-await policyEnforcer.grantApproval(jobId, "admin@example.com");
+await policyEnforcer.grantApproval(jobId, 'admin@example.com');
 // Audit log automatically updated
 ```
 
@@ -380,8 +393,8 @@ await policyEnforcer.grantApproval(jobId, "admin@example.com");
 ```typescript
 await policyEnforcer.denyApproval(
   jobId,
-  "Insufficient justification for sudo operation",
-  "admin@example.com"
+  'Insufficient justification for sudo operation',
+  'admin@example.com'
 );
 // Command marked as failed, audit log updated
 ```
@@ -393,25 +406,28 @@ await policyEnforcer.denyApproval(
 ### Query Examples
 
 **All decisions for a specific tool**:
+
 ```typescript
 const entries = auditLogger.query({
-  tool: "ssh-execute",
-  limit: 100
+  tool: 'ssh-execute',
+  limit: 100,
 });
 ```
 
 **All CRITICAL risk operations**:
+
 ```typescript
 const entries = auditLogger.query({
-  riskLevel: "CRITICAL",
-  startDate: "2025-11-01T00:00:00Z"
+  riskLevel: 'CRITICAL',
+  startDate: '2025-11-01T00:00:00Z',
 });
 ```
 
 **Operations requiring approval**:
+
 ```typescript
 const entries = auditLogger.query({
-  requiresApproval: true
+  requiresApproval: true,
 });
 ```
 
@@ -438,26 +454,31 @@ console.log(stats);
 ## Security Best Practices
 
 ### 1. Principle of Least Privilege
+
 - Assign minimal capabilities per user/agent
 - Use role-based mapping in Keycloak
 - Regularly audit capability assignments
 
 ### 2. Defense in Depth
+
 - Never disable any of the 4 security layers
 - Always use HTTPS in production
 - Verify JWT signatures with JWKS (never skip)
 
 ### 3. Approval Workflows
+
 - Require approval for all CRITICAL operations
 - Implement time-limited approval windows
 - Log all approval/rejection decisions
 
 ### 4. Audit Compliance
+
 - Retain audit logs for compliance period (e.g., 90 days)
 - Export to SIEM for correlation
 - Review high-risk operation trends weekly
 
 ### 5. Dangerous Pattern Detection
+
 - Extend `hasDangerousParams()` with organization-specific patterns
 - Block commands like `rm -rf /`, `dd if=/dev/zero`, `curl | sh`
 - Validate all user inputs before execution
@@ -469,66 +490,66 @@ console.log(stats);
 ### Unit Tests
 
 ```typescript
-import { PolicyEnforcer } from "./services/policyEnforcer.js";
-import { CommandQueueService } from "./services/commandQueue.js";
-import { AuditLogger } from "./utils/auditLogger.js";
+import { PolicyEnforcer } from './services/policyEnforcer.js';
+import { CommandQueueService } from './services/commandQueue.js';
+import { AuditLogger } from './utils/auditLogger.js';
 
-describe("PolicyEnforcer", () => {
+describe('PolicyEnforcer', () => {
   let enforcer: PolicyEnforcer;
   let commandQueue: CommandQueueService;
   let auditLogger: AuditLogger;
 
   beforeEach(() => {
-    commandQueue = new CommandQueueService(":memory:");
-    auditLogger = new AuditLogger(":memory:");
+    commandQueue = new CommandQueueService(':memory:');
+    auditLogger = new AuditLogger(':memory:');
     enforcer = new PolicyEnforcer(commandQueue, (entry) => {
       auditLogger.logDecision(entry.context, entry.decision);
     });
   });
 
-  test("should allow LOW risk operations", async () => {
+  test('should allow LOW risk operations', async () => {
     const context = {
-      callerId: "test-user",
-      tool: "system-overview",
-      operation: "getSystemInfo",
+      callerId: 'test-user',
+      tool: 'system-overview',
+      operation: 'getSystemInfo',
       args: {},
-      userCapabilities: ["local-shell"],
-      timestamp: new Date().toISOString()
+      userCapabilities: ['local-shell'],
+      timestamp: new Date().toISOString(),
     };
 
     const decision = await enforcer.evaluateToolInvocation(context);
-    expect(decision.action).toBe("allow");
-    expect(decision.riskLevel).toBe("LOW");
+    expect(decision.action).toBe('allow');
+    expect(decision.riskLevel).toBe('LOW');
   });
 
-  test("should deny when missing capabilities", async () => {
+  test('should deny when missing capabilities', async () => {
     const context = {
-      callerId: "test-user",
-      tool: "ssh-execute",
-      operation: "executeCommand",
+      callerId: 'test-user',
+      tool: 'ssh-execute',
+      operation: 'executeCommand',
       args: {},
-      userCapabilities: ["local-shell"],  // Missing ssh-linux
-      timestamp: new Date().toISOString()
+      userCapabilities: ['local-shell'], // Missing ssh-linux
+      timestamp: new Date().toISOString(),
     };
 
     const decision = await enforcer.evaluateToolInvocation(context);
-    expect(decision.action).toBe("deny");
-    expect(decision.missingCapabilities).toContain("ssh-linux");
+    expect(decision.action).toBe('deny');
+    expect(decision.missingCapabilities).toContain('ssh-linux');
   });
 
-  test("should require approval for CRITICAL operations", async () => {
+  test('should require approval for CRITICAL operations', async () => {
     const context = {
-      callerId: "test-user",
-      tool: "ssh-execute",
-      operation: "executeSudoCommand",
-      args: { command: "systemctl restart postgresql" },
-      userCapabilities: ["ssh-linux", "remote-exec", "local-sudo"],
-      timestamp: new Date().toISOString()
+      callerId: 'test-user',
+      tool: 'ssh-execute',
+      operation: 'executeSudoCommand',
+      args: { command: 'systemctl restart postgresql' },
+      userCapabilities: ['ssh-linux', 'remote-exec', 'local-sudo'],
+      timestamp: new Date().toISOString(),
     };
 
     const decision = await enforcer.evaluateToolInvocation(context);
-    expect(decision.action).toBe("require_approval");
-    expect(decision.riskLevel).toBe("CRITICAL");
+    expect(decision.action).toBe('require_approval');
+    expect(decision.riskLevel).toBe('CRITICAL');
   });
 });
 ```
@@ -545,6 +566,7 @@ npm test -- --grep "Policy Enforcement"
 ## Deployment to acdev.host
 
 ### Prerequisites
+
 - ✅ PostgreSQL database operational
 - ✅ IT-MCP API service running (port 3001)
 - ⏳ Keycloak realm `mcp-agents` created
@@ -553,6 +575,7 @@ npm test -- --grep "Policy Enforcement"
 ### Deployment Steps
 
 1. **Update Environment Variables**:
+
 ```bash
 # On acdev.host
 cd /opt/it-mcp-api
@@ -567,29 +590,29 @@ KEYCLOAK_CLIENT_SECRET=<from Keycloak admin console>
 ```
 
 2. **Initialize Policy Services** (in server.ts):
-```typescript
-import { CommandQueueService } from "./services/commandQueue.js";
-import { initializePolicyEnforcer } from "./services/policyEnforcer.js";
-import { initializeAuditLogger, createAuditLogCallback } from "./utils/auditLogger.js";
-import { configurePolicyEnforcement } from "./tools/registerTools.js";
 
-const commandQueue = new CommandQueueService("/opt/it-mcp-api/mcp_command_queue.db");
-const auditLogger = initializeAuditLogger("/opt/it-mcp-api/mcp_audit.db");
-const policyEnforcer = initializePolicyEnforcer(
-  commandQueue,
-  createAuditLogCallback(auditLogger)
-);
+```typescript
+import { CommandQueueService } from './services/commandQueue.js';
+import { initializePolicyEnforcer } from './services/policyEnforcer.js';
+import { initializeAuditLogger, createAuditLogCallback } from './utils/auditLogger.js';
+import { configurePolicyEnforcement } from './tools/registerTools.js';
+
+const commandQueue = new CommandQueueService('/opt/it-mcp-api/mcp_command_queue.db');
+const auditLogger = initializeAuditLogger('/opt/it-mcp-api/mcp_audit.db');
+const policyEnforcer = initializePolicyEnforcer(commandQueue, createAuditLogCallback(auditLogger));
 
 configurePolicyEnforcement(policyEnforcer, auditLogger, true);
 ```
 
 3. **Restart Service**:
+
 ```bash
 pm2 restart it-mcp-api
 pm2 logs it-mcp-api --lines 100
 ```
 
 4. **Verify**:
+
 ```bash
 # Check audit logs
 sqlite3 /opt/it-mcp-api/mcp_audit.db "SELECT COUNT(*) FROM audit_logs;"
@@ -605,20 +628,21 @@ curl -X POST http://acdev.host:3001/api/v1/servers/register \
 
 ## Pending Tasks
 
-| Phase | Task | Status | Blocker |
-|-------|------|--------|---------|
-| Phase 1 | Create Keycloak realm | ⏳ Pending | Manual Keycloak configuration |
-| Phase 1 | Implement KeycloakAuthService HTTP calls | ⏳ Pending | Keycloak client credentials |
-| Phase 2 | PolicyEnforcer | ✅ Complete | - |
-| Phase 3 | AuditLogger | ✅ Complete | - |
-| Phase 4 | Tool handler wrapping | 🔄 In Progress | Apply to all 39+ tools |
-| Phase 5 | Production deployment | ⏳ Pending | Keycloak + NGINX config |
+| Phase   | Task                                     | Status         | Blocker                       |
+| ------- | ---------------------------------------- | -------------- | ----------------------------- |
+| Phase 1 | Create Keycloak realm                    | ⏳ Pending     | Manual Keycloak configuration |
+| Phase 1 | Implement KeycloakAuthService HTTP calls | ⏳ Pending     | Keycloak client credentials   |
+| Phase 2 | PolicyEnforcer                           | ✅ Complete    | -                             |
+| Phase 3 | AuditLogger                              | ✅ Complete    | -                             |
+| Phase 4 | Tool handler wrapping                    | 🔄 In Progress | Apply to all 39+ tools        |
+| Phase 5 | Production deployment                    | ⏳ Pending     | Keycloak + NGINX config       |
 
 ---
 
 ## Files Summary
 
 **New Files Created**:
+
 1. `src/types/policy.ts` (90 lines)
 2. `src/config/policies.ts` (350 lines)
 3. `src/services/policyEnforcer.ts` (400 lines)
@@ -626,6 +650,7 @@ curl -X POST http://acdev.host:3001/api/v1/servers/register \
 5. `POLICY_ENFORCEMENT_GUIDE.md` (this file)
 
 **Modified Files**:
+
 1. `src/tools/registerTools.ts` (+170 lines for wrapper)
 2. `src/services/commandQueue.ts` (+40 lines for async helpers)
 3. `package.json` (+1 dependency: jose)
@@ -637,18 +662,21 @@ curl -X POST http://acdev.host:3001/api/v1/servers/register \
 ## Next Steps
 
 ### Short Term (Week 1)
+
 1. Create Keycloak `mcp-agents` realm and client
 2. Implement actual HTTP calls in `KeycloakAuthService`
 3. Apply `wrapWithPolicy` to all 39+ tools in `registerTools.ts`
 4. Write comprehensive unit tests for PolicyEnforcer
 
 ### Medium Term (Week 2-3)
+
 5. Deploy to acdev.host with Keycloak integration
 6. Configure NGINX reverse proxy with JWT validation
 7. Set up SIEM integration for audit logs
 8. Create approval dashboard (web UI or CLI)
 
 ### Long Term (Month 2+)
+
 9. Implement approval time windows (operations expire after N hours)
 10. Add side effect tracking (files modified, services touched)
 11. Implement capability delegation (temporary elevation)

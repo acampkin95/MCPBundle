@@ -33,6 +33,9 @@
     "load-test": "autocannon -c 100 -d 30 http://localhost:9090/health",
     "code-quality": "./scripts/code-quality.sh",
     "pre-commit": "npm run type-check && npm run lint && npm run format:check && npm run test",
+    "secrets:push": "ts-node src/tools/contaboSecrets.ts push",
+    "secrets:pull": "ts-node src/tools/contaboSecrets.ts pull",
+    "secrets:list": "ts-node src/tools/contaboSecrets.ts list",
     "prepare": "husky install",
     "clean": "rm -rf dist coverage .tsbuildinfo .clinic"
   },
@@ -51,7 +54,7 @@
     "@typescript-eslint/parser": "^8.46.3",
     "@vitest/coverage-v8": "^4.0.7",
     "@vitest/ui": "^4.0.7",
-    "eslint": "^9.39.1",
+    "eslint": "^8.57.1",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-prettier": "^5.5.4",
@@ -64,6 +67,7 @@
     "vitest": "^4.0.7"
   },
   "dependencies": {
-    "task-master-ai": "^0.31.2"
+    "task-master-ai": "^0.31.2",
+    "undici": "^6.22.0"
   }
 }

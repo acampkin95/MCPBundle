@@ -1,46 +1,46 @@
-import { CommandRunner, type CommandResult } from "../utils/commandRunner.js";
+import { CommandRunner, type CommandResult } from '../utils/commandRunner.js';
 
 export type SecurityOperation =
   // Windows Defender operations
-  | "defender-status"
-  | "defender-scan-quick"
-  | "defender-scan-full"
-  | "defender-scan-custom"
-  | "defender-update-signatures"
-  | "defender-threat-history"
-  | "defender-quarantine-list"
-  | "defender-exclusions"
-  | "defender-add-exclusion"
-  | "defender-remove-exclusion"
+  | 'defender-status'
+  | 'defender-scan-quick'
+  | 'defender-scan-full'
+  | 'defender-scan-custom'
+  | 'defender-update-signatures'
+  | 'defender-threat-history'
+  | 'defender-quarantine-list'
+  | 'defender-exclusions'
+  | 'defender-add-exclusion'
+  | 'defender-remove-exclusion'
   // BitLocker operations
-  | "bitlocker-status"
-  | "bitlocker-enable"
-  | "bitlocker-disable"
-  | "bitlocker-suspend"
-  | "bitlocker-resume"
-  | "bitlocker-get-recovery-key"
-  | "bitlocker-backup-recovery-key"
+  | 'bitlocker-status'
+  | 'bitlocker-enable'
+  | 'bitlocker-disable'
+  | 'bitlocker-suspend'
+  | 'bitlocker-resume'
+  | 'bitlocker-get-recovery-key'
+  | 'bitlocker-backup-recovery-key'
   // Firewall operations
-  | "firewall-status"
-  | "firewall-list-rules"
-  | "firewall-create-rule"
-  | "firewall-delete-rule"
-  | "firewall-enable-rule"
-  | "firewall-disable-rule"
+  | 'firewall-status'
+  | 'firewall-list-rules'
+  | 'firewall-create-rule'
+  | 'firewall-delete-rule'
+  | 'firewall-enable-rule'
+  | 'firewall-disable-rule'
   // Security event analysis
-  | "analyze-failed-logins"
-  | "analyze-privilege-escalations"
-  | "analyze-account-changes"
-  | "analyze-security-events"
+  | 'analyze-failed-logins'
+  | 'analyze-privilege-escalations'
+  | 'analyze-account-changes'
+  | 'analyze-security-events'
   // Security baseline assessment
-  | "assess-security-baseline"
-  | "check-password-policy"
-  | "check-account-policies"
-  | "check-audit-policies"
+  | 'assess-security-baseline'
+  | 'check-password-policy'
+  | 'check-account-policies'
+  | 'check-audit-policies'
   // Vulnerability scanning
-  | "scan-outdated-software"
-  | "scan-missing-updates"
-  | "scan-weak-configurations";
+  | 'scan-outdated-software'
+  | 'scan-missing-updates'
+  | 'scan-weak-configurations';
 
 export interface SecurityConnectionOptions {
   readonly host?: string;
@@ -49,7 +49,7 @@ export interface SecurityConnectionOptions {
   readonly passwordEnvVar?: string;
   readonly useSsl?: boolean;
   readonly port?: number;
-  readonly authentication?: "Default" | "Negotiate" | "Kerberos" | "Basic" | "Credssp";
+  readonly authentication?: 'Default' | 'Negotiate' | 'Kerberos' | 'Basic' | 'Credssp';
   readonly ignoreCertErrors?: boolean;
 }
 
@@ -58,19 +58,19 @@ export interface SecurityOperationOptions extends SecurityConnectionOptions {
   readonly dryRun?: boolean;
   // Defender parameters
   readonly scanPath?: string;
-  readonly scanType?: "Quick" | "Full" | "Custom";
+  readonly scanType?: 'Quick' | 'Full' | 'Custom';
   readonly exclusionPath?: string;
   readonly exclusionExtension?: string;
   readonly exclusionProcess?: string;
   // BitLocker parameters
   readonly driveLetter?: string;
   readonly recoveryKeyPath?: string;
-  readonly encryptionMethod?: "Aes128" | "Aes256" | "XtsAes128" | "XtsAes256";
+  readonly encryptionMethod?: 'Aes128' | 'Aes256' | 'XtsAes128' | 'XtsAes256';
   // Firewall parameters
   readonly ruleName?: string;
-  readonly ruleDirection?: "Inbound" | "Outbound";
-  readonly ruleAction?: "Allow" | "Block";
-  readonly ruleProtocol?: "TCP" | "UDP" | "Any";
+  readonly ruleDirection?: 'Inbound' | 'Outbound';
+  readonly ruleAction?: 'Allow' | 'Block';
+  readonly ruleProtocol?: 'TCP' | 'UDP' | 'Any';
   readonly ruleLocalPort?: string;
   readonly ruleRemotePort?: string;
   readonly ruleRemoteAddress?: string;
@@ -78,7 +78,7 @@ export interface SecurityOperationOptions extends SecurityConnectionOptions {
   readonly hoursBack?: number;
   readonly maxEvents?: number;
   // Baseline parameters
-  readonly baselineStandard?: "Microsoft" | "CIS" | "STIG";
+  readonly baselineStandard?: 'Microsoft' | 'CIS' | 'STIG';
 }
 
 export interface SecurityResult {
@@ -93,7 +93,7 @@ export interface SecurityResult {
 }
 
 export interface SecurityFinding {
-  readonly severity: "critical" | "high" | "medium" | "low" | "info";
+  readonly severity: 'critical' | 'high' | 'medium' | 'low' | 'info';
   readonly category: string;
   readonly title: string;
   readonly description: string;
@@ -114,7 +114,7 @@ export class WindowsSecurityService {
         operation,
         message: `[DRY RUN] Would execute: ${operation}`,
         stdout: script,
-        stderr: "",
+        stderr: '',
         exitCode: 0,
       };
     }
@@ -125,7 +125,7 @@ export class WindowsSecurityService {
       success: result.code === 0,
       operation,
       data: this.parseResult(result.stdout),
-      message: result.code === 0 ? "Operation completed successfully" : "Operation failed",
+      message: result.code === 0 ? 'Operation completed successfully' : 'Operation failed',
       stdout: result.stdout,
       stderr: result.stderr,
       exitCode: result.code,
@@ -134,21 +134,21 @@ export class WindowsSecurityService {
 
   private isWriteOperation(operation: SecurityOperation): boolean {
     const writeOperations: SecurityOperation[] = [
-      "defender-scan-quick",
-      "defender-scan-full",
-      "defender-scan-custom",
-      "defender-update-signatures",
-      "defender-add-exclusion",
-      "defender-remove-exclusion",
-      "bitlocker-enable",
-      "bitlocker-disable",
-      "bitlocker-suspend",
-      "bitlocker-resume",
-      "bitlocker-backup-recovery-key",
-      "firewall-create-rule",
-      "firewall-delete-rule",
-      "firewall-enable-rule",
-      "firewall-disable-rule",
+      'defender-scan-quick',
+      'defender-scan-full',
+      'defender-scan-custom',
+      'defender-update-signatures',
+      'defender-add-exclusion',
+      'defender-remove-exclusion',
+      'bitlocker-enable',
+      'bitlocker-disable',
+      'bitlocker-suspend',
+      'bitlocker-resume',
+      'bitlocker-backup-recovery-key',
+      'firewall-create-rule',
+      'firewall-delete-rule',
+      'firewall-enable-rule',
+      'firewall-disable-rule',
     ];
     return writeOperations.includes(operation);
   }
@@ -158,111 +158,111 @@ export class WindowsSecurityService {
 
     switch (operation) {
       // Windows Defender operations
-      case "defender-status":
+      case 'defender-status':
         return `Get-MpComputerStatus | Select-Object AntivirusEnabled, AntispywareEnabled, RealTimeProtectionEnabled, IoavProtectionEnabled, BehaviorMonitorEnabled, OnAccessProtectionEnabled, AntivirusSignatureLastUpdated, AntispywareSignatureLastUpdated, QuickScanAge, FullScanAge, @{Name='QuickScanEndTime';Expression={$_.QuickScanEndTime}}, @{Name='FullScanEndTime';Expression={$_.FullScanEndTime}} | ConvertTo-Json -Depth 5`;
 
-      case "defender-scan-quick":
+      case 'defender-scan-quick':
         return `Start-MpScan -ScanType QuickScan; Get-MpComputerStatus | Select-Object QuickScanAge, QuickScanEndTime | ConvertTo-Json -Depth 5`;
 
-      case "defender-scan-full":
+      case 'defender-scan-full':
         return `Start-MpScan -ScanType FullScan; Get-MpComputerStatus | Select-Object FullScanAge, FullScanEndTime | ConvertTo-Json -Depth 5`;
 
-      case "defender-scan-custom":
-        return `Start-MpScan -ScanType CustomScan -ScanPath ${this.quotePs(options.scanPath ?? "C:\\")}`;
+      case 'defender-scan-custom':
+        return `Start-MpScan -ScanType CustomScan -ScanPath ${this.quotePs(options.scanPath ?? 'C:\\')}`;
 
-      case "defender-update-signatures":
+      case 'defender-update-signatures':
         return `Update-MpSignature; Get-MpComputerStatus | Select-Object AntivirusSignatureLastUpdated, AntispywareSignatureLastUpdated | ConvertTo-Json -Depth 5`;
 
-      case "defender-threat-history":
+      case 'defender-threat-history':
         return `Get-MpThreatDetection | Select-Object ThreatID, @{Name='ThreatName';Expression={(Get-MpThreat -ThreatID $_.ThreatID).ThreatName}}, InitialDetectionTime, RemediationTime, @{Name='Resources';Expression={$_.Resources}}, @{Name='ProcessName';Expression={$_.ProcessName}} | Sort-Object InitialDetectionTime -Descending | ConvertTo-Json -Depth 5`;
 
-      case "defender-quarantine-list":
+      case 'defender-quarantine-list':
         return `$threats = Get-MpThreatDetection; $quarantine = $threats | Where-Object {$_.CurrentStatus -eq 'Quarantined'}; $quarantine | Select-Object ThreatID, @{Name='ThreatName';Expression={(Get-MpThreat -ThreatID $_.ThreatID).ThreatName}}, InitialDetectionTime, @{Name='Resources';Expression={$_.Resources}} | ConvertTo-Json -Depth 5`;
 
-      case "defender-exclusions":
+      case 'defender-exclusions':
         return `Get-MpPreference | Select-Object ExclusionPath, ExclusionExtension, ExclusionProcess | ConvertTo-Json -Depth 5`;
 
-      case "defender-add-exclusion":
+      case 'defender-add-exclusion':
         return this.buildDefenderAddExclusionScript(options);
 
-      case "defender-remove-exclusion":
+      case 'defender-remove-exclusion':
         return this.buildDefenderRemoveExclusionScript(options);
 
       // BitLocker operations
-      case "bitlocker-status":
+      case 'bitlocker-status':
         return `Get-BitLockerVolume | Select-Object MountPoint, VolumeStatus, ProtectionStatus, EncryptionMethod, EncryptionPercentage, VolumeType, CapacityGB, @{Name='KeyProtector';Expression={$_.KeyProtector | Select-Object KeyProtectorType, KeyProtectorId}} | ConvertTo-Json -Depth 5`;
 
-      case "bitlocker-enable":
-        return `Enable-BitLocker -MountPoint ${this.quotePs(options.driveLetter ?? "C:")} -EncryptionMethod ${options.encryptionMethod ?? "XtsAes256"} -RecoveryPasswordProtector; Get-BitLockerVolume -MountPoint ${this.quotePs(options.driveLetter ?? "C:")} | ConvertTo-Json -Depth 5`;
+      case 'bitlocker-enable':
+        return `Enable-BitLocker -MountPoint ${this.quotePs(options.driveLetter ?? 'C:')} -EncryptionMethod ${options.encryptionMethod ?? 'XtsAes256'} -RecoveryPasswordProtector; Get-BitLockerVolume -MountPoint ${this.quotePs(options.driveLetter ?? 'C:')} | ConvertTo-Json -Depth 5`;
 
-      case "bitlocker-disable":
-        return `Disable-BitLocker -MountPoint ${this.quotePs(options.driveLetter ?? "C:")}`;
+      case 'bitlocker-disable':
+        return `Disable-BitLocker -MountPoint ${this.quotePs(options.driveLetter ?? 'C:')}`;
 
-      case "bitlocker-suspend":
-        return `Suspend-BitLocker -MountPoint ${this.quotePs(options.driveLetter ?? "C:")} -RebootCount 1`;
+      case 'bitlocker-suspend':
+        return `Suspend-BitLocker -MountPoint ${this.quotePs(options.driveLetter ?? 'C:')} -RebootCount 1`;
 
-      case "bitlocker-resume":
-        return `Resume-BitLocker -MountPoint ${this.quotePs(options.driveLetter ?? "C:")}`;
+      case 'bitlocker-resume':
+        return `Resume-BitLocker -MountPoint ${this.quotePs(options.driveLetter ?? 'C:')}`;
 
-      case "bitlocker-get-recovery-key":
-        return `(Get-BitLockerVolume -MountPoint ${this.quotePs(options.driveLetter ?? "C:")}).KeyProtector | Where-Object {$_.KeyProtectorType -eq 'RecoveryPassword'} | Select-Object KeyProtectorId, RecoveryPassword | ConvertTo-Json -Depth 5`;
+      case 'bitlocker-get-recovery-key':
+        return `(Get-BitLockerVolume -MountPoint ${this.quotePs(options.driveLetter ?? 'C:')}).KeyProtector | Where-Object {$_.KeyProtectorType -eq 'RecoveryPassword'} | Select-Object KeyProtectorId, RecoveryPassword | ConvertTo-Json -Depth 5`;
 
-      case "bitlocker-backup-recovery-key":
-        return `$vol = Get-BitLockerVolume -MountPoint ${this.quotePs(options.driveLetter ?? "C:")}; $keyId = ($vol.KeyProtector | Where-Object {$_.KeyProtectorType -eq 'RecoveryPassword'})[0].KeyProtectorId; Backup-BitLockerKeyProtector -MountPoint ${this.quotePs(options.driveLetter ?? "C:")} -KeyProtectorId $keyId`;
+      case 'bitlocker-backup-recovery-key':
+        return `$vol = Get-BitLockerVolume -MountPoint ${this.quotePs(options.driveLetter ?? 'C:')}; $keyId = ($vol.KeyProtector | Where-Object {$_.KeyProtectorType -eq 'RecoveryPassword'})[0].KeyProtectorId; Backup-BitLockerKeyProtector -MountPoint ${this.quotePs(options.driveLetter ?? 'C:')} -KeyProtectorId $keyId`;
 
       // Firewall operations
-      case "firewall-status":
+      case 'firewall-status':
         return `Get-NetFirewallProfile | Select-Object Name, Enabled, DefaultInboundAction, DefaultOutboundAction, AllowInboundRules, AllowLocalFirewallRules, AllowLocalIPsecRules, AllowUnicastResponseToMulticast, NotifyOnListen, LogFileName, LogMaxSizeKilobytes, LogAllowed, LogBlocked | ConvertTo-Json -Depth 5`;
 
-      case "firewall-list-rules":
+      case 'firewall-list-rules':
         return `Get-NetFirewallRule | Where-Object {$_.Enabled -eq 'True'} | Select-Object Name, DisplayName, Description, Direction, Action, Enabled, Profile, @{Name='LocalPort';Expression={(Get-NetFirewallPortFilter -AssociatedNetFirewallRule $_).LocalPort}}, @{Name='RemotePort';Expression={(Get-NetFirewallPortFilter -AssociatedNetFirewallRule $_).RemotePort}}, @{Name='Protocol';Expression={(Get-NetFirewallPortFilter -AssociatedNetFirewallRule $_).Protocol}} | ConvertTo-Json -Depth 5`;
 
-      case "firewall-create-rule":
+      case 'firewall-create-rule':
         return this.buildFirewallCreateRuleScript(options);
 
-      case "firewall-delete-rule":
-        return `Remove-NetFirewallRule -DisplayName ${this.quotePs(options.ruleName ?? "")}`;
+      case 'firewall-delete-rule':
+        return `Remove-NetFirewallRule -DisplayName ${this.quotePs(options.ruleName ?? '')}`;
 
-      case "firewall-enable-rule":
-        return `Enable-NetFirewallRule -DisplayName ${this.quotePs(options.ruleName ?? "")}`;
+      case 'firewall-enable-rule':
+        return `Enable-NetFirewallRule -DisplayName ${this.quotePs(options.ruleName ?? '')}`;
 
-      case "firewall-disable-rule":
-        return `Disable-NetFirewallRule -DisplayName ${this.quotePs(options.ruleName ?? "")}`;
+      case 'firewall-disable-rule':
+        return `Disable-NetFirewallRule -DisplayName ${this.quotePs(options.ruleName ?? '')}`;
 
       // Security event analysis
-      case "analyze-failed-logins":
+      case 'analyze-failed-logins':
         return this.buildAnalyzeFailedLoginsScript(options);
 
-      case "analyze-privilege-escalations":
+      case 'analyze-privilege-escalations':
         return this.buildAnalyzePrivilegeEscalationsScript(options);
 
-      case "analyze-account-changes":
+      case 'analyze-account-changes':
         return this.buildAnalyzeAccountChangesScript(options);
 
-      case "analyze-security-events":
+      case 'analyze-security-events':
         return this.buildAnalyzeSecurityEventsScript(options);
 
       // Security baseline assessment
-      case "assess-security-baseline":
+      case 'assess-security-baseline':
         return this.buildSecurityBaselineScript(options);
 
-      case "check-password-policy":
+      case 'check-password-policy':
         return `net accounts | Out-String`;
 
-      case "check-account-policies":
+      case 'check-account-policies':
         return `secedit /export /cfg $env:TEMP\\secpol.cfg /quiet; Get-Content $env:TEMP\\secpol.cfg; Remove-Item $env:TEMP\\secpol.cfg`;
 
-      case "check-audit-policies":
+      case 'check-audit-policies':
         return `auditpol /get /category:* | Out-String`;
 
       // Vulnerability scanning
-      case "scan-outdated-software":
+      case 'scan-outdated-software':
         return `Get-Package | Select-Object Name, Version, ProviderName, Source | Sort-Object Name | ConvertTo-Json -Depth 5`;
 
-      case "scan-missing-updates":
+      case 'scan-missing-updates':
         return `$session = New-Object -ComObject Microsoft.Update.Session; $searcher = $session.CreateUpdateSearcher(); $result = $searcher.Search('IsInstalled=0'); $result.Updates | Select-Object Title, @{Name='SizeKB';Expression={[math]::Round($_.MaxDownloadSize/1024, 2)}}, MsrcSeverity, @{Name='KBArticleIDs';Expression={$_.KBArticleIDs}}, Description | ConvertTo-Json -Depth 5`;
 
-      case "scan-weak-configurations":
+      case 'scan-weak-configurations':
         return this.buildWeakConfigurationsScript();
 
       default:
@@ -276,12 +276,14 @@ export class WindowsSecurityService {
       parts.push(`Add-MpPreference -ExclusionPath ${this.quotePs(options.exclusionPath)}`);
     }
     if (options.exclusionExtension) {
-      parts.push(`Add-MpPreference -ExclusionExtension ${this.quotePs(options.exclusionExtension)}`);
+      parts.push(
+        `Add-MpPreference -ExclusionExtension ${this.quotePs(options.exclusionExtension)}`
+      );
     }
     if (options.exclusionProcess) {
       parts.push(`Add-MpPreference -ExclusionProcess ${this.quotePs(options.exclusionProcess)}`);
     }
-    return parts.join("; ");
+    return parts.join('; ');
   }
 
   private buildDefenderRemoveExclusionScript(options: SecurityOperationOptions): string {
@@ -290,24 +292,27 @@ export class WindowsSecurityService {
       parts.push(`Remove-MpPreference -ExclusionPath ${this.quotePs(options.exclusionPath)}`);
     }
     if (options.exclusionExtension) {
-      parts.push(`Remove-MpPreference -ExclusionExtension ${this.quotePs(options.exclusionExtension)}`);
+      parts.push(
+        `Remove-MpPreference -ExclusionExtension ${this.quotePs(options.exclusionExtension)}`
+      );
     }
     if (options.exclusionProcess) {
       parts.push(`Remove-MpPreference -ExclusionProcess ${this.quotePs(options.exclusionProcess)}`);
     }
-    return parts.join("; ");
+    return parts.join('; ');
   }
 
   private buildFirewallCreateRuleScript(options: SecurityOperationOptions): string {
-    const parts = [`New-NetFirewallRule -DisplayName ${this.quotePs(options.ruleName ?? "")}`];
+    const parts = [`New-NetFirewallRule -DisplayName ${this.quotePs(options.ruleName ?? '')}`];
     if (options.ruleDirection) parts.push(`-Direction ${options.ruleDirection}`);
     if (options.ruleAction) parts.push(`-Action ${options.ruleAction}`);
     if (options.ruleProtocol) parts.push(`-Protocol ${options.ruleProtocol}`);
     if (options.ruleLocalPort) parts.push(`-LocalPort ${this.quotePs(options.ruleLocalPort)}`);
     if (options.ruleRemotePort) parts.push(`-RemotePort ${this.quotePs(options.ruleRemotePort)}`);
-    if (options.ruleRemoteAddress) parts.push(`-RemoteAddress ${this.quotePs(options.ruleRemoteAddress)}`);
-    parts.push("-Enabled True");
-    return parts.join(" ");
+    if (options.ruleRemoteAddress)
+      parts.push(`-RemoteAddress ${this.quotePs(options.ruleRemoteAddress)}`);
+    parts.push('-Enabled True');
+    return parts.join(' ');
   }
 
   private buildAnalyzeFailedLoginsScript(options: SecurityOperationOptions): string {
@@ -445,31 +450,36 @@ $issues | ConvertTo-Json -Depth 5
     `.trim();
   }
 
-  private async executeScript(script: string, options: SecurityConnectionOptions): Promise<CommandResult> {
-    const mode = options.host ? "remote" : "local";
+  private async executeScript(
+    script: string,
+    options: SecurityConnectionOptions
+  ): Promise<CommandResult> {
+    const mode = options.host ? 'remote' : 'local';
 
-    if (mode === "local") {
+    if (mode === 'local') {
       const command = `pwsh -Command "${script.replace(/"/g, '\\"')}"`;
       return this.runner.run(command, { requiresSudo: false, timeoutMs: 300000 }); // 5 minutes for scans
     } else {
       // Remote execution via WinRM
-      const passwordEnvVar = options.passwordEnvVar ?? "WINDOWS_REMOTE_PASSWORD";
-      const password = options.password ?? process.env[passwordEnvVar] ?? "";
-      const username = options.username ?? "Administrator";
+      const passwordEnvVar = options.passwordEnvVar ?? 'WINDOWS_REMOTE_PASSWORD';
+      const password = options.password ?? process.env[passwordEnvVar] ?? '';
+      const username = options.username ?? 'Administrator';
       const useSsl = options.useSsl ?? false;
       const port = options.port ?? (useSsl ? 5986 : 5985);
-      const auth = options.authentication ?? "Default";
+      const auth = options.authentication ?? 'Default';
       const ignoreCertErrors = options.ignoreCertErrors ?? false;
 
-      const encodedScript = Buffer.from(script, "utf16le").toString("base64");
+      const encodedScript = Buffer.from(script, 'utf16le').toString('base64');
 
       const sessionOptions: string[] = [];
-      if (useSsl) sessionOptions.push("-UseSSL");
+      if (useSsl) sessionOptions.push('-UseSSL');
       if (ignoreCertErrors) {
-        sessionOptions.push("-SessionOption (New-PSSessionOption -SkipCACheck -SkipCNCheck -SkipRevocationCheck)");
+        sessionOptions.push(
+          '-SessionOption (New-PSSessionOption -SkipCACheck -SkipCNCheck -SkipRevocationCheck)'
+        );
       }
 
-      const invokeCommand = `pwsh -Command "$password = ConvertTo-SecureString '${password}' -AsPlainText -Force; $cred = New-Object System.Management.Automation.PSCredential('${username}', $password); Invoke-Command -ComputerName ${options.host} -Port ${port} -Credential $cred -Authentication ${auth} ${sessionOptions.join(" ")} -ScriptBlock { [System.Text.Encoding]::Unicode.GetString([System.Convert]::FromBase64String('${encodedScript}')) | Invoke-Expression }"`;
+      const invokeCommand = `pwsh -Command "$password = ConvertTo-SecureString '${password}' -AsPlainText -Force; $cred = New-Object System.Management.Automation.PSCredential('${username}', $password); Invoke-Command -ComputerName ${options.host} -Port ${port} -Credential $cred -Authentication ${auth} ${sessionOptions.join(' ')} -ScriptBlock { [System.Text.Encoding]::Unicode.GetString([System.Convert]::FromBase64String('${encodedScript}')) | Invoke-Expression }"`;
 
       return this.runner.run(invokeCommand, { requiresSudo: false, timeoutMs: 300000 });
     }

@@ -718,7 +718,7 @@ COMMIT;
 \echo '  Port: 5432'
 \echo '  Database: mcp_ecosystem'
 \echo '  User: mcp_admin'
-\echo '  Password: MCP#Secure2025!Prod'
+\echo '  Password: '
 \echo ''
 \echo 'Available capabilities:'
 \echo '- Full-text search: SELECT * FROM search_thoughts(''query'', 50);'

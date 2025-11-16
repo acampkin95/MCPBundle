@@ -1,0 +1,48 @@
+[Unit]
+Description=Cloudflare MCP - Mesh Heartbeat and DNS Relay Agent
+Documentation=https://github.com/yourusername/cloudflare-mcp
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=mcp-agent
+Group=mcp-agent
+WorkingDirectory=/opt/cloudflare-mcp
+
+# Main process
+ExecStart=/usr/bin/node dist/index.js
+
+# Restart policy
+Restart=always
+RestartSec=10
+StartLimitInterval=200
+StartLimitBurst=5
+
+# Environment
+Environment="NODE_ENV=production"
+EnvironmentFile=-/opt/cloudflare-mcp/cloudflare-mcp.env
+
+# Security hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/cloudflare-mcp /var/log/cloudflare-mcp
+
+# Resource limits
+LimitNOFILE=65536
+TasksMax=4096
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=cloudflare-mcp
+
+# Credentials (production secret management)
+# LoadCredential=cloudflare_token:/etc/credstore/cloudflare_token
+# LoadCredential=mesh_db_url:/etc/credstore/mesh_db_url
+# LoadCredential=heartbeat_secret:/etc/credstore/heartbeat_secret
+
+[Install]
+WantedBy=multi-user.target

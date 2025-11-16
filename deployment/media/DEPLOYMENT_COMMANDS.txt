@@ -1,0 +1,285 @@
+================================================================================
+MEDIA SERVER DEPLOYMENT - QUICK REFERENCE
+================================================================================
+Target: VMI02D (46.250.241.70)
+Database: VMI01 (46.250.243.123)
+Date: 2025-11-08
+================================================================================
+
+ONE-COMMAND DEPLOYMENT (35-50 minutes)
+================================================================================
+cd /Users/alex/Projects/MCP\ Bundle
+
+scp deployment/media/deploy-*.sh root@46.250.241.70:/tmp/ && \
+ssh root@46.250.241.70 'bash /tmp/deploy-nextcloud.sh && \
+                         bash /tmp/deploy-plex.sh && \
+                         bash /tmp/deploy-transcoding.sh'
+
+================================================================================
+STEP-BY-STEP DEPLOYMENT
+================================================================================
+
+# Step 1: Deploy NextCloud (15-20 min)
+scp deployment/media/deploy-nextcloud.sh root@46.250.241.70:/tmp/
+ssh root@46.250.241.70 'bash /tmp/deploy-nextcloud.sh'
+
+# Step 2: Deploy Plex (10-15 min)
+scp deployment/media/deploy-plex.sh root@46.250.241.70:/tmp/
+ssh root@46.250.241.70 'bash /tmp/deploy-plex.sh'
+
+# Step 3: Deploy Transcoding (10-15 min)
+scp deployment/media/deploy-transcoding.sh root@46.250.241.70:/tmp/
+ssh root@46.250.241.70 'bash /tmp/deploy-transcoding.sh'
+
+================================================================================
+VALIDATION
+================================================================================
+# Run validation suite
+./deployment/media/validate-deployment.sh
+
+# Manual checks
+ssh root@46.250.241.70 'systemctl status nginx php8.3-fpm plexmediaserver transcoding-daemon'
+
+================================================================================
+ACCESS URLS
+================================================================================
+NextCloud:  https://46.250.241.70/
+Plex:       http://46.250.241.70:32400/web
+
+================================================================================
+RETRIEVE CREDENTIALS
+================================================================================
+ssh root@46.250.241.70 'cat /root/nextcloud-db-credentials.txt'
+ssh root@46.250.241.70 'cat /root/plex-deployment-info.txt'
+ssh root@46.250.241.70 'cat /root/transcoding-deployment-info.txt'
+
+================================================================================
+MONITORING
+================================================================================
+# Transcoding status
+ssh root@46.250.241.70 '/usr/local/bin/transcoding-status.sh'
+
+# Follow logs
+ssh root@46.250.241.70 '/usr/local/bin/transcoding-logs.sh -f'
+
+# All service status
+ssh root@46.250.241.70 'systemctl status nginx php8.3-fpm plexmediaserver transcoding-daemon'
+
+================================================================================
+TESTING WORKFLOW
+================================================================================
+# Upload test video
+scp test-video.mp4 root@46.250.241.70:/nextcloud/plex-ingest/
+
+# Monitor transcoding
+ssh root@46.250.241.70 '/usr/local/bin/transcoding-logs.sh -f'
+
+# Check output
+ssh root@46.250.241.70 'ls -lh /opt/plex/movies/'
+
+# Open Plex
+open http://46.250.241.70:32400/web
+
+================================================================================
+SERVICE CONTROL
+================================================================================
+# Restart all
+ssh root@46.250.241.70 'systemctl restart nginx php8.3-fpm plexmediaserver transcoding-daemon'
+
+# Stop all
+ssh root@46.250.241.70 'systemctl stop nginx php8.3-fpm plexmediaserver transcoding-daemon'
+
+# Start all
+ssh root@46.250.241.70 'systemctl start nginx php8.3-fpm plexmediaserver transcoding-daemon'
+
+================================================================================
+LOGS
+================================================================================
+# NextCloud
+ssh root@46.250.241.70 'tail -f /var/log/nginx/error.log'
+
+# Plex
+ssh root@46.250.241.70 'journalctl -u plexmediaserver -f'
+
+# Transcoding
+ssh root@46.250.241.70 'tail -f /var/log/transcoding/daemon.log'
+
+================================================================================
+DATABASE QUERIES
+================================================================================
+# View transcoding jobs
+ssh root@46.250.241.70 '
+  PGPASSWORD="" \
+  psql -h 46.250.243.123 -U mcp_admin -d mcp_ecosystem -c "
+    SELECT job_id, input_file, status, duration_seconds, created_at
+    FROM transcoding_jobs
+    ORDER BY created_at DESC
+    LIMIT 10;
+  "
+'
+
+# Job statistics
+ssh root@46.250.241.70 '
+  PGPASSWORD="" \
+  psql -h 46.250.243.123 -U mcp_admin -d mcp_ecosystem -c "
+    SELECT status, COUNT(*) as jobs, AVG(duration_seconds) as avg_duration
+    FROM transcoding_jobs
+    GROUP BY status;
+  "
+'
+
+================================================================================
+TROUBLESHOOTING
+================================================================================
+# Check disk space
+ssh root@46.250.241.70 'df -h | grep -E "Filesystem|/$|/nextcloud|/opt/plex"'
+
+# Check memory
+ssh root@46.250.241.70 'free -h'
+
+# Check CPU
+ssh root@46.250.241.70 'top -bn1 | head -20'
+
+# Test database connection
+ssh root@46.250.241.70 '
+  PGPASSWORD="" \
+  psql -h 46.250.243.123 -U mcp_admin -d mcp_ecosystem -c "SELECT version();"
+'
+
+# Test FFmpeg
+ssh root@46.250.241.70 'ffmpeg -version | head -n 1'
+
+# Check hardware acceleration
+ssh root@46.250.241.70 'sudo -u plex vainfo'
+
+================================================================================
+BACKUP
+================================================================================
+# Quick backup
+ssh root@46.250.241.70 '
+  tar -czf /tmp/media-backup-$(date +%Y%m%d).tar.gz \
+    /root/*-credentials.txt \
+    /root/*-info.txt \
+    /etc/nginx/sites-available/nextcloud \
+    /etc/systemd/system/transcoding-daemon.service \
+    /usr/local/bin/transcoding-daemon.py
+'
+
+scp root@46.250.241.70:/tmp/media-backup-*.tar.gz ./
+
+================================================================================
+PERFORMANCE TUNING
+================================================================================
+# Increase parallel transcoding jobs
+ssh root@46.250.241.70 'nano /usr/local/bin/transcoding-daemon.py'
+# Change: MAX_PARALLEL = 4
+
+# Increase CPU limit
+ssh root@46.250.241.70 'systemctl edit transcoding-daemon'
+# Add: CPUQuota=100%
+
+# Restart daemon
+ssh root@46.250.241.70 'systemctl daemon-reload && systemctl restart transcoding-daemon'
+
+================================================================================
+HELPFUL ONELINERS
+================================================================================
+# Watch transcoding queue
+ssh root@46.250.241.70 'watch -n 5 ls -lh /nextcloud/plex-ingest/'
+
+# Monitor output directory
+ssh root@46.250.241.70 'watch -n 5 ls -lh /opt/plex/movies/'
+
+# Check active FFmpeg processes
+ssh root@46.250.241.70 'watch -n 2 "ps aux | grep ffmpeg | grep -v grep"'
+
+# Monitor resource usage
+ssh root@46.250.241.70 'htop'
+
+# Real-time log streaming (all services)
+ssh root@46.250.241.70 '
+  tail -f /var/log/nginx/access.log \
+         /var/log/transcoding/daemon.log \
+         /var/log/plex-health-check.log
+'
+
+================================================================================
+REDIS MONITORING
+================================================================================
+# Subscribe to transcoding events
+ssh root@46.250.241.70 'redis-cli SUBSCRIBE transcoding:events'
+
+# Check Redis connection
+ssh root@46.250.241.70 'redis-cli ping'
+
+================================================================================
+CREATED FILES ON VMI02D
+================================================================================
+After successful deployment:
+
+Configuration Files:
+  /root/nextcloud-db-credentials.txt
+  /root/plex-deployment-info.txt
+  /root/transcoding-deployment-info.txt
+
+Services:
+  nginx.service
+  php8.3-fpm.service
+  plexmediaserver.service
+  transcoding-daemon.service
+  nextcloud-cron.timer
+  plex-health-check.timer
+
+Management Scripts:
+  /usr/local/bin/transcoding-daemon.py
+  /usr/local/bin/transcoding-status.sh
+  /usr/local/bin/transcoding-logs.sh
+  /usr/local/bin/plex-health-check.sh
+  /usr/local/bin/plex-add-movies-library.sh
+
+Directories:
+  /var/www/nextcloud/          (NextCloud installation)
+  /nextcloud/                  (Data directory)
+  /nextcloud/plex-ingest/      (Upload folder - 777 perms)
+  /opt/plex/movies/            (Plex library)
+  /opt/plex/transcode/         (Transcode work directory)
+  /var/log/transcoding/        (Transcoding logs)
+
+================================================================================
+NEXT STEPS AFTER DEPLOYMENT
+================================================================================
+1. Access NextCloud web interface and complete setup
+2. Configure Keycloak SSO in NextCloud settings
+3. Access Plex web interface and sign in
+4. Add Movies library in Plex (/opt/plex/movies)
+5. Enable hardware transcoding in Plex settings
+6. Upload test video to /nextcloud/plex-ingest/
+7. Monitor transcoding and verify Plex library update
+8. Set up regular backups
+9. Configure monitoring alerts
+
+================================================================================
+DOCUMENTATION
+================================================================================
+Full Guide:     deployment/media/README.md
+Quick Start:    deployment/media/QUICKSTART.md
+This File:      deployment/media/DEPLOYMENT_COMMANDS.txt
+Summary:        deployment/MEDIA_DEPLOYMENT_COMPLETE.md
+Project Guide:  CLAUDE.md
+
+================================================================================
+SUPPORT
+================================================================================
+All scripts are idempotent and can be re-run safely.
+All scripts include comprehensive error handling and logging.
+All scripts create detailed verification reports.
+
+For issues, check logs first:
+  - /var/log/nginx/error.log
+  - /var/log/transcoding/daemon.log
+  - journalctl -u plexmediaserver
+  - journalctl -u transcoding-daemon
+
+================================================================================
+STATUS: ✅ READY FOR PRODUCTION DEPLOYMENT
+================================================================================

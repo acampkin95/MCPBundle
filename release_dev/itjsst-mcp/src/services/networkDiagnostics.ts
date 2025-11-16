@@ -1,11 +1,11 @@
-import { CommandExecutionError, CommandRunner } from "../utils/commandRunner.js";
-import { shellQuote } from "../utils/shell.js";
+import { CommandExecutionError, CommandRunner } from '../utils/commandRunner.js';
+import { shellQuote } from '../utils/shell.js';
 
 export interface PortScanResult {
   readonly command: string;
   readonly host: string;
   readonly port: number;
-  readonly protocol: "tcp" | "udp";
+  readonly protocol: 'tcp' | 'udp';
   readonly success: boolean;
   readonly stdout: string;
   readonly stderr: string;
@@ -39,7 +39,7 @@ export class NetworkDiagnosticsService {
   public async scanTcpPorts(
     host: string,
     ports: number[],
-    timeoutSeconds: number = 3,
+    timeoutSeconds: number = 3
   ): Promise<PortScanResult[]> {
     return this.runNcScans(host, ports, timeoutSeconds, false);
   }
@@ -47,7 +47,7 @@ export class NetworkDiagnosticsService {
   public async scanUdpPorts(
     host: string,
     ports: number[],
-    timeoutSeconds: number = 3,
+    timeoutSeconds: number = 3
   ): Promise<PortScanResult[]> {
     return this.runNcScans(host, ports, timeoutSeconds, true);
   }
@@ -55,16 +55,16 @@ export class NetworkDiagnosticsService {
   public async runNmap(
     host: string,
     ports: number[],
-    protocol: "tcp" | "udp",
+    protocol: 'tcp' | 'udp'
   ): Promise<PortScanResult | undefined> {
-    const check = await this.hasBinary("nmap");
+    const check = await this.hasBinary('nmap');
     if (!check) {
       return undefined;
     }
 
-    const portList = ports.join(",");
-    const args = protocol === "udp" ? "-sU" : "-sT";
-    const command = ["nmap", args, "-p", portList, shellQuote(host)].join(" ");
+    const portList = ports.join(',');
+    const args = protocol === 'udp' ? '-sU' : '-sT';
+    const command = ['nmap', args, '-p', portList, shellQuote(host)].join(' ');
     try {
       const result = await this.runner.run(command);
       return {
@@ -78,8 +78,7 @@ export class NetworkDiagnosticsService {
         exitCode: result.code,
       };
     } catch (error) {
-      const execution =
-        error instanceof CommandExecutionError ? error.result : undefined;
+      const execution = error instanceof CommandExecutionError ? error.result : undefined;
       return execution
         ? {
             command,
@@ -96,14 +95,14 @@ export class NetworkDiagnosticsService {
   }
 
   public async firewallDiagnostics(): Promise<FirewallDiagnostics> {
-    const pfctl = await this.safeCommand("pfctl -sr", true);
+    const pfctl = await this.safeCommand('pfctl -sr', true);
     const socketFilter = await this.safeCommand(
-      "/usr/libexec/ApplicationFirewall/socketfilterfw --getglobalstate",
-      true,
+      '/usr/libexec/ApplicationFirewall/socketfilterfw --getglobalstate',
+      true
     );
     const applicationFirewall = await this.safeCommand(
-      "defaults read /Library/Preferences/com.apple.alf globalstate",
-      true,
+      'defaults read /Library/Preferences/com.apple.alf globalstate',
+      true
     );
 
     return {
@@ -117,39 +116,38 @@ export class NetworkDiagnosticsService {
     host: string,
     ports: number[],
     timeoutSeconds: number,
-    isUdp: boolean,
+    isUdp: boolean
   ): Promise<PortScanResult[]> {
     const results: PortScanResult[] = [];
     for (const port of ports) {
-      const parts: string[] = ["nc", "-zv", "-G", String(timeoutSeconds)];
+      const parts: string[] = ['nc', '-zv', '-G', String(timeoutSeconds)];
       if (isUdp) {
-        parts.push("-u");
+        parts.push('-u');
       }
       parts.push(shellQuote(host), String(port));
 
-      const command = parts.join(" ");
+      const command = parts.join(' ');
       try {
         const result = await this.runner.run(command);
         results.push({
           command,
           host,
           port,
-          protocol: isUdp ? "udp" : "tcp",
+          protocol: isUdp ? 'udp' : 'tcp',
           success: true,
           stdout: result.stdout,
           stderr: result.stderr,
           exitCode: result.code,
         });
       } catch (error) {
-        const execution =
-          error instanceof CommandExecutionError ? error.result : undefined;
+        const execution = error instanceof CommandExecutionError ? error.result : undefined;
         results.push({
           command,
           host,
           port,
-          protocol: isUdp ? "udp" : "tcp",
+          protocol: isUdp ? 'udp' : 'tcp',
           success: false,
-          stdout: execution?.stdout ?? "",
+          stdout: execution?.stdout ?? '',
           stderr: execution?.stderr ?? (error instanceof Error ? error.message : String(error)),
           exitCode: execution?.code ?? null,
         });
@@ -168,7 +166,10 @@ export class NetworkDiagnosticsService {
     }
   }
 
-  private async safeCommand(command: string, requiresSudo: boolean): Promise<{
+  private async safeCommand(
+    command: string,
+    requiresSudo: boolean
+  ): Promise<{
     command: string;
     stdout: string;
     stderr: string;
@@ -183,11 +184,10 @@ export class NetworkDiagnosticsService {
         exitCode: result.code,
       };
     } catch (error) {
-      const execution =
-        error instanceof CommandExecutionError ? error.result : undefined;
+      const execution = error instanceof CommandExecutionError ? error.result : undefined;
       return {
         command,
-        stdout: execution?.stdout ?? "",
+        stdout: execution?.stdout ?? '',
         stderr: execution?.stderr ?? (error instanceof Error ? error.message : String(error)),
         exitCode: execution?.code ?? null,
       };

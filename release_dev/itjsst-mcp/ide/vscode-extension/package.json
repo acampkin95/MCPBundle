@@ -1,39 +1,291 @@
 {
-  "name": "it-mcp-tools",
-  "displayName": "IT MCP Toolkit",
-  "description": "VS Code helpers for the IT MCP server (tool catalog, mac diagnostics shortcuts).",
-  "version": "0.0.1",
-  "publisher": "it-mcp",
+  "name": "structural-thinking-manager",
+  "displayName": "Structural Thinking Manager",
+  "description": "Enterprise-grade VSCode extension for the MCP Bundle's Structural Thinking Framework with distributed MCP ecosystem management",
+  "version": "0.1.0",
+  "publisher": "mcp-bundle",
   "engines": {
     "vscode": "^1.84.0"
   },
   "categories": [
-    "Other"
+    "Other",
+    "Visualization",
+    "Data Science"
+  ],
+  "keywords": [
+    "mcp",
+    "structured thinking",
+    "cognitive framework",
+    "perplexity",
+    "research",
+    "database",
+    "postgresql"
   ],
   "activationEvents": [
-    "onCommand:itMcp.showToolCatalog",
-    "onCommand:itMcp.runMacPermissionsAudit"
+    "onStartupFinished"
   ],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
       {
-        "command": "itMcp.showToolCatalog",
-        "title": "IT MCP: Show Tool Catalog"
+        "command": "structuralThinking.refresh",
+        "title": "Refresh Thinking Processes",
+        "icon": "$(refresh)",
+        "category": "Structural Thinking"
       },
       {
-        "command": "itMcp.runMacPermissionsAudit",
-        "title": "IT MCP: Run Mac Permissions Audit"
+        "command": "structuralThinking.createSession",
+        "title": "Create New Thinking Session",
+        "icon": "$(add)",
+        "category": "Structural Thinking"
+      },
+      {
+        "command": "structuralThinking.viewThought",
+        "title": "View Thought Details",
+        "category": "Structural Thinking"
+      },
+      {
+        "command": "structuralThinking.editThought",
+        "title": "Edit Thought",
+        "icon": "$(edit)",
+        "category": "Structural Thinking"
+      },
+      {
+        "command": "structuralThinking.deleteThought",
+        "title": "Delete Thought",
+        "icon": "$(trash)",
+        "category": "Structural Thinking"
+      },
+      {
+        "command": "structuralThinking.exportSession",
+        "title": "Export Session to JSON/Markdown",
+        "icon": "$(export)",
+        "category": "Structural Thinking"
+      },
+      {
+        "command": "structuralThinking.showAnalytics",
+        "title": "Show Thinking Analytics",
+        "icon": "$(graph)",
+        "category": "Structural Thinking"
+      },
+      {
+        "command": "structuralThinking.openDashboard",
+        "title": "Open MCP Health Dashboard",
+        "category": "Structural Thinking"
+      },
+      {
+        "command": "structuralThinking.perplexityResearch",
+        "title": "Research with Perplexity",
+        "icon": "$(search)",
+        "category": "Structural Thinking"
+      },
+      {
+        "command": "structuralThinking.configureDatabases",
+        "title": "Configure Database Connections",
+        "category": "Structural Thinking"
       }
-    ]
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "structural-thinking",
+          "title": "Structural Thinking",
+          "icon": "$(lightbulb)"
+        }
+      ]
+    },
+    "views": {
+      "structural-thinking": [
+        {
+          "id": "thinkingProcesses",
+          "name": "Thinking Processes",
+          "icon": "resources/thinking-icon.svg",
+          "contextualTitle": "Structural Thinking Processes"
+        }
+      ]
+    },
+    "menus": {
+      "view/title": [
+        {
+          "command": "structuralThinking.refresh",
+          "when": "view == thinkingProcesses",
+          "group": "navigation@1"
+        },
+        {
+          "command": "structuralThinking.createSession",
+          "when": "view == thinkingProcesses",
+          "group": "navigation@2"
+        },
+        {
+          "command": "structuralThinking.showAnalytics",
+          "when": "view == thinkingProcesses",
+          "group": "navigation@3"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "structuralThinking.viewThought",
+          "when": "view == thinkingProcesses && viewItem == thought",
+          "group": "inline@1"
+        },
+        {
+          "command": "structuralThinking.editThought",
+          "when": "view == thinkingProcesses && viewItem == thought",
+          "group": "inline@2"
+        },
+        {
+          "command": "structuralThinking.deleteThought",
+          "when": "view == thinkingProcesses && viewItem == thought",
+          "group": "inline@3"
+        },
+        {
+          "command": "structuralThinking.exportSession",
+          "when": "view == thinkingProcesses && viewItem == session",
+          "group": "context@1"
+        },
+        {
+          "command": "structuralThinking.perplexityResearch",
+          "when": "view == thinkingProcesses && viewItem == session",
+          "group": "context@2"
+        }
+      ]
+    },
+    "keybindings": [
+      {
+        "command": "structuralThinking.createSession",
+        "key": "ctrl+shift+n",
+        "mac": "cmd+shift+n",
+        "when": "!editorFocus"
+      },
+      {
+        "command": "structuralThinking.perplexityResearch",
+        "key": "ctrl+shift+r",
+        "mac": "cmd+shift+r"
+      },
+      {
+        "command": "structuralThinking.exportSession",
+        "key": "ctrl+shift+e",
+        "mac": "cmd+shift+e"
+      },
+      {
+        "command": "structuralThinking.refresh",
+        "key": "ctrl+shift+f5",
+        "mac": "cmd+shift+f5"
+      },
+      {
+        "command": "structuralThinking.showAnalytics",
+        "key": "ctrl+shift+a",
+        "mac": "cmd+shift+a"
+      }
+    ],
+    "configuration": {
+      "title": "Structural Thinking Manager",
+      "properties": {
+        "structuralThinking.database.mode": {
+          "type": "string",
+          "enum": [
+            "sqlite",
+            "postgresql",
+            "auto"
+          ],
+          "default": "auto",
+          "description": "Database mode: SQLite (local), PostgreSQL (production), or Auto (fallback to SQLite if PostgreSQL unavailable)"
+        },
+        "structuralThinking.database.postgresql.host": {
+          "type": "string",
+          "default": "46.250.243.123",
+          "description": "PostgreSQL host address (VMI01)"
+        },
+        "structuralThinking.database.postgresql.port": {
+          "type": "number",
+          "default": 5432,
+          "description": "PostgreSQL port"
+        },
+        "structuralThinking.database.postgresql.database": {
+          "type": "string",
+          "default": "mcp_ecosystem",
+          "description": "PostgreSQL database name"
+        },
+        "structuralThinking.database.postgresql.poolSize": {
+          "type": "number",
+          "default": 5,
+          "description": "Connection pool size"
+        },
+        "structuralThinking.mcp.remoteMode": {
+          "type": "boolean",
+          "default": true,
+          "description": "Connect to MCP servers via SSH (remote) or local stdio"
+        },
+        "structuralThinking.mcp.ssh.host": {
+          "type": "string",
+          "default": "46.250.243.123",
+          "description": "SSH host for remote MCP servers (VMI01)"
+        },
+        "structuralThinking.mcp.ssh.username": {
+          "type": "string",
+          "default": "root",
+          "description": "SSH username"
+        },
+        "structuralThinking.treeView.refreshInterval": {
+          "type": "number",
+          "default": 5000,
+          "description": "Tree view refresh interval in milliseconds (0 to disable auto-refresh)"
+        },
+        "structuralThinking.treeView.maxThoughtsPerSession": {
+          "type": "number",
+          "default": 100,
+          "description": "Maximum thoughts to display per session"
+        },
+        "structuralThinking.logging.level": {
+          "type": "string",
+          "enum": [
+            "error",
+            "warn",
+            "info",
+            "debug"
+          ],
+          "default": "info",
+          "description": "Logging level for output channel"
+        }
+      }
+    }
   },
   "scripts": {
     "compile": "tsc -p .",
-    "watch": "tsc -w -p ."
+    "watch": "tsc -w -p .",
+    "lint": "eslint src --ext ts",
+    "format": "prettier --write \"src/**/*.ts\"",
+    "test": "vitest run",
+    "test:watch": "vitest watch",
+    "test:coverage": "vitest run --coverage",
+    "test:unit": "vitest run src/services/__tests__",
+    "test:integration": "vitest run src/__tests__/integration",
+    "test:performance": "vitest run src/__tests__/performance",
+    "test:ui": "vitest --ui",
+    "pretest": "npm run compile",
+    "package": "vsce package",
+    "vscode:prepublish": "npm run compile"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.20.2",
+    "better-sqlite3": "^9.4.3",
+    "node-ssh": "^13.1.0",
+    "pg": "^8.11.0",
+    "winston": "^3.13.0",
+    "zod": "^3.22.4"
   },
   "devDependencies": {
+    "@types/better-sqlite3": "^7.6.9",
     "@types/node": "^20.11.30",
+    "@types/pg": "^8.10.0",
     "@types/vscode": "^1.84.0",
-    "typescript": "^5.4.5"
+    "@typescript-eslint/eslint-plugin": "^6.21.0",
+    "@typescript-eslint/parser": "^6.21.0",
+    "@vitest/coverage-v8": "^1.0.0",
+    "@vscode/vsce": "^3.7.0",
+    "eslint": "^8.56.0",
+    "prettier": "^3.2.5",
+    "typescript": "^5.4.5",
+    "vitest": "^1.0.0"
   }
 }

@@ -1,7 +1,7 @@
-import { randomUUID } from "node:crypto";
-import type { StructuredThinkingService, ThoughtMetadata } from "./structuredThinking.js";
+import { randomUUID } from 'node:crypto';
+import type { StructuredThinkingService, ThoughtMetadata } from './structuredThinking.js';
 
-export type ReportImportance = ThoughtMetadata["importance"];
+export type ReportImportance = ThoughtMetadata['importance'];
 
 export interface ToolReport {
   readonly tool: string;
@@ -9,7 +9,7 @@ export interface ToolReport {
   readonly sections?: Record<string, string>;
   readonly stage?: string;
   readonly tags?: readonly string[];
-  readonly references?: readonly string[];
+  readonly external_refs?: readonly string[];
   readonly importance?: ReportImportance;
   readonly devOpsCategory?: string;
   readonly debugLayer?: string;
@@ -27,13 +27,13 @@ export class ReportingHubService {
   public constructor(private readonly structuredThinking: StructuredThinkingService) {}
 
   public capture(report: ToolReport): ReportCaptureResult {
-    const stage = report.stage ?? "analysis";
+    const stage = report.stage ?? 'analysis';
     const narrative = this.composeNarrative(report);
     const metadata: ThoughtMetadata = {
       source: report.tool,
       tags: report.tags,
-      references: report.references,
-      importance: report.importance ?? "medium",
+      external_refs: report.external_refs,
+      importance: report.importance ?? 'medium',
       devOpsCategory: report.devOpsCategory,
       debugLayer: report.debugLayer,
       runtimeStack: report.runtimeStack,
@@ -49,7 +49,7 @@ export class ReportingHubService {
           metadata,
         },
       ],
-      true,
+      true
     );
 
     const lastRecord = timeline.timeline.at(-1);
@@ -76,6 +76,6 @@ export class ReportingHubService {
       }
     }
 
-    return lines.join("\n");
+    return lines.join('\n');
   }
 }

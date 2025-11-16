@@ -23,12 +23,14 @@ const passport = require('passport');
 const app = express();
 
 // Session configuration
-app.use(session({
-  secret: 'your-session-secret',
-  resave: false,
-  saveUninitialized: true,
-  cookie: { secure: true } // Set to true in production with HTTPS
-}));
+app.use(
+  session({
+    secret: 'your-session-secret',
+    resave: false,
+    saveUninitialized: true,
+    cookie: { secure: true }, // Set to true in production with HTTPS
+  })
+);
 
 app.use(passport.initialize());
 app.use(passport.session());
@@ -38,9 +40,7 @@ async function configureKeycloak() {
   // Allow self-signed certificates (remove in production)
   process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
-  const keycloakIssuer = await Issuer.discover(
-    'https://154.26.158.31:8443/realms/mcp-ecosystem'
-  );
+  const keycloakIssuer = await Issuer.discover('https://154.26.158.31:8443/realms/mcp-ecosystem');
 
   const client = new keycloakIssuer.Client({
     client_id: 'mcp-orchestrator',
@@ -48,15 +48,15 @@ async function configureKeycloak() {
     redirect_uris: ['http://localhost:3000/callback'],
     response_types: ['code'],
     id_token_signed_response_alg: 'RS256',
-    token_endpoint_auth_method: 'client_secret_post'
+    token_endpoint_auth_method: 'client_secret_post',
   });
 
-  passport.use('oidc', new Strategy(
-    { client },
-    (tokenSet, userinfo, done) => {
+  passport.use(
+    'oidc',
+    new Strategy({ client }, (tokenSet, userinfo, done) => {
       return done(null, userinfo);
-    }
-  ));
+    })
+  );
 
   passport.serializeUser((user, done) => {
     done(null, user);
@@ -68,14 +68,13 @@ async function configureKeycloak() {
 }
 
 // Routes
-app.get('/login',
-  passport.authenticate('oidc', { scope: 'openid profile email' })
-);
+app.get('/login', passport.authenticate('oidc', { scope: 'openid profile email' }));
 
-app.get('/callback',
+app.get(
+  '/callback',
   passport.authenticate('oidc', {
     successRedirect: '/dashboard',
-    failureRedirect: '/login'
+    failureRedirect: '/login',
   })
 );
 
@@ -88,7 +87,7 @@ app.get('/logout', (req, res) => {
 app.get('/dashboard', ensureAuthenticated, (req, res) => {
   res.json({
     message: 'Welcome to MCP Dashboard',
-    user: req.user
+    user: req.user,
   });
 });
 
@@ -183,22 +182,23 @@ if __name__ == '__main__':
 const axios = require('axios');
 
 async function getServiceAccountToken() {
-  const tokenEndpoint = 'https://154.26.158.31:8443/realms/mcp-ecosystem/protocol/openid-connect/token';
+  const tokenEndpoint =
+    'https://154.26.158.31:8443/realms/mcp-ecosystem/protocol/openid-connect/token';
 
   const params = new URLSearchParams({
     grant_type: 'client_credentials',
     client_id: 'mcp-orchestrator',
-    client_secret: 'YOUR_CLIENT_SECRET_HERE'
+    client_secret: 'YOUR_CLIENT_SECRET_HERE',
   });
 
   try {
     const response = await axios.post(tokenEndpoint, params, {
       headers: {
-        'Content-Type': 'application/x-www-form-urlencoded'
+        'Content-Type': 'application/x-www-form-urlencoded',
       },
       httpsAgent: new (require('https').Agent)({
-        rejectUnauthorized: false // Remove in production
-      })
+        rejectUnauthorized: false, // Remove in production
+      }),
     });
 
     return response.data.access_token;
@@ -214,8 +214,8 @@ async function callProtectedAPI() {
 
   const response = await axios.get('https://api.example.com/protected', {
     headers: {
-      'Authorization': `Bearer ${token}`
-    }
+      Authorization: `Bearer ${token}`,
+    },
   });
 
   return response.data;
@@ -256,25 +256,30 @@ function validateToken(req, res, next) {
     return res.status(401).json({ error: 'No token provided' });
   }
 
-  jwt.verify(token, getKey, {
-    audience: 'mcp-orchestrator',
-    issuer: 'https://154.26.158.31:8443/realms/mcp-ecosystem',
-    algorithms: ['RS256']
-  }, (err, decoded) => {
-    if (err) {
-      return res.status(401).json({ error: 'Invalid token' });
-    }
+  jwt.verify(
+    token,
+    getKey,
+    {
+      audience: 'mcp-orchestrator',
+      issuer: 'https://154.26.158.31:8443/realms/mcp-ecosystem',
+      algorithms: ['RS256'],
+    },
+    (err, decoded) => {
+      if (err) {
+        return res.status(401).json({ error: 'Invalid token' });
+      }
 
-    req.user = decoded;
-    next();
-  });
+      req.user = decoded;
+      next();
+    }
+  );
 }
 
 // Use in Express routes
 app.get('/api/protected', validateToken, (req, res) => {
   res.json({
     message: 'This is protected',
-    user: req.user
+    user: req.user,
   });
 });
 ```
@@ -346,9 +351,9 @@ services:
       - KEYCLOAK_AUTH_SERVER_URL=${KEYCLOAK_AUTH_SERVER_URL}
       - KEYCLOAK_CLIENT_ID=${KEYCLOAK_CLIENT_ID}
       - KEYCLOAK_CLIENT_SECRET=${KEYCLOAK_CLIENT_SECRET}
-      - NODE_TLS_REJECT_UNAUTHORIZED=0  # Remove in production
+      - NODE_TLS_REJECT_UNAUTHORIZED=0 # Remove in production
     ports:
-      - "3000:3000"
+      - '3000:3000'
     networks:
       - mcp-network
     depends_on:
@@ -390,6 +395,7 @@ curl -s -X POST \
 ### 10. Common Issues and Solutions
 
 #### Self-Signed Certificate Issues
+
 ```javascript
 // Development only - accept self-signed certificates
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
@@ -397,30 +403,34 @@ process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 // Or use a custom HTTPS agent
 const https = require('https');
 const agent = new https.Agent({
-  rejectUnauthorized: false
+  rejectUnauthorized: false,
 });
 ```
 
 #### CORS Configuration
+
 ```javascript
 const cors = require('cors');
 
-app.use(cors({
-  origin: ['http://localhost:3000', 'https://154.26.158.31:8443'],
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
+app.use(
+  cors({
+    origin: ['http://localhost:3000', 'https://154.26.158.31:8443'],
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  })
+);
 ```
 
 #### Token Refresh
+
 ```javascript
 async function refreshToken(refreshToken) {
   const params = new URLSearchParams({
     grant_type: 'refresh_token',
     refresh_token: refreshToken,
     client_id: 'mcp-orchestrator',
-    client_secret: 'YOUR_CLIENT_SECRET'
+    client_secret: 'YOUR_CLIENT_SECRET',
   });
 
   const response = await axios.post(

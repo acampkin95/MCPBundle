@@ -9,12 +9,14 @@ IT-MCP is a **Model Context Protocol (MCP) server** that exposes macOS/Linux/Win
 ### Hybrid Architecture
 
 **Current State (Local Mode)**:
+
 - Standalone TypeScript/Node.js application
 - SQLite for local caching and offline resilience
 - Direct stdio communication with MCP clients
 - All tools run locally or via SSH/WinRM
 
 **Future State (Distributed Mode - In Development)**:
+
 - PostgreSQL for production structured thinking storage
 - Redis for real-time command queue and agent heartbeats
 - Keycloak for JWT-based authentication and RBAC
@@ -22,6 +24,7 @@ IT-MCP is a **Model Context Protocol (MCP) server** that exposes macOS/Linux/Win
 - Remote command dispatch to distributed IT-MCP instances
 
 **Database Strategy**:
+
 - **SQLite**: Fast local cache, offline queue, development/testing
 - **PostgreSQL**: Production source of truth, distributed coordination, audit trails
 - **Redis**: Real-time pub/sub for instant command dispatch, agent heartbeat cache
@@ -70,6 +73,7 @@ npm run lint
 ### Service Layer (`src/services/`)
 
 29 service classes handle domain-specific operations:
+
 - **SystemInfoService** - macOS system information
 - **StructuredThinkingService** - 5-stage cognitive framework
 - **SQLitePlannerService** - SQLite persistence with FTS5 search
@@ -89,7 +93,7 @@ export class MyService {
   public constructor(private readonly runner: CommandRunner) {}
 
   public async execute(params: MyParams): Promise<MyResult> {
-    const result = await this.runner.run("command", { requiresSudo: false });
+    const result = await this.runner.run('command', { requiresSudo: false });
     return this.parseResult(result);
   }
 }
@@ -98,6 +102,7 @@ export class MyService {
 ### Tool Registration (`src/tools/registerTools.ts`)
 
 All MCP tools registered in `registerTools()` with:
+
 - Zod schema for input validation
 - Service method invocation
 - Standardized error handling
@@ -110,6 +115,7 @@ All MCP tools registered in `registerTools()` with:
 **SQLite Databases** (local cache and offline resilience):
 
 1. **mcp_plan.db** - Structured thinking cache:
+
 ```sql
 -- Structured thinking storage
 CREATE TABLE thoughts (
@@ -137,6 +143,7 @@ USING fts5(path, title, content, tokenize='porter');
 ```
 
 2. **mcp_command_queue.db** - Offline command persistence:
+
 ```sql
 -- Command queue for offline resilience
 CREATE TABLE command_queue (
@@ -158,6 +165,7 @@ CREATE TABLE command_queue (
 ```
 
 **Features**:
+
 - WAL (Write-Ahead Logging) mode for concurrency
 - Auto-ingests workspace Markdown files on startup
 - FTS5 full-text search for fast retrieval
@@ -213,6 +221,7 @@ CREATE TABLE command_queue (
 ```
 
 **Sync Service** (`src/services/databaseSync.ts`):
+
 - Background worker syncing local SQLite → production PostgreSQL
 - Conflict resolution strategies (last-write-wins, manual, merge)
 - Offline queue draining when connection restored
@@ -227,18 +236,19 @@ CREATE TABLE command_queue (
 
 ```typescript
 // ✅ CORRECT
-const result = await this.runner.run("df -h", {
+const result = await this.runner.run('df -h', {
   requiresSudo: false,
   timeoutMs: 10000,
-  cwd: "/tmp"
+  cwd: '/tmp',
 });
 
 // ❌ WRONG - Never do this
-import { exec } from "node:child_process";
-exec("df -h", callback);
+import { exec } from 'node:child_process';
+exec('df -h', callback);
 ```
 
 **CommandRunner features**:
+
 - Auto-sudo prefixing when `requiresSudo: true` (if `IT_MCP_ALLOW_SUDO !== "false"`)
 - Timeout enforcement (configurable via `timeoutMs`, no default)
 - MaxBuffer limit (10MB)
@@ -259,8 +269,8 @@ export class CommandExecutionError extends Error {
 
   public constructor(message: string, result: CommandResult) {
     super(message);
-    this.name = "CommandExecutionError";
-    this.result = result;  // Contains: command, stdout, stderr, exitCode
+    this.name = 'CommandExecutionError';
+    this.result = result; // Contains: command, stdout, stderr, exitCode
   }
 }
 ```
@@ -270,15 +280,15 @@ export class CommandExecutionError extends Error {
 Every tool uses the standardized `handleError` helper (registerTools.ts:96-132):
 
 ```typescript
-server.registerTool("my-tool", schema, async (params) => {
+server.registerTool('my-tool', schema, async (params) => {
   try {
     const result = await deps.myService.execute(params);
     return {
-      content: [{ type: "text", text: formatResult(result) }],
-      structuredContent: result
+      content: [{ type: 'text', text: formatResult(result) }],
+      structuredContent: result,
     };
   } catch (error) {
-    return handleError(error);  // Standardized error response
+    return handleError(error); // Standardized error response
   }
 });
 ```
@@ -292,6 +302,7 @@ The `handleError` function returns consistent error format with both text and st
 ### 5-Stage Cognitive Framework
 
 **Stages**:
+
 1. `problem_definition` - Define problem, constraints, goals
 2. `research` - Gather information, explore codebase
 3. `analysis` - Break down problem, identify patterns
@@ -307,31 +318,34 @@ const thinkingService = new StructuredThinkingService(planner);
 const framework = thinkingService.getFramework({ includeExamples: true });
 
 // Track thoughts
-const result = thinkingService.trackThoughts([
-  {
-    stage: "problem_definition",
-    thought: "Need to implement X feature",
-    metadata: {
-      importance: "high",
-      tags: ["feature", "implementation"],
-      devOpsCategory: "build"
-    }
-  },
-  {
-    stage: "research",
-    thought: "Found existing Y service that can be extended",
-    metadata: {
-      importance: "medium",
-      tags: ["architecture", "existing-code"],
-      references: ["src/services/y.ts:42"]
-    }
-  }
-], true);
+const result = thinkingService.trackThoughts(
+  [
+    {
+      stage: 'problem_definition',
+      thought: 'Need to implement X feature',
+      metadata: {
+        importance: 'high',
+        tags: ['feature', 'implementation'],
+        devOpsCategory: 'build',
+      },
+    },
+    {
+      stage: 'research',
+      thought: 'Found existing Y service that can be extended',
+      metadata: {
+        importance: 'medium',
+        tags: ['architecture', 'existing-code'],
+        references: ['src/services/y.ts:42'],
+      },
+    },
+  ],
+  true
+);
 
 // Export to JSON
 const exported = thinkingService.exportThoughts(result, {
-  format: "json",
-  includeMetadata: true
+  format: 'json',
+  includeMetadata: true,
 });
 ```
 
@@ -352,7 +366,7 @@ export class MyService {
   public async myOperation(input: string): Promise<MyResult> {
     const result = await this.runner.run(`mycommand ${input}`, {
       requiresSudo: false,
-      timeoutMs: 30000
+      timeoutMs: 30000,
     });
     return this.parseResult(result);
   }
@@ -366,16 +380,16 @@ export class MyService {
         stdout: result.stdout,
         stderr: result.stderr,
         exitCode: result.code,
-        success: true
+        success: true,
       };
     } catch (error) {
       const execution = error instanceof CommandExecutionError ? error.result : undefined;
       return {
         command: cmd,
-        stdout: execution?.stdout ?? "",
+        stdout: execution?.stdout ?? '',
         stderr: execution?.stderr ?? (error instanceof Error ? error.message : String(error)),
         exitCode: execution?.code ?? null,
-        success: false
+        success: false,
       };
     }
   }
@@ -409,15 +423,10 @@ const services = {
 For remote Linux/macOS administration, use `SshService`:
 
 ```typescript
-const result = await sshService.exec(
-  "192.168.1.100",
-  "admin",
-  "df -h",
-  {
-    port: 22,
-    identityFile: "~/.ssh/id_rsa"
-  }
-);
+const result = await sshService.exec('192.168.1.100', 'admin', 'df -h', {
+  port: 22,
+  identityFile: '~/.ssh/id_rsa',
+});
 ```
 
 Services like `MacDiagnosticsService` and `DatabaseDiagnosticsService` support both local and remote modes.
@@ -434,6 +443,7 @@ const result = await this.runner.run(
 ```
 
 **Requirements**:
+
 - PowerShell 7 (`pwsh`) installed locally
 - WinRM enabled on target Windows host
 - Credentials via `$env:WINDOWS_REMOTE_PASSWORD`
@@ -447,10 +457,10 @@ Manages synchronization between local SQLite cache and production PostgreSQL:
 ```typescript
 const syncService = new DatabaseSyncService(planner, {
   postgresConnectionString: process.env.POSTGRES_URL,
-  syncIntervalMs: 60000,  // 1 minute
+  syncIntervalMs: 60000, // 1 minute
   batchSize: 50,
-  conflictResolution: "last-write-wins",
-  enableAutoSync: true
+  conflictResolution: 'last-write-wins',
+  enableAutoSync: true,
 });
 
 // Start background sync worker
@@ -461,6 +471,7 @@ const status = await syncService.syncNow();
 ```
 
 **Features**:
+
 - Background worker pushing local changes to PostgreSQL
 - Conflict resolution strategies
 - Offline queue draining
@@ -471,25 +482,25 @@ const status = await syncService.syncNow();
 Local command queue with priority ordering and retry logic:
 
 ```typescript
-const queue = new CommandQueueService("./mcp_command_queue.db");
+const queue = new CommandQueueService('./mcp_command_queue.db');
 
 // Enqueue command
 const command = queue.enqueue({
   jobId: randomUUID(),
-  toolName: "system-overview",
+  toolName: 'system-overview',
   params: { topProcesses: 10 },
-  requestedCapabilities: ["local-shell"],
-  priority: "high",
-  maxRetries: 3
+  requestedCapabilities: ['local-shell'],
+  priority: 'high',
+  maxRetries: 3,
 });
 
 // Dequeue for processing
 const next = queue.dequeue();
 if (next) {
   // Execute command
-  queue.updateStatus(next.jobId, "executing");
+  queue.updateStatus(next.jobId, 'executing');
   // ... execute ...
-  queue.updateStatus(next.jobId, "completed", result);
+  queue.updateStatus(next.jobId, 'completed', result);
 }
 ```
 
@@ -499,8 +510,8 @@ Auto-registration and heartbeat with central registry:
 
 ```typescript
 const discovery = new AutoDiscoveryService(
-  capabilities,  // ['local-shell', 'local-sudo', 'ssh-linux']
-  tools,         // All registered tool names
+  capabilities, // ['local-shell', 'local-sudo', 'ssh-linux']
+  tools, // All registered tool names
   process.env.IT_MCP_REGISTRY_URL
 );
 
@@ -522,10 +533,10 @@ JWT token management for API authentication:
 
 ```typescript
 const authService = new KeycloakAuthService({
-  serverUrl: "https://acdev.host:8080",
-  realm: "mcp-agents",
-  clientId: "it-mcp-server",
-  clientSecret: process.env.KEYCLOAK_CLIENT_SECRET
+  serverUrl: 'https://acdev.host:8080',
+  realm: 'mcp-agents',
+  clientId: 'it-mcp-server',
+  clientSecret: process.env.KEYCLOAK_CLIENT_SECRET,
 });
 
 // Authenticate (client credentials flow)
@@ -536,7 +547,7 @@ const token = await authService.getAccessToken();
 
 // Use in API calls
 const response = await fetch(apiUrl, {
-  headers: { Authorization: `Bearer ${token}` }
+  headers: { Authorization: `Bearer ${token}` },
 });
 ```
 
@@ -547,14 +558,15 @@ const response = await fetch(apiUrl, {
 **Current State**: Basic stub returning "not yet implemented"
 
 **Planned Integration**:
+
 ```typescript
 // Future: OpenAPI-generated client
 const agentService = new RemoteAgentService(authService, queue);
 
 const response = await agentService.dispatch({
-  tool: "ubuntu-admin",
-  payload: { action: "update-packages" },
-  capability: "ssh-linux"
+  tool: 'ubuntu-admin',
+  payload: { action: 'update-packages' },
+  capability: 'ssh-linux',
 });
 ```
 
@@ -599,42 +611,46 @@ export class MyService {
 ## Environment Variables
 
 ### Local Mode
-| Variable | Default | Purpose |
-|----------|---------|---------|
-| `IT_MCP_ALLOW_SUDO` | `true` | Disable `sudo` auto-prefixing when `"false"` |
-| `IT_MCP_CAPTURE_DIR` | `<cwd>/captures` | Directory for packet capture files |
-| `IT_MCP_LOG_LEVEL` | `debug` (dev) | Winston log level |
-| `WINDOWS_REMOTE_PASSWORD` | (none) | Password for PowerShell remoting |
+
+| Variable                  | Default          | Purpose                                      |
+| ------------------------- | ---------------- | -------------------------------------------- |
+| `IT_MCP_ALLOW_SUDO`       | `true`           | Disable `sudo` auto-prefixing when `"false"` |
+| `IT_MCP_CAPTURE_DIR`      | `<cwd>/captures` | Directory for packet capture files           |
+| `IT_MCP_LOG_LEVEL`        | `debug` (dev)    | Winston log level                            |
+| `WINDOWS_REMOTE_PASSWORD` | (none)           | Password for PowerShell remoting             |
 
 ### Distributed Mode (In Development)
-| Variable | Default | Purpose |
-|----------|---------|---------|
-| `POSTGRES_URL` | (none) | PostgreSQL connection string |
-| `IT_MCP_REGISTRY_URL` | (none) | Central registry endpoint (e.g., `https://acdev.host/api/v1`) |
-| `IT_MCP_SERVER_ID` | auto-generated | Unique server identifier (persists across restarts) |
-| `KEYCLOAK_SERVER_URL` | (none) | Keycloak server (e.g., `https://acdev.host:8080`) |
-| `KEYCLOAK_REALM` | `mcp-agents` | Keycloak realm |
-| `KEYCLOAK_CLIENT_ID` | (none) | OAuth2 client ID for IT-MCP |
-| `KEYCLOAK_CLIENT_SECRET` | (none) | OAuth2 client secret |
-| `REDIS_URL` | (none) | Redis connection for pub/sub (optional) |
+
+| Variable                 | Default        | Purpose                                                       |
+| ------------------------ | -------------- | ------------------------------------------------------------- |
+| `POSTGRES_URL`           | (none)         | PostgreSQL connection string                                  |
+| `IT_MCP_REGISTRY_URL`    | (none)         | Central registry endpoint (e.g., `https://acdev.host/api/v1`) |
+| `IT_MCP_SERVER_ID`       | auto-generated | Unique server identifier (persists across restarts)           |
+| `KEYCLOAK_SERVER_URL`    | (none)         | Keycloak server (e.g., `https://acdev.host:8080`)             |
+| `KEYCLOAK_REALM`         | `mcp-agents`   | Keycloak realm                                                |
+| `KEYCLOAK_CLIENT_ID`     | (none)         | OAuth2 client ID for IT-MCP                                   |
+| `KEYCLOAK_CLIENT_SECRET` | (none)         | OAuth2 client secret                                          |
+| `REDIS_URL`              | (none)         | Redis connection for pub/sub (optional)                       |
 
 ---
 
 ## Adding New MCP Tools
 
 1. **Create or extend service** in `src/services/`
+
    ```typescript
    export class MyService {
      public constructor(private readonly runner: CommandRunner) {}
 
      public async myOperation(params: MyParams): Promise<MyResult> {
-       const result = await this.runner.run("mycommand", { requiresSudo: false });
+       const result = await this.runner.run('mycommand', { requiresSudo: false });
        return this.parseResult(result);
      }
    }
    ```
 
 2. **Wire service in src/index.ts**
+
    ```typescript
    const services = {
      // ... existing services
@@ -643,18 +659,19 @@ export class MyService {
    ```
 
 3. **Register tool in src/tools/registerTools.ts**
+
    ```typescript
    const myToolSchema = z.object({
      param1: z.string(),
      param2: z.number().optional(),
    });
 
-   server.registerTool("my-tool", myToolSchema, async (params) => {
+   server.registerTool('my-tool', myToolSchema, async (params) => {
      try {
        const result = await deps.myService.myOperation(params);
        return {
-         content: [{ type: "text", text: formatResult(result) }],
-         structuredContent: result
+         content: [{ type: 'text', text: formatResult(result) }],
+         structuredContent: result,
        };
      } catch (error) {
        return handleError(error);
@@ -726,6 +743,7 @@ No automated test suite currently exists. To add tests:
 3. Include manual smoke-test steps in PR descriptions
 
 **Test examples provided**:
+
 - `test-database.ts` - SQLite schema and FTS5 functionality
 - `test-structured-thinking.ts` - StructuredThinkingService integration
 
@@ -751,6 +769,7 @@ The `/Users/alex/Downloads/MD REF/` directory contains documentation for the **p
 - **retry - provide one single md.md** - Server build & ops baseline at `server.acdev.host` (Ubuntu 24.04)
 
 **Key Infrastructure Components** (being deployed):
+
 - **PostgreSQL 16**: Database at `server.acdev.host` for `mcp-st-db` (structured thoughts, agent registry, command queue)
 - **Keycloak**: Authentication server at `https://acdev.host:8080` for JWT tokens and RBAC
 - **Redis**: Cache and pub/sub for real-time agent heartbeats and command dispatch
@@ -758,6 +777,7 @@ The `/Users/alex/Downloads/MD REF/` directory contains documentation for the **p
 - **Agent Registry**: Central coordination service for distributed IT-MCP instances
 
 **Integration Status**:
+
 - ✅ **DatabaseSyncService**: Ready to connect when PostgreSQL available
 - ✅ **CommandQueueService**: Local SQLite queue operational, ready for remote sync
 - ✅ **AutoDiscoveryService**: Awaiting OpenAPI specs for registration endpoint

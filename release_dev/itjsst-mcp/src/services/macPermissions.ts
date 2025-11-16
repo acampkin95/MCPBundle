@@ -1,5 +1,9 @@
-import { CommandExecutionError, CommandRunner, type CommandResult } from "../utils/commandRunner.js";
-import { shellQuote } from "../utils/shell.js";
+import {
+  CommandExecutionError,
+  CommandRunner,
+  type CommandResult,
+} from '../utils/commandRunner.js';
+import { shellQuote } from '../utils/shell.js';
 
 export interface AdminGroupReport {
   readonly members: readonly string[];
@@ -39,7 +43,7 @@ export interface MacPermissionsOverview {
   readonly tccSummary: TccSummaryReport;
 }
 
-export type PermissionSeverity = "info" | "warning" | "critical";
+export type PermissionSeverity = 'info' | 'warning' | 'critical';
 
 export interface PermissionFinding {
   readonly severity: PermissionSeverity;
@@ -50,7 +54,7 @@ export interface PermissionFinding {
 export interface PermissionsAudit {
   readonly overview: MacPermissionsOverview;
   readonly findings: readonly PermissionFinding[];
-  readonly riskScore: "low" | "medium" | "high";
+  readonly riskScore: 'low' | 'medium' | 'high';
 }
 
 export class MacPermissionsService {
@@ -78,47 +82,54 @@ export class MacPermissionsService {
 
     if (!overview.fileVault.enabled) {
       findings.push({
-        severity: "critical",
-        message: "FileVault is disabled. Full-disk encryption should remain enabled on managed macOS devices.",
-        remediation: "Enable FileVault: System Settings → Privacy & Security → FileVault → Turn On.",
+        severity: 'critical',
+        message:
+          'FileVault is disabled. Full-disk encryption should remain enabled on managed macOS devices.',
+        remediation:
+          'Enable FileVault: System Settings → Privacy & Security → FileVault → Turn On.',
       });
     }
 
     if (overview.secureTokens.tokens.length === 0) {
       findings.push({
-        severity: "critical",
-        message: "No SecureToken-enabled accounts detected; encryption bootstrap and password rotations may fail.",
-        remediation: "Grant a SecureToken to at least one admin: `sysadminctl -secureTokenOn <user> -password <pw>`.",
+        severity: 'critical',
+        message:
+          'No SecureToken-enabled accounts detected; encryption bootstrap and password rotations may fail.',
+        remediation:
+          'Grant a SecureToken to at least one admin: `sysadminctl -secureTokenOn <user> -password <pw>`.',
       });
     }
 
     if (overview.adminGroup.members.length > 8) {
       findings.push({
-        severity: "warning",
+        severity: 'warning',
         message: `Admin group contains ${overview.adminGroup.members.length} members, exceeding the recommended maximum of 5.`,
-        remediation: "Audit admin membership via System Settings → Users & Groups and remove unused accounts.",
+        remediation:
+          'Audit admin membership via System Settings → Users & Groups and remove unused accounts.',
       });
     }
 
     const guestAdmins = overview.adminGroup.members.filter((member) =>
-      ["guest", "Guest", "_guest"].includes(member),
+      ['guest', 'Guest', '_guest'].includes(member)
     );
     if (guestAdmins.length > 0) {
       findings.push({
-        severity: "critical",
-        message: "Guest account has administrator privileges.",
-        remediation: "Disable Guest or remove it from the admin group: `sudo dscl . -delete /Groups/admin GroupMembers <guid>`.",
+        severity: 'critical',
+        message: 'Guest account has administrator privileges.',
+        remediation:
+          'Disable Guest or remove it from the admin group: `sudo dscl . -delete /Groups/admin GroupMembers <guid>`.',
       });
     }
 
     const tccAccessibility = overview.tccSummary.services.find(
-      (service) => service.service === "kTCCServiceAccessibility",
+      (service) => service.service === 'kTCCServiceAccessibility'
     );
     if (tccAccessibility && tccAccessibility.entries > 25) {
       findings.push({
-        severity: "warning",
+        severity: 'warning',
         message: `Accessibility permissions list ${tccAccessibility.entries} entries; review for stale automation.`,
-        remediation: "Open System Settings → Privacy & Security → Accessibility to prune unused apps.",
+        remediation:
+          'Open System Settings → Privacy & Security → Accessibility to prune unused apps.',
       });
     }
 
@@ -132,7 +143,7 @@ export class MacPermissionsService {
   }
 
   public async getAdminGroup(): Promise<AdminGroupReport> {
-    const command = "dscl . -read /Groups/admin GroupMembership";
+    const command = 'dscl . -read /Groups/admin GroupMembership';
     const result = await this.safeRun(command);
     const members = this.parseAdminGroup(result.stdout);
     return {
@@ -142,7 +153,7 @@ export class MacPermissionsService {
   }
 
   public async getSecureTokens(): Promise<SecureTokenReport> {
-    const command = "fdesetup list";
+    const command = 'fdesetup list';
     const result = await this.safeRun(command, true);
     const tokens = this.parseSecureTokens(result.stdout);
     return {
@@ -152,10 +163,11 @@ export class MacPermissionsService {
   }
 
   public async getFileVaultStatus(): Promise<FileVaultReport> {
-    const command = "fdesetup status";
+    const command = 'fdesetup status';
     const result = await this.safeRun(command, true);
     const normalized = result.stdout.trim().toLowerCase();
-    const enabled = normalized.includes("filevault is on") || normalized.includes("filevault is enabled");
+    const enabled =
+      normalized.includes('filevault is on') || normalized.includes('filevault is enabled');
     return {
       enabled,
       details: result.stdout.trim() || result.stderr.trim(),
@@ -164,7 +176,7 @@ export class MacPermissionsService {
   }
 
   public async getTccSummary(): Promise<TccSummaryReport> {
-    const dbPath = "/Library/Application Support/com.apple.TCC/TCC.db";
+    const dbPath = '/Library/Application Support/com.apple.TCC/TCC.db';
     const command = `sqlite3 ${shellQuote(dbPath)} "SELECT service, COUNT(*) FROM access GROUP BY service ORDER BY service"`;
     const result = await this.safeRun(command, true);
 
@@ -176,14 +188,14 @@ export class MacPermissionsService {
     }
 
     const services = result.stdout
-      .split("\n")
+      .split('\n')
       .map((line) => line.trim())
       .filter(Boolean)
       .map((line) => {
-        const [service, count] = line.split("|");
+        const [service, count] = line.split('|');
         return {
           service,
-          entries: Number.parseInt(count ?? "0", 10) || 0,
+          entries: Number.parseInt(count ?? '0', 10) || 0,
         };
       });
 
@@ -199,13 +211,13 @@ export class MacPermissionsService {
     }
 
     const lines = output.split(/\r?\n/).map((line) => line.trim());
-    const membershipLine = lines.find((line) => line.startsWith("GroupMembership:"));
+    const membershipLine = lines.find((line) => line.startsWith('GroupMembership:'));
     if (!membershipLine) {
       return [];
     }
 
     return membershipLine
-      .replace("GroupMembership:", "")
+      .replace('GroupMembership:', '')
       .trim()
       .split(/\s+/)
       .filter(Boolean)
@@ -222,22 +234,22 @@ export class MacPermissionsService {
       .map((line) => line.trim())
       .filter(Boolean)
       .map((line) => {
-        const [user, uuid] = line.split(",");
+        const [user, uuid] = line.split(',');
         return {
-          user: user?.trim() ?? "unknown",
-          uuid: uuid?.trim() ?? "unknown",
+          user: user?.trim() ?? 'unknown',
+          uuid: uuid?.trim() ?? 'unknown',
         };
       });
   }
 
-  private calculateRisk(findings: readonly PermissionFinding[]): "low" | "medium" | "high" {
-    if (findings.some((item) => item.severity === "critical")) {
-      return "high";
+  private calculateRisk(findings: readonly PermissionFinding[]): 'low' | 'medium' | 'high' {
+    if (findings.some((item) => item.severity === 'critical')) {
+      return 'high';
     }
-    if (findings.some((item) => item.severity === "warning")) {
-      return "medium";
+    if (findings.some((item) => item.severity === 'warning')) {
+      return 'medium';
     }
-    return "low";
+    return 'low';
   }
 
   private async safeRun(command: string, requiresSudo: boolean = false): Promise<CommandResult> {
@@ -250,7 +262,7 @@ export class MacPermissionsService {
 
       return {
         command,
-        stdout: "",
+        stdout: '',
         stderr: error instanceof Error ? error.message : String(error),
         code: null,
       };

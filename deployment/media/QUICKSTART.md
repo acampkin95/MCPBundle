@@ -114,6 +114,7 @@ ssh root@46.250.241.70 '/usr/local/bin/transcoding-logs.sh -f'
 ## Quick Commands
 
 ### Check Status
+
 ```bash
 ssh root@46.250.241.70 '
   echo "=== NextCloud ==="
@@ -128,6 +129,7 @@ ssh root@46.250.241.70 '
 ```
 
 ### View All Logs
+
 ```bash
 ssh root@46.250.241.70 '
   echo "=== NextCloud Logs ==="
@@ -142,6 +144,7 @@ ssh root@46.250.241.70 '
 ```
 
 ### Restart All Services
+
 ```bash
 ssh root@46.250.241.70 '
   systemctl restart nginx php8.3-fpm
@@ -161,16 +164,19 @@ ssh root@46.250.241.70 'cat /root/*-info.txt /root/*-credentials.txt'
 ```
 
 ### NextCloud
+
 - **URL:** `https://46.250.241.70/`
 - **Credentials:** See `/root/nextcloud-db-credentials.txt`
 - **Upload Directory:** `/nextcloud/plex-ingest/`
 
 ### Plex
+
 - **URL:** `http://46.250.241.70:32400/web`
 - **Library:** `/opt/plex/movies/`
 - **Sign in:** Use your Plex account
 
 ### Transcoding
+
 - **Status:** `/usr/local/bin/transcoding-status.sh`
 - **Logs:** `/usr/local/bin/transcoding-logs.sh -f`
 
@@ -200,6 +206,7 @@ open http://46.250.241.70:32400/web
 ## Troubleshooting
 
 ### NextCloud not accessible
+
 ```bash
 # Check services
 ssh root@46.250.241.70 'systemctl status nginx php8.3-fpm'
@@ -212,6 +219,7 @@ ssh root@46.250.241.70 'systemctl restart nginx php8.3-fpm'
 ```
 
 ### Plex not accessible
+
 ```bash
 # Check service
 ssh root@46.250.241.70 'systemctl status plexmediaserver'
@@ -224,6 +232,7 @@ ssh root@46.250.241.70 'systemctl restart plexmediaserver'
 ```
 
 ### Transcoding not working
+
 ```bash
 # Check service
 ssh root@46.250.241.70 'systemctl status transcoding-daemon'
@@ -239,10 +248,11 @@ ssh root@46.250.241.70 'systemctl restart transcoding-daemon'
 ```
 
 ### Database connection issues
+
 ```bash
 # Test PostgreSQL connection from VMI02D
 ssh root@46.250.241.70 '
-  PGPASSWORD="TeBsn4f2cS0O7vfdvYFTb37L6SdJFL+mpOgksTwgHy0=" \
+  PGPASSWORD="" \
   psql -h 46.250.243.123 -U mcp_admin -d mcp_ecosystem -c "SELECT version();"
 '
 
@@ -253,6 +263,7 @@ ssh root@46.250.243.123 'cat /etc/postgresql/16/main/pg_hba.conf | grep -v "^#"'
 ## Performance Optimization
 
 ### Increase Transcoding Capacity
+
 ```bash
 # Edit service configuration
 ssh root@46.250.241.70 'nano /usr/local/bin/transcoding-daemon.py'
@@ -265,6 +276,7 @@ ssh root@46.250.241.70 'systemctl restart transcoding-daemon'
 ```
 
 ### Adjust Video Quality
+
 ```bash
 # Edit transcoding daemon
 ssh root@46.250.241.70 'nano /usr/local/bin/transcoding-daemon.py'
@@ -282,6 +294,7 @@ ssh root@46.250.241.70 'systemctl restart transcoding-daemon'
 ## Monitoring
 
 ### Real-time Monitoring
+
 ```bash
 # Monitor all logs simultaneously
 ssh root@46.250.241.70 '
@@ -292,6 +305,7 @@ ssh root@46.250.241.70 '
 ```
 
 ### Resource Usage
+
 ```bash
 # Check disk space
 ssh root@46.250.241.70 'df -h | grep -E "Filesystem|/nextcloud|/opt/plex"'
@@ -304,10 +318,11 @@ ssh root@46.250.241.70 'top -bn1 | head -20'
 ```
 
 ### Transcoding Statistics
+
 ```bash
 # View job statistics from database
 ssh root@46.250.241.70 '
-  PGPASSWORD="TeBsn4f2cS0O7vfdvYFTb37L6SdJFL+mpOgksTwgHy0=" \
+  PGPASSWORD="" \
   psql -h 46.250.243.123 -U mcp_admin -d mcp_ecosystem -c "
     SELECT
       status,
@@ -323,6 +338,7 @@ ssh root@46.250.241.70 '
 ## Backup
 
 ### Quick Backup All Configurations
+
 ```bash
 # Create backup archive
 ssh root@46.250.241.70 '

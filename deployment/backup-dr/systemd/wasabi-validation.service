@@ -1,0 +1,61 @@
+[Unit]
+Description=Wasabi S3 Backup Validation
+Documentation=file:///etc/wasabi-backup/README.md
+After=network-online.target
+Wants=network-online.target
+ConditionPathExists=/etc/wasabi-backup/gfs-policy.conf
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/backup-validation.sh
+
+# User and group
+User=root
+Group=root
+
+# Environment
+Environment="PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=wasabi-validation
+StandardInput=null
+
+# Security settings
+PrivateTmp=yes
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+ReadWritePaths=/var/log/wasabi-backup /var/backup/restore-test /etc/wasabi-backup/manifests
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictRealtime=yes
+RestrictNamespaces=yes
+LockPersonality=yes
+MemoryDenyWriteExecute=no
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+PrivateDevices=no
+SystemCallFilter=@system-service
+SystemCallErrorNumber=EPERM
+
+# Resource limits
+CPUQuota=50%
+MemoryLimit=1G
+TasksMax=50
+
+# Timeout (30 minutes for validation)
+TimeoutStartSec=0
+TimeoutStopSec=30s
+TimeoutSec=1800
+
+# Don't restart on failure for validation
+Restart=no
+
+# Success/failure handling
+SuccessExitStatus=0
+RestartPreventExitStatus=1
+
+[Install]
+WantedBy=multi-user.target

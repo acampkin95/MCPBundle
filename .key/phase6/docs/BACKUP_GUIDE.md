@@ -5,6 +5,7 @@
 This backup system provides automated, reliable backups for all three VMs (VMI01, VMI02D, VMI03) to Wasabi S3 storage.
 
 **Key Features:**
+
 - Daily incremental backups at 2 AM
 - Weekly full backups on Sunday at 3 AM
 - Automatic retention management (7 days daily, 4 weeks weekly)
@@ -33,6 +34,7 @@ This backup system provides automated, reliable backups for all three VMs (VMI01
 ## Backup Contents by VM
 
 ### VMI01 (Dev/MCP Server)
+
 - `/etc/` - System configuration
 - `/opt/mcp/` - MCP applications
 - `/key/` - SSH keys and credentials
@@ -42,6 +44,7 @@ This backup system provides automated, reliable backups for all three VMs (VMI01
 - System logs (last 7 days)
 
 ### VMI02D (Storage Server)
+
 - `/etc/` - System configuration
 - `/key/` - SSH keys
 - `/root/` and `/home/` - User directories
@@ -49,6 +52,7 @@ This backup system provides automated, reliable backups for all three VMs (VMI01
 - NextCloud config (when deployed)
 
 ### VMI03 (Security Gateway)
+
 - `/etc/` - System configuration
 - `/opt/keycloak/` - Keycloak installation
 - `/key/` - SSH keys
@@ -75,11 +79,11 @@ vmibackups/
 
 ## Backup Schedule
 
-| Backup Type | Schedule | Retention | Size (Est.) | Duration |
-|-------------|----------|-----------|-------------|----------|
-| Daily Incremental | Every day 2:00 AM | 7 days | 1-5 GB | 10-30 min |
-| Weekly Full | Sunday 3:00 AM | 4 weeks | 10-50 GB | 1-3 hours |
-| /etc Git Tracking | Daily 11:50 PM | 30 days | < 100 MB | < 1 min |
+| Backup Type       | Schedule          | Retention | Size (Est.) | Duration  |
+| ----------------- | ----------------- | --------- | ----------- | --------- |
+| Daily Incremental | Every day 2:00 AM | 7 days    | 1-5 GB      | 10-30 min |
+| Weekly Full       | Sunday 3:00 AM    | 4 weeks   | 10-50 GB    | 1-3 hours |
+| /etc Git Tracking | Daily 11:50 PM    | 30 days   | < 100 MB    | < 1 min   |
 
 ## Manual Backup Operations
 
@@ -147,6 +151,7 @@ sudo /opt/backup-scripts/backup-status-check.sh
 ```
 
 **Available Metrics:**
+
 - `backup_status` - Backup success/failure (1/0)
 - `backup_age_hours` - Age of latest backup in hours
 - `backup_size_bytes` - Size of latest backup
@@ -158,6 +163,7 @@ sudo /opt/backup-scripts/backup-status-check.sh
 ### Alerts
 
 Automatic alerts are sent for:
+
 - Backup failure
 - No backup in 36 hours
 - S3 connectivity issues
@@ -168,24 +174,24 @@ Configure alerts in Prometheus AlertManager:
 
 ```yaml
 groups:
-- name: backup_alerts
-  rules:
-  - alert: BackupStale
-    expr: backup_age_hours > 36
-    for: 1h
-    labels:
-      severity: critical
-    annotations:
-      summary: "Backup is stale on {{ $labels.hostname }}"
-      description: "Latest backup is {{ $value }} hours old"
+  - name: backup_alerts
+    rules:
+      - alert: BackupStale
+        expr: backup_age_hours > 36
+        for: 1h
+        labels:
+          severity: critical
+        annotations:
+          summary: 'Backup is stale on {{ $labels.hostname }}'
+          description: 'Latest backup is {{ $value }} hours old'
 
-  - alert: BackupFailed
-    expr: backup_status == 0
-    for: 5m
-    labels:
-      severity: critical
-    annotations:
-      summary: "Backup failed on {{ $labels.hostname }}"
+      - alert: BackupFailed
+        expr: backup_status == 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: 'Backup failed on {{ $labels.hostname }}'
 ```
 
 ## Email Notifications
@@ -193,6 +199,7 @@ groups:
 All backups send email notifications to: `acampkinpersonnal@gmail.com`
 
 **Success Email Includes:**
+
 - Backup date and time
 - Duration
 - Total size
@@ -200,6 +207,7 @@ All backups send email notifications to: `acampkinpersonnal@gmail.com`
 - S3 location
 
 **Failure Email Includes:**
+
 - Error message
 - Recent log entries
 - System information
@@ -236,10 +244,10 @@ sudo /opt/backup-scripts/etc-git-tracker.sh --restore
 
 Backups are automatically cleaned up according to:
 
-| Type | Retention | Cleanup Schedule |
-|------|-----------|------------------|
-| Daily | 7 days | Monday 4:00 AM |
-| Weekly | 4 weeks | Monday 4:00 AM |
+| Type    | Retention | Cleanup Schedule      |
+| ------- | --------- | --------------------- |
+| Daily   | 7 days    | Monday 4:00 AM        |
+| Weekly  | 4 weeks   | Monday 4:00 AM        |
 | Monthly | 12 months | First Monday of month |
 
 ### Manual Cleanup
@@ -322,6 +330,7 @@ sudo apt install mailutils
 ## Cost Estimation
 
 **Wasabi Pricing (as of 2025):**
+
 - Storage: $6.99/TB/month
 - No egress fees
 - No API fees
@@ -329,12 +338,12 @@ sudo apt install mailutils
 
 **Estimated Monthly Costs:**
 
-| VM | Daily Backup | Weekly Backup | Total/Month | Cost/Month |
-|----|-------------|---------------|-------------|------------|
-| VMI01 | 3 GB | 15 GB | ~80 GB | $0.56 |
-| VMI02D | 5 GB | 25 GB | ~150 GB | $1.05 |
-| VMI03 | 2 GB | 10 GB | ~60 GB | $0.42 |
-| **Total** | | | **~290 GB** | **$2.03** |
+| VM        | Daily Backup | Weekly Backup | Total/Month | Cost/Month |
+| --------- | ------------ | ------------- | ----------- | ---------- |
+| VMI01     | 3 GB         | 15 GB         | ~80 GB      | $0.56      |
+| VMI02D    | 5 GB         | 25 GB         | ~150 GB     | $1.05      |
+| VMI03     | 2 GB         | 10 GB         | ~60 GB      | $0.42      |
+| **Total** |              |               | **~290 GB** | **$2.03**  |
 
 With retention policy (7 daily + 4 weekly), expected total storage: **~500 GB**
 
@@ -352,6 +361,7 @@ With retention policy (7 daily + 4 weekly), expected total storage: **~500 GB**
 ## Support
 
 For issues or questions:
+
 1. Check logs: `/var/log/backups/`
 2. Review documentation: `/opt/backup-scripts/docs/`
 3. Contact: acampkinpersonnal@gmail.com

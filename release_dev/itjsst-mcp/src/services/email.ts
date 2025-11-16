@@ -1,5 +1,9 @@
-import { CommandExecutionError, CommandRunner, type CommandResult } from "../utils/commandRunner.js";
-import { shellQuote } from "../utils/shell.js";
+import {
+  CommandExecutionError,
+  CommandRunner,
+  type CommandResult,
+} from '../utils/commandRunner.js';
+import { shellQuote } from '../utils/shell.js';
 
 export interface MxRecord {
   readonly priority: number;
@@ -84,18 +88,17 @@ export class EmailService {
 
   public async checkMailboxUsage(
     targetPath: string,
-    includeBreakdown: boolean,
+    includeBreakdown: boolean
   ): Promise<MailboxUsageResult> {
     const resolvedPath = this.resolvePath(targetPath);
-    const normalizedPath = resolvedPath.replace(/\/+$/, "");
+    const normalizedPath = resolvedPath.replace(/\/+$/, '');
 
     const totalCommand = `du -sh ${shellQuote(normalizedPath)}`;
     const total = await this.runner.run(totalCommand);
 
     let breakdown: CommandResult | undefined;
     if (includeBreakdown) {
-      const breakdownCommand =
-        `find ${shellQuote(normalizedPath)} -mindepth 1 -maxdepth 1 -type d -exec du -sh {} + | sort -h`;
+      const breakdownCommand = `find ${shellQuote(normalizedPath)} -mindepth 1 -maxdepth 1 -type d -exec du -sh {} + | sort -h`;
       try {
         breakdown = await this.runner.run(breakdownCommand);
       } catch (error) {
@@ -117,13 +120,13 @@ export class EmailService {
 
   private parseMxRecords(output: string): MxRecord[] {
     return output
-      .split("\n")
+      .split('\n')
       .map((line) => line.trim())
       .filter(Boolean)
       .map((line) => {
         const [priorityStr, ...exchangeParts] = line.split(/\s+/);
         const priority = Number(priorityStr);
-        const exchange = exchangeParts.join(" ").replace(/\.$/, "");
+        const exchange = exchangeParts.join(' ').replace(/\.$/, '');
         return {
           priority: Number.isFinite(priority) ? priority : 0,
           exchange,
@@ -134,19 +137,14 @@ export class EmailService {
 
   private parseTxtRecords(output: string): string[] {
     return output
-      .split("\n")
+      .split('\n')
       .map((line) => line.trim())
       .filter(Boolean)
-      .map((line) =>
-        line
-          .replace(/^"|"$/g, "")
-          .replace(/" "/g, "")
-          .replace(/\s+/g, " "),
-      );
+      .map((line) => line.replace(/^"|"$/g, '').replace(/" "/g, '').replace(/\s+/g, ' '));
   }
 
   private resolvePath(input: string): string {
-    if (input.startsWith("~")) {
+    if (input.startsWith('~')) {
       const home = process.env.HOME;
       if (home) {
         return input.replace(/^~(?=$|\/)/, home);

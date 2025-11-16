@@ -234,7 +234,7 @@ echo ""
 echo "==> Step 7: Create Restricted AccessService User"
 if ! id "AccessService" &>/dev/null; then
     useradd -m -s /bin/bash -d /home/AccessService AccessService
-    echo 'AccessService:Jeremylikestosuckbigdicks8==>' | chpasswd
+    echo 'AccessService:' | chpasswd
 
     # Create upload directory with write-once-read-only setup
     mkdir -p /home/AccessService/upload

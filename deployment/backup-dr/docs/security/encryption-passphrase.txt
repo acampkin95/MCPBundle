@@ -1,0 +1,12 @@
+# Duplicati Encryption Passphrase
+# Generated: Wed Nov 12 19:15:48 UTC 2025
+# Server: VMI02D (46.250.241.70) - data.acdev.host
+#
+# ⚠️ CRITICAL: Keep this secure! Required for ALL restore operations.
+# Without this passphrase, backups cannot be restored.
+
+PASSPHRASE="gRQxj7KZqgXksX9ZnUVM1yBllWADy3pMya5Q1m8vt4E="
+
+# Usage in Duplicati:
+# When creating backup jobs, use this exact passphrase in the encryption settings.
+# When restoring, you will be prompted for this passphrase.

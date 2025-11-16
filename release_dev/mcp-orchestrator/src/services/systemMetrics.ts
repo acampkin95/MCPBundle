@@ -1,6 +1,6 @@
-import type { CommandRunner } from "../utils/commandRunner.js";
-import { logger } from "../utils/logger.js";
-import { validateServiceName, sanitizeShellArg } from "../utils/validators.js";
+import type { CommandRunner } from '../utils/commandRunner.js';
+import { logger } from '../utils/logger.js';
+import { validateServiceName, sanitizeShellArg } from '../utils/validators.js';
 
 export interface SystemStats {
   readonly uptime: string;
@@ -67,11 +67,11 @@ export class SystemMetricsService {
 
   public async getSystemOverview(): Promise<SystemStats> {
     const [uptime, loadavg, meminfo, df, cpuinfo] = await Promise.all([
-      this.runner.run("uptime -p", { requiresSudo: false }),
-      this.runner.run("cat /proc/loadavg", { requiresSudo: false }),
-      this.runner.run("free -b", { requiresSudo: false }),
-      this.runner.run("df -h", { requiresSudo: false }),
-      this.runner.run("lscpu", { requiresSudo: false }),
+      this.runner.run('uptime -p', { requiresSudo: false }),
+      this.runner.run('cat /proc/loadavg', { requiresSudo: false }),
+      this.runner.run('free -b', { requiresSudo: false }),
+      this.runner.run('df -h', { requiresSudo: false }),
+      this.runner.run('lscpu', { requiresSudo: false }),
     ]);
 
     // Parse load average
@@ -83,7 +83,7 @@ export class SystemMetricsService {
     };
 
     // Parse memory
-    const memLines = meminfo.stdout.split("\n");
+    const memLines = meminfo.stdout.split('\n');
     const memData = memLines[1]?.split(/\s+/); // Second line is Mem:
     const memory = {
       total: Number(memData?.[1]) || 0,
@@ -95,7 +95,7 @@ export class SystemMetricsService {
     memory.percentUsed = memory.total > 0 ? Math.round((memory.used / memory.total) * 100) : 0;
 
     // Parse disk usage
-    const diskLines = df.stdout.split("\n").slice(1); // Skip header
+    const diskLines = df.stdout.split('\n').slice(1); // Skip header
     const disk: DiskUsage[] = [];
     for (const line of diskLines) {
       const parts = line.trim().split(/\s+/);
@@ -105,15 +105,15 @@ export class SystemMetricsService {
           size: parts[1],
           used: parts[2],
           available: parts[3],
-          percentUsed: Number(parts[4].replace("%", "")) || 0,
+          percentUsed: Number(parts[4].replace(/%/g, '')) || 0,
           mountPoint: parts[5],
         });
       }
     }
 
     // Parse CPU info
-    const cpuModel = cpuinfo.stdout.match(/Model name:\s*(.+)/)?.[1]?.trim() ?? "unknown";
-    const cpuCores = cpuinfo.stdout.match(/CPU\(s\):\s*(\d+)/)?.[1] ?? "1";
+    const cpuModel = cpuinfo.stdout.match(/Model name:\s*(.+)/)?.[1]?.trim() ?? 'unknown';
+    const cpuCores = cpuinfo.stdout.match(/CPU\(s\):\s*(\d+)/)?.[1] ?? '1';
 
     return {
       uptime: uptime.stdout.trim(),
@@ -133,7 +133,7 @@ export class SystemMetricsService {
       timeoutMs: 10000,
     });
 
-    const lines = result.stdout.split("\n").slice(1); // Skip header
+    const lines = result.stdout.split('\n').slice(1); // Skip header
     const processes: ProcessInfo[] = [];
 
     for (const line of lines) {
@@ -144,7 +144,7 @@ export class SystemMetricsService {
           user: parts[0],
           cpu: Number(parts[2]) || 0,
           mem: Number(parts[3]) || 0,
-          command: parts.slice(10).join(" "),
+          command: parts.slice(10).join(' '),
         });
       }
     }
@@ -154,12 +154,14 @@ export class SystemMetricsService {
 
   public async getDiskIO(): Promise<IOStats[]> {
     try {
-      const result = await this.runner.run("iostat -d -x 1 2 | tail -n +4", {
+      const result = await this.runner.run('iostat -d -x 1 2 | tail -n +4', {
         requiresSudo: false,
         timeoutMs: 15000,
       });
 
-      const lines = result.stdout.split("\n").filter((line) => line.trim() && !line.startsWith("Device"));
+      const lines = result.stdout
+        .split('\n')
+        .filter((line) => line.trim() && !line.startsWith('Device'));
       const stats: IOStats[] = [];
 
       for (const line of lines) {
@@ -176,24 +178,24 @@ export class SystemMetricsService {
 
       return stats;
     } catch (error) {
-      logger.warn("iostat not available", { error });
+      logger.warn('iostat not available', { error });
       return [];
     }
   }
 
   public async getNetworkStats(): Promise<NetworkStats[]> {
-    const result = await this.runner.run("cat /proc/net/dev", {
+    const result = await this.runner.run('cat /proc/net/dev', {
       requiresSudo: false,
     });
 
-    const lines = result.stdout.split("\n").slice(2); // Skip header lines
+    const lines = result.stdout.split('\n').slice(2); // Skip header lines
     const stats: NetworkStats[] = [];
 
     for (const line of lines) {
       const parts = line.trim().split(/\s+/);
       if (parts.length >= 17) {
-        const iface = parts[0].replace(":", "");
-        if (iface && iface !== "lo") {
+        const iface = parts[0].replace(':', '');
+        if (iface && iface !== 'lo') {
           // Skip loopback
           stats.push({
             interface: iface,
@@ -218,10 +220,10 @@ export class SystemMetricsService {
         {
           requiresSudo: false,
           timeoutMs: 30000,
-        },
+        }
       );
 
-      const lines = result.stdout.split("\n").filter((line) => line.trim());
+      const lines = result.stdout.split('\n').filter((line) => line.trim());
       const entries: JournalEntry[] = [];
 
       for (const line of lines) {
@@ -230,10 +232,10 @@ export class SystemMetricsService {
           entries.push({
             timestamp: entry.__REALTIME_TIMESTAMP
               ? new Date(Number(entry.__REALTIME_TIMESTAMP) / 1000).toISOString()
-              : "unknown",
-            unit: entry._SYSTEMD_UNIT ?? entry.SYSLOG_IDENTIFIER ?? "unknown",
-            message: entry.MESSAGE ?? "",
-            priority: entry.PRIORITY ?? "unknown",
+              : 'unknown',
+            unit: entry._SYSTEMD_UNIT ?? entry.SYSLOG_IDENTIFIER ?? 'unknown',
+            message: entry.MESSAGE ?? '',
+            priority: entry.PRIORITY ?? 'unknown',
           });
         } catch {
           // Skip invalid JSON lines
@@ -242,7 +244,7 @@ export class SystemMetricsService {
 
       return entries;
     } catch (error) {
-      logger.warn("Failed to query journalctl", { error });
+      logger.warn('Failed to query journalctl', { error });
       return [];
     }
   }
@@ -275,18 +277,18 @@ export class SystemMetricsService {
       });
 
       return {
-        active: result.stdout.trim() === "active",
-        running: result.stdout.trim() === "active",
-        enabled: activeResult.stdout.trim() === "enabled",
+        active: result.stdout.trim() === 'active',
+        running: result.stdout.trim() === 'active',
+        enabled: activeResult.stdout.trim() === 'enabled',
         status: statusResult.stdout,
       };
     } catch (error) {
-      logger.warn("Failed to get service status", { serviceName, error });
+      logger.warn('Failed to get service status', { serviceName, error });
       return {
         active: false,
         running: false,
         enabled: false,
-        status: "unknown",
+        status: 'unknown',
       };
     }
   }

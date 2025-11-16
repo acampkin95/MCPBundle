@@ -21,7 +21,7 @@ The complete MCP ecosystem PostgreSQL schema has been successfully deployed to V
 ```
 Database Name:     mcp_ecosystem
 Database User:     mcp_admin
-Database Password: TeBsn4f2cS0O7vfdvYFTb37L6SdJFL+mpOgksTwgHy0=
+Database Password:
 Host:              localhost (VMI01: 46.250.243.123)
 Port:              5432
 ```
@@ -29,7 +29,7 @@ Port:              5432
 ### Connection String
 
 ```bash
-postgresql://mcp_admin:TeBsn4f2cS0O7vfdvYFTb37L6SdJFL+mpOgksTwgHy0=@localhost:5432/mcp_ecosystem
+postgresql://mcp_admin:@localhost:5432/mcp_ecosystem
 ```
 
 ### Test Connection
@@ -48,18 +48,18 @@ psql -h 46.250.243.123 -U mcp_admin -d mcp_ecosystem
 
 ### Summary Statistics
 
-| Component | Count | Description |
-|-----------|-------|-------------|
-| **Core Tables** | 16 | Base tables including partitioned table parents |
-| **Partitioned Tables** | 3 | agent_heartbeats, audit_log, system_metrics |
-| **Partition Children** | 28 | Monthly partitions (Nov-Dec 2025) |
-| **Views** | 4 | active_agents, queue_summary, etc. |
-| **Materialized Views** | 1 | service_directory (for agent discovery) |
-| **Indexes** | 97 | Performance optimization indexes |
-| **Functions** | 49 | Stored procedures and utility functions |
-| **Triggers** | 5 | Auto-update triggers |
-| **Roles** | 4 | Security roles (including postgres) |
-| **Extensions** | 3 | uuid-ossp, pg_stat_statements, pg_trgm |
+| Component              | Count | Description                                     |
+| ---------------------- | ----- | ----------------------------------------------- |
+| **Core Tables**        | 16    | Base tables including partitioned table parents |
+| **Partitioned Tables** | 3     | agent_heartbeats, audit_log, system_metrics     |
+| **Partition Children** | 28    | Monthly partitions (Nov-Dec 2025)               |
+| **Views**              | 4     | active_agents, queue_summary, etc.              |
+| **Materialized Views** | 1     | service_directory (for agent discovery)         |
+| **Indexes**            | 97    | Performance optimization indexes                |
+| **Functions**          | 49    | Stored procedures and utility functions         |
+| **Triggers**           | 5     | Auto-update triggers                            |
+| **Roles**              | 4     | Security roles (including postgres)             |
+| **Extensions**         | 3     | uuid-ossp, pg_stat_statements, pg_trgm          |
 
 ---
 
@@ -68,46 +68,60 @@ psql -h 46.250.243.123 -U mcp_admin -d mcp_ecosystem
 ### 1. Agent Management
 
 #### **mcp_agents**
+
 Central registry of all MCP agents in the ecosystem.
+
 - Tracks agent capabilities, status, health, and load
 - Supports agent discovery and routing
 - Test data: 2 sample agents created
 
 #### **agent_heartbeats** (Partitioned)
+
 Time-series heartbeat data from agents.
+
 - Partitioned by timestamp (monthly)
 - Tracks CPU, memory, disk usage
 - Trigger automatically updates agent status to "online"
 
 #### **mesh_topology**
+
 Service mesh topology and agent relationships.
+
 - Defines parent/peer/coordinator/worker relationships
 - Tracks latency and bandwidth between agents
 
 ### 2. Command Orchestration
 
 #### **command_queue**
+
 Distributed command queue for agent orchestration.
+
 - Priority-based queue (1-10)
 - Status tracking: pending → assigned → running → completed/failed
 - Supports approval workflow for sensitive operations
 - Retry mechanism (configurable max retries)
 
 #### **command_execution_log**
+
 Immutable audit trail of all command executions.
+
 - Tracks every state change (assigned, started, progress, completed, failed)
 - Performance metrics (duration_ms)
 
 ### 3. Structured Thinking
 
 #### **thought_sessions**
+
 Structured thinking session management.
+
 - Tracks reasoning sessions per agent
 - Status: active, completed, abandoned
 - Metadata for task description and current stage
 
 #### **structured_thoughts**
+
 5-stage cognitive framework for structured reasoning.
+
 - Stages: understanding, breakdown, exploration, synthesis, reflection
 - Quality scoring and importance ranking
 - Branch support for parallel reasoning paths
@@ -117,7 +131,9 @@ Structured thinking session management.
 ### 4. Knowledge Base
 
 #### **markdown_resources**
+
 Documentation, procedures, and troubleshooting guides.
+
 - Categories: documentation, procedure, reference, troubleshooting
 - Full-text search enabled
 - Version tracking
@@ -126,14 +142,18 @@ Documentation, procedures, and troubleshooting guides.
 ### 5. Policy & Approval
 
 #### **policies**
+
 Policy definitions for command execution and approvals.
+
 - Types: command_approval, rate_limit, access_control, maintenance_window
 - Flexible JSONB conditions and actions
 - Priority-based evaluation
 - Initial data: 3 default policies created
 
 #### **approval_requests**
+
 Approval workflow for sensitive operations.
+
 - Links to command_queue
 - Auto-expiration support
 - Notification tracking
@@ -141,32 +161,42 @@ Approval workflow for sensitive operations.
 ### 6. Monitoring & Alerting
 
 #### **system_metrics** (Partitioned)
+
 System-wide metrics and performance data.
+
 - Partitioned by timestamp (monthly)
 - Supports custom dimensions (JSONB)
 - Agent-specific and system-wide metrics
 
 #### **alert_rules**
+
 Monitoring alert rule definitions.
+
 - Threshold-based alerting
 - Severity levels: info, warning, critical
 - Multiple notification channels
 - Initial data: 4 default rules created
 
 #### **alerts**
+
 Active and historical alerts.
+
 - Status: firing, resolved, acknowledged
 - Links to alert_rules and mcp_agents
 
 ### 7. Maintenance & Backup
 
 #### **backup_registry**
+
 Track database and system backups.
+
 - Types: postgresql, redis, sqlite, filesystem
 - Status tracking and retention management
 
 #### **maintenance_tasks**
+
 Scheduled maintenance tasks.
+
 - Cron-based scheduling
 - Types: vacuum, reindex, backup, cleanup, update
 - Initial data: 4 default tasks created
@@ -174,7 +204,9 @@ Scheduled maintenance tasks.
 ### 8. Audit Trail
 
 #### **audit_log** (Partitioned)
+
 Immutable audit trail for all system operations.
+
 - Partitioned by timestamp (monthly)
 - Tracks all create/update/delete/execute operations
 - IP address and user agent tracking
@@ -185,18 +217,24 @@ Immutable audit trail for all system operations.
 ## Views & Materialized Views
 
 ### **service_directory** (Materialized View)
+
 Active agents with availability scoring.
+
 - Pre-computed availability score based on load and health
 - Optimized for agent selection queries
 - Refresh: `REFRESH MATERIALIZED VIEW service_directory;`
 
 ### **active_agents** (View)
+
 Agents active in last 5 minutes.
+
 - Real-time status
 - Seconds since last seen
 
 ### **queue_summary** (View)
+
 Command queue statistics by status.
+
 - Count, average priority, oldest/newest command
 - Useful for monitoring backlog
 
@@ -205,13 +243,17 @@ Command queue statistics by status.
 ## Functions
 
 ### **get_least_loaded_agent(capabilities TEXT[])**
+
 Returns the agent ID with the lowest load that has the required capabilities.
+
 - Considers current_load, max_concurrent_commands, health_score
 - Used by command dispatcher for intelligent routing
 - **Tested:** ✅ Working correctly
 
 ### **cleanup_old_data(retention_days INTEGER)**
+
 Cleanup old data from partitioned tables.
+
 - Removes old heartbeats, audit logs, completed commands, metrics
 - Returns row counts per table
 - Default retention: 90 days
@@ -222,18 +264,24 @@ Cleanup old data from partitioned tables.
 ## Triggers
 
 ### **trigger_update_session_timestamp**
+
 Auto-updates thought_sessions when structured_thoughts are inserted.
+
 - Updates `updated_at`, `total_thoughts`, `current_stage`
 - **Tested:** ✅ Working correctly
 
 ### **trigger_update_agent_last_seen**
+
 Auto-updates agent status when heartbeat received.
+
 - Sets `last_seen` to heartbeat timestamp
 - Changes status to 'online'
 - **Tested:** ✅ Working correctly
 
 ### **trigger_check_approval_expiration**
+
 Auto-expires approval requests past their expiration time.
+
 - Runs on INSERT/UPDATE
 
 ---
@@ -241,24 +289,32 @@ Auto-expires approval requests past their expiration time.
 ## Security Roles
 
 ### **mcp_agent_role**
+
 For agent services (SERVER-MCP, IT-MCP agents).
+
 - Read/write access to operational tables
 - Cannot delete or modify policies
 - Cannot modify alert rules
 
 ### **mcp_orchestrator_role**
+
 For orchestrator/coordinator services.
+
 - Full access to all tables
 - Can manage policies and alert rules
 - Can execute all functions
 
 ### **mcp_readonly_role**
+
 For monitoring and reporting tools.
+
 - Read-only access to all tables and views
 - Cannot modify any data
 
 ### **mcp_admin**
+
 Database administrator (created during deployment).
+
 - Full privileges on mcp_ecosystem database
 - Owner of all objects
 
@@ -267,15 +323,21 @@ Database administrator (created during deployment).
 ## Extensions Enabled
 
 ### **uuid-ossp**
+
 UUID generation functions.
+
 - Used for primary keys (uuid_generate_v4())
 
 ### **pg_stat_statements**
+
 Query performance tracking.
+
 - Tracks slow queries and execution statistics
 
 ### **pg_trgm**
+
 Trigram-based text search.
+
 - Enables fast full-text search on markdown_resources and structured_thoughts
 - Supports similarity searching
 
@@ -284,23 +346,27 @@ Trigram-based text search.
 ## Default Data Inserted
 
 ### Policies (3)
+
 1. **high_priority_commands** - High priority commands bypass rate limiting
 2. **destructive_operations_approval** - DELETE/DROP/TRUNCATE require approval
 3. **maintenance_window** - Sunday 2-6 AM maintenance window
 
 ### Alert Rules (4)
+
 1. **high_cpu_usage** - CPU > 90% for 5 minutes
 2. **low_disk_space** - Disk > 85%
 3. **agent_offline** - Agent offline > 5 minutes
 4. **command_queue_backlog** - > 100 pending commands
 
 ### Maintenance Tasks (4)
+
 1. **daily_backup** - PostgreSQL backup at 2 AM daily
 2. **weekly_vacuum** - VACUUM ANALYZE Sunday 3 AM
 3. **monthly_reindex** - REINDEX first day of month 4 AM
 4. **daily_cleanup** - Cleanup old data (90 day retention) at 1 AM
 
 ### Markdown Resources (3)
+
 1. **MCP Agent Deployment Guide** - Installation instructions
 2. **Database Backup Procedure** - Backup and restore procedures
 3. **Troubleshooting Agent Connection Issues** - Common issues and solutions
@@ -312,6 +378,7 @@ Trigram-based text search.
 ### Current Partitions
 
 All partitioned tables have monthly partitions created:
+
 - November 2025 (2025-11-01 to 2025-12-01)
 - December 2025 (2025-12-01 to 2026-01-01)
 
@@ -368,6 +435,7 @@ SELECT partman.create_parent(
 ### Test Agents Created
 
 Two test agents were created for validation:
+
 - **test-agent-01**: Server agent (local-shell, postgres-admin)
 - **test-agent-02**: Desktop agent (ssh-linux) with heartbeat
 
@@ -614,7 +682,7 @@ Update SERVER-MCP configuration to use the new database:
 
 ```bash
 # /etc/server-mcp/server-mcp.env
-POSTGRES_CONNECTION_STRING=postgresql://mcp_admin:TeBsn4f2cS0O7vfdvYFTb37L6SdJFL+mpOgksTwgHy0=@localhost:5432/mcp_ecosystem
+POSTGRES_CONNECTION_STRING=postgresql://mcp_admin:@localhost:5432/mcp_ecosystem
 ```
 
 ### 2. Configure IT-MCP Agents
@@ -623,7 +691,7 @@ Update IT-MCP agents to sync with the central database:
 
 ```bash
 # .env
-POSTGRES_CONNECTION_STRING=postgresql://mcp_admin:TeBsn4f2cS0O7vfdvYFTb37L6SdJFL+mpOgksTwgHy0=@46.250.243.123:5432/mcp_ecosystem
+POSTGRES_CONNECTION_STRING=postgresql://mcp_admin:@46.250.243.123:5432/mcp_ecosystem
 ```
 
 **Note:** You may need to configure PostgreSQL to allow remote connections:
@@ -637,6 +705,7 @@ host    mcp_ecosystem    mcp_admin    0.0.0.0/0    scram-sha-256
 ```
 
 Then restart PostgreSQL:
+
 ```bash
 sudo systemctl restart postgresql
 ```
@@ -743,6 +812,7 @@ CREATE TABLE agent_heartbeats_2026_01 PARTITION OF agent_heartbeats
 ## Summary
 
 The MCP ecosystem PostgreSQL schema has been successfully deployed to VMI01 with:
+
 - **16 core tables** for agent management, command orchestration, structured thinking, monitoring, and audit
 - **3 partitioned tables** (agent_heartbeats, audit_log, system_metrics) with monthly partitioning
 - **97 indexes** for optimal query performance

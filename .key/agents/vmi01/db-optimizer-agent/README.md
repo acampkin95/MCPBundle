@@ -229,19 +229,19 @@ The agent generates alerts for:
 
 ```yaml
 monitoring:
-  metrics_interval: 60000  # Collection interval in ms
+  metrics_interval: 60000 # Collection interval in ms
 
   thresholds:
-    connection_usage_percent: 80  # Alert when connections > 80%
-    cache_hit_ratio_min: 0.95     # Alert when cache hit < 95%
-    dead_tuples_max: 10000        # Alert when dead tuples > 10k
-    bloat_ratio_max: 0.3          # Alert when bloat > 30%
-    slow_query_ms: 1000           # Queries slower than 1s
-    index_scan_ratio_min: 0.9     # Alert when index usage < 90%
+    connection_usage_percent: 80 # Alert when connections > 80%
+    cache_hit_ratio_min: 0.95 # Alert when cache hit < 95%
+    dead_tuples_max: 10000 # Alert when dead tuples > 10k
+    bloat_ratio_max: 0.3 # Alert when bloat > 30%
+    slow_query_ms: 1000 # Queries slower than 1s
+    index_scan_ratio_min: 0.9 # Alert when index usage < 90%
 
 optimization:
-  auto_vacuum_enabled: true       # Enable auto-vacuum
-  auto_analyze_enabled: true      # Enable auto-analyze
+  auto_vacuum_enabled: true # Enable auto-vacuum
+  auto_analyze_enabled: true # Enable auto-analyze
   index_recommendations_enabled: true
 ```
 
@@ -336,6 +336,7 @@ npm run test:coverage
 ## Support
 
 For issues, questions, or contributions:
+
 - GitHub Issues: [your-repo]/issues
 - Documentation: [your-docs-url]
 - Contact: mcp-support@example.com

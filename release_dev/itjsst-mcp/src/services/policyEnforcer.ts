@@ -10,9 +10,9 @@ import type {
   PolicyDecision,
   OperationPolicy,
   RiskLevel,
-} from "../types/policy.js";
-import { getPolicyForTool } from "../config/policies.js";
-import { CommandQueueService } from "./commandQueue.js";
+} from '../types/policy.js';
+import { getPolicyForTool } from '../config/policies.js';
+import { CommandQueueService } from './commandQueue.js';
 
 export type AuditLogEntry = Record<string, unknown>;
 
@@ -23,10 +23,7 @@ export class PolicyEnforcer {
   private commandQueue: CommandQueueService;
   private auditLog: (entry: AuditLogEntry) => void;
 
-  constructor(
-    commandQueue: CommandQueueService,
-    auditLogger?: (entry: AuditLogEntry) => void
-  ) {
+  constructor(commandQueue: CommandQueueService, auditLogger?: (entry: AuditLogEntry) => void) {
     this.commandQueue = commandQueue;
     this.auditLog = auditLogger || (() => {});
   }
@@ -37,32 +34,27 @@ export class PolicyEnforcer {
    * @param context Authorization context containing caller, tool, operation, and capabilities
    * @returns Policy decision (allow, deny, or require_approval)
    */
-  async evaluateToolInvocation(
-    context: AuthorizationContext
-  ): Promise<PolicyDecision> {
+  async evaluateToolInvocation(context: AuthorizationContext): Promise<PolicyDecision> {
     // 1. Get policy for this tool/operation
     const policy = getPolicyForTool(context.tool, context.operation);
 
     if (!policy) {
       // No policy defined - deny by default (fail-safe)
       return {
-        action: "deny",
+        action: 'deny',
         reason: `No policy defined for ${context.tool}.${context.operation}`,
-        riskLevel: "CRITICAL",
+        riskLevel: 'CRITICAL',
         requiresApproval: false,
       };
     }
 
     // 2. Check capability authorization
-    const capabilityCheck = this.checkCapabilities(
-      context.userCapabilities,
-      policy.requires
-    );
+    const capabilityCheck = this.checkCapabilities(context.userCapabilities, policy.requires);
 
     if (!capabilityCheck.authorized) {
       return {
-        action: "deny",
-        reason: `Missing required capabilities: ${capabilityCheck.missing.join(", ")}`,
+        action: 'deny',
+        reason: `Missing required capabilities: ${capabilityCheck.missing.join(', ')}`,
         riskLevel: policy.danger,
         requiresApproval: false,
         missingCapabilities: capabilityCheck.missing,
@@ -74,7 +66,7 @@ export class PolicyEnforcer {
 
     if (needsApproval) {
       return {
-        action: "require_approval",
+        action: 'require_approval',
         reason: this.generateApprovalReason(context, policy),
         riskLevel: policy.danger,
         requiresApproval: true,
@@ -84,7 +76,7 @@ export class PolicyEnforcer {
 
     // 4. Allow execution
     return {
-      action: "allow",
+      action: 'allow',
       reason: `Authorized: ${context.tool}.${context.operation} (${policy.danger} risk)`,
       riskLevel: policy.danger,
       requiresApproval: false,
@@ -133,27 +125,23 @@ export class PolicyEnforcer {
     }
 
     // 2. CRITICAL risk level always requires approval
-    if (policy.danger === "CRITICAL") {
+    if (policy.danger === 'CRITICAL') {
       return true;
     }
 
     // 3. HIGH risk with dangerous parameters
-    if (policy.danger === "HIGH" && this.hasDangerousParams(context.args)) {
+    if (policy.danger === 'HIGH' && this.hasDangerousParams(context.args)) {
       return true;
     }
 
     // 4. Sudo operations always require approval
-    if (
-      policy.requires.includes("local-sudo") &&
-      context.args.requiresSudo === true
-    ) {
+    if (policy.requires.includes('local-sudo') && context.args.requiresSudo === true) {
       return true;
     }
 
     // 5. Remote execution with sudo
     if (
-      (policy.requires.includes("ssh-linux") ||
-        policy.requires.includes("ssh-mac")) &&
+      (policy.requires.includes('ssh-linux') || policy.requires.includes('ssh-mac')) &&
       context.args.requiresSudo === true
     ) {
       return true;
@@ -172,25 +160,25 @@ export class PolicyEnforcer {
     const argsStr = JSON.stringify(args).toLowerCase();
 
     const dangerousPatterns = [
-      "rm -rf",
-      "dd if=",
-      "mkfs",
-      "fdisk",
-      "parted",
-      "format",
-      "systemctl stop",
-      "systemctl disable",
-      "kill -9",
-      "pkill",
-      "iptables -f",
-      "ufw delete",
-      "firewall-cmd --remove",
-      "> /dev/",
-      "curl | sh",
-      "wget | sh",
-      "eval",
-      "chmod 777",
-      "chown root",
+      'rm -rf',
+      'dd if=',
+      'mkfs',
+      'fdisk',
+      'parted',
+      'format',
+      'systemctl stop',
+      'systemctl disable',
+      'kill -9',
+      'pkill',
+      'iptables -f',
+      'ufw delete',
+      'firewall-cmd --remove',
+      '> /dev/',
+      'curl | sh',
+      'wget | sh',
+      'eval',
+      'chmod 777',
+      'chown root',
     ];
 
     for (const pattern of dangerousPatterns) {
@@ -214,45 +202,42 @@ export class PolicyEnforcer {
    * @param policy Operation policy
    * @returns Approval reason message
    */
-  private generateApprovalReason(
-    context: AuthorizationContext,
-    policy: OperationPolicy
-  ): string {
+  private generateApprovalReason(context: AuthorizationContext, policy: OperationPolicy): string {
     const reasons: string[] = [];
 
     if (policy.interactiveOnly) {
-      reasons.push("Operation marked as interactiveOnly");
+      reasons.push('Operation marked as interactiveOnly');
     }
 
-    if (policy.danger === "CRITICAL") {
-      reasons.push("CRITICAL risk level");
+    if (policy.danger === 'CRITICAL') {
+      reasons.push('CRITICAL risk level');
     }
 
-    if (policy.requires.includes("local-sudo")) {
-      reasons.push("Requires elevated privileges (sudo)");
+    if (policy.requires.includes('local-sudo')) {
+      reasons.push('Requires elevated privileges (sudo)');
     }
 
-    if (policy.requires.includes("system-modify")) {
-      reasons.push("Modifies system configuration");
+    if (policy.requires.includes('system-modify')) {
+      reasons.push('Modifies system configuration');
     }
 
-    if (policy.requires.includes("firewall-admin")) {
-      reasons.push("Firewall rule modification");
+    if (policy.requires.includes('firewall-admin')) {
+      reasons.push('Firewall rule modification');
     }
 
-    if (policy.requires.includes("service-control")) {
-      reasons.push("Service lifecycle control");
+    if (policy.requires.includes('service-control')) {
+      reasons.push('Service lifecycle control');
     }
 
     if (this.hasDangerousParams(context.args)) {
-      reasons.push("Potentially destructive parameters detected");
+      reasons.push('Potentially destructive parameters detected');
     }
 
     if (reasons.length === 0) {
       reasons.push(`${policy.danger} risk operation`);
     }
 
-    return `Approval required: ${reasons.join(", ")}`;
+    return `Approval required: ${reasons.join(', ')}`;
   }
 
   /**
@@ -274,14 +259,14 @@ export class PolicyEnforcer {
     const jobId = await this.commandQueue.submitCommand({
       toolName: context.tool,
       params: context.args,
-      requestedCapabilities: [...decision.missingCapabilities || []],
+      requestedCapabilities: [...(decision.missingCapabilities || [])],
       targetAgentId: context.targetAgent,
       priority: this.riskLevelToPriority(decision.riskLevel),
     });
 
     // Audit log the approval request
     this.auditLog({
-      type: "approval_requested",
+      type: 'approval_requested',
       jobId,
       context,
       decision,
@@ -297,20 +282,18 @@ export class PolicyEnforcer {
    * @param riskLevel Risk level from policy
    * @returns Priority level for command queue
    */
-  private riskLevelToPriority(
-    riskLevel: RiskLevel
-  ): "low" | "normal" | "high" | "urgent" {
+  private riskLevelToPriority(riskLevel: RiskLevel): 'low' | 'normal' | 'high' | 'urgent' {
     switch (riskLevel) {
-      case "CRITICAL":
-        return "urgent";
-      case "HIGH":
-        return "high";
-      case "MEDIUM":
-        return "normal";
-      case "LOW":
-        return "low";
+      case 'CRITICAL':
+        return 'urgent';
+      case 'HIGH':
+        return 'high';
+      case 'MEDIUM':
+        return 'normal';
+      case 'LOW':
+        return 'low';
       default:
-        return "normal";
+        return 'normal';
     }
   }
 
@@ -335,13 +318,13 @@ export class PolicyEnforcer {
     if (!job) {
       return {
         approved: false,
-        status: "not_found",
+        status: 'not_found',
       };
     }
 
     // In a full implementation, add approval metadata to command_queue schema
     // For now, we use status field as a proxy
-    const approved = job.status === "picked" || job.status === "executing";
+    const approved = job.status === 'picked' || job.status === 'executing';
 
     return {
       approved,
@@ -357,17 +340,13 @@ export class PolicyEnforcer {
    * @param reason Rejection reason
    * @param rejectedBy User who rejected the request
    */
-  async denyApproval(
-    jobId: string,
-    reason: string,
-    rejectedBy: string
-  ): Promise<void> {
+  async denyApproval(jobId: string, reason: string, rejectedBy: string): Promise<void> {
     // Mark command as failed in queue
     await this.commandQueue.markCommandFailed(jobId, reason);
 
     // Audit log the rejection
     this.auditLog({
-      type: "approval_denied",
+      type: 'approval_denied',
       jobId,
       reason,
       rejectedBy,
@@ -387,7 +366,7 @@ export class PolicyEnforcer {
 
     // Audit log the approval
     this.auditLog({
-      type: "approval_granted",
+      type: 'approval_granted',
       jobId,
       approvedBy,
       timestamp: new Date().toISOString(),
@@ -414,9 +393,7 @@ export function initializePolicyEnforcer(
 
 export function getPolicyEnforcer(): PolicyEnforcer {
   if (!policyEnforcerInstance) {
-    throw new Error(
-      "PolicyEnforcer not initialized. Call initializePolicyEnforcer() first."
-    );
+    throw new Error('PolicyEnforcer not initialized. Call initializePolicyEnforcer() first.');
   }
   return policyEnforcerInstance;
 }

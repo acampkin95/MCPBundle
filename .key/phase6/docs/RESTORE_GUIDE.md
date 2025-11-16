@@ -7,6 +7,7 @@ This guide covers restoring data from Wasabi S3 backups. Read carefully before p
 ## Important Warnings
 
 ⚠️ **BEFORE YOU RESTORE:**
+
 1. Restoring can overwrite current data - this is **IRREVERSIBLE**
 2. Always test restores on non-production systems first
 3. Create a snapshot/backup of current state before restoring
@@ -15,12 +16,12 @@ This guide covers restoring data from Wasabi S3 backups. Read carefully before p
 
 ## Quick Reference
 
-| Restore Type | Command | Use Case |
-|--------------|---------|----------|
-| Interactive Wizard | `restore-from-s3.sh` | Guided restore process |
-| Specific Path | `restore-from-s3.sh --path /etc` | Restore single directory |
-| Database Only | `restore-from-s3.sh --databases` | Restore PostgreSQL/Redis |
-| Dry Run | `restore-from-s3.sh --dry-run` | Test without making changes |
+| Restore Type       | Command                          | Use Case                    |
+| ------------------ | -------------------------------- | --------------------------- |
+| Interactive Wizard | `restore-from-s3.sh`             | Guided restore process      |
+| Specific Path      | `restore-from-s3.sh --path /etc` | Restore single directory    |
+| Database Only      | `restore-from-s3.sh --databases` | Restore PostgreSQL/Redis    |
+| Dry Run            | `restore-from-s3.sh --dry-run`   | Test without making changes |
 
 ## Interactive Restore Wizard
 
@@ -64,6 +65,7 @@ sudo /opt/backup-scripts/restore-from-s3.sh
 ```
 
 **What happens:**
+
 1. Downloads /etc archive from S3
 2. Creates backup: `/etc.backup-YYYYMMDD-HHMMSS`
 3. Offers to restore to original location or temp directory
@@ -127,6 +129,7 @@ sudo /opt/backup-scripts/restore-from-s3.sh
 ```
 
 **Process:**
+
 1. Downloads database dumps from S3
 2. Lists available databases
 3. Asks confirmation for each database
@@ -448,22 +451,24 @@ restorecon -R /restored/path
 
 ## Recovery Time Objectives
 
-| Restore Type | Estimated Time | Downtime |
-|--------------|----------------|----------|
-| Single file | 5-10 minutes | None |
-| Database | 15-30 minutes | Service downtime |
-| Configuration | 10-20 minutes | Service restart |
-| Full application | 1-2 hours | Full downtime |
-| Full system | 4-8 hours | Complete rebuild |
+| Restore Type     | Estimated Time | Downtime         |
+| ---------------- | -------------- | ---------------- |
+| Single file      | 5-10 minutes   | None             |
+| Database         | 15-30 minutes  | Service downtime |
+| Configuration    | 10-20 minutes  | Service restart  |
+| Full application | 1-2 hours      | Full downtime    |
+| Full system      | 4-8 hours      | Complete rebuild |
 
 ## Emergency Contacts
 
 **For restore assistance:**
+
 - Primary: acampkinpersonnal@gmail.com
 - Documentation: /opt/backup-scripts/docs/
 - Logs: /var/log/backups/
 
 **Escalation:**
+
 1. Check restore logs
 2. Review DISASTER_RECOVERY.md
 3. Contact system administrator

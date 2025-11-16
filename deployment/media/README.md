@@ -53,6 +53,7 @@ ssh root@46.250.241.70
 ```
 
 **What it does:**
+
 - Installs Nginx + PHP 8.3-FPM with all required extensions
 - Downloads NextCloud v28.0.2
 - Configures PostgreSQL connection to VMI01
@@ -61,10 +62,13 @@ ssh root@46.250.241.70
 - Creates `/nextcloud/plex-ingest` folder with 777 permissions
 - Sets up automatic background jobs via cron
 - Enables essential apps (files_external, user_oidc, etc.)
+- Tunes PHP-FPM + OPcache and enables APCu for CLI commands
+- Switches Redis locking to a Unix socket and raises kernel network buffers for faster uploads
 
 **Duration:** ~15-20 minutes
 
 **Verification:**
+
 ```bash
 # Check service status
 systemctl status nginx php8.3-fpm
@@ -90,6 +94,7 @@ ssh root@46.250.241.70
 ```
 
 **What it does:**
+
 - Adds official Plex repository
 - Installs Plex Media Server
 - Creates `/opt/plex/movies` library directory
@@ -102,6 +107,7 @@ ssh root@46.250.241.70
 **Duration:** ~10-15 minutes
 
 **Verification:**
+
 ```bash
 # Check service status
 systemctl status plexmediaserver
@@ -130,6 +136,7 @@ ssh root@46.250.241.70
 ```
 
 **What it does:**
+
 - Installs FFmpeg with H.265 (HEVC) support
 - Creates Python daemon with inotify file watching
 - Monitors `/nextcloud/plex-ingest` every 30 seconds
@@ -143,6 +150,7 @@ ssh root@46.250.241.70
 **Duration:** ~10-15 minutes
 
 **Verification:**
+
 ```bash
 # Check service status
 systemctl status transcoding-daemon
@@ -254,7 +262,7 @@ systemctl restart transcoding-daemon
 /usr/local/bin/transcoding-logs.sh -f      # Follow logs
 
 # Database queries
-PGPASSWORD="TeBsn4f2cS0O7vfdvYFTb37L6SdJFL+mpOgksTwgHy0=" \
+PGPASSWORD="" \
 psql -h 46.250.243.123 -U mcp_admin -d mcp_ecosystem -c \
 "SELECT * FROM transcoding_jobs ORDER BY created_at DESC LIMIT 10;"
 ```
@@ -326,6 +334,7 @@ MemoryLimit=16G
 ```
 
 Then restart:
+
 ```bash
 systemctl daemon-reload
 systemctl restart transcoding-daemon
@@ -352,6 +361,7 @@ Edit `/usr/local/bin/transcoding-daemon.py`:
 ### Plex Transcoding
 
 Configure in Plex Web UI:
+
 - Settings > Transcoder
 - Set maximum simultaneous transcodes
 - Enable/disable hardware acceleration
@@ -411,6 +421,7 @@ journalctl -u transcoding-daemon
 ### NextCloud Issues
 
 **Problem:** Cannot connect to database
+
 ```bash
 # Check PostgreSQL connectivity
 psql -h 46.250.243.123 -U nextcloud_user -d nextcloud
@@ -420,6 +431,7 @@ ssh root@46.250.243.123 'cat /etc/postgresql/16/main/pg_hba.conf'
 ```
 
 **Problem:** File upload fails
+
 ```bash
 # Check disk space
 df -h /nextcloud
@@ -435,6 +447,7 @@ cat /etc/php/8.3/fpm/php.ini | grep upload_max_filesize
 ### Plex Issues
 
 **Problem:** Plex not starting
+
 ```bash
 # Check logs
 journalctl -u plexmediaserver -n 100
@@ -448,6 +461,7 @@ ss -tuln | grep 32400
 ```
 
 **Problem:** Hardware transcoding not working
+
 ```bash
 # Check device access
 ls -la /dev/dri/
@@ -461,6 +475,7 @@ systemctl restart plexmediaserver
 ### Transcoding Issues
 
 **Problem:** Jobs not processing
+
 ```bash
 # Check service status
 systemctl status transcoding-daemon
@@ -475,6 +490,7 @@ ffmpeg -i input.mp4 -c:v libx265 -crf 23 output.mp4
 ```
 
 **Problem:** High CPU usage
+
 ```bash
 # Check active jobs
 ps aux | grep ffmpeg
@@ -490,18 +506,21 @@ systemctl restart transcoding-daemon
 ## Security Considerations
 
 ### NextCloud
+
 - SSL/TLS encryption enabled by default (self-signed)
 - Database passwords stored securely in `/root/` (mode 600)
 - Keycloak SSO integration for centralized authentication
 - Regular security updates via `apt upgrade`
 
 ### Plex
+
 - Network access restricted to allowed subnets
 - Firewall rules configured via UFW
 - Service runs as dedicated `plex` user
 - Systemd hardening (NoNewPrivileges, PrivateTmp, ProtectSystem)
 
 ### Transcoding
+
 - Service runs as root (required for system access)
 - Resource limits prevent DoS
 - Input validation for file formats
@@ -547,7 +566,7 @@ systemctl start plexmediaserver
 
 ```bash
 # Backup job history
-PGPASSWORD="TeBsn4f2cS0O7vfdvYFTb37L6SdJFL+mpOgksTwgHy0=" \
+PGPASSWORD="" \
 pg_dump -h 46.250.243.123 -U mcp_admin -d mcp_ecosystem \
   -t transcoding_jobs > transcoding-jobs-$(date +%Y%m%d).sql
 ```
@@ -555,11 +574,13 @@ pg_dump -h 46.250.243.123 -U mcp_admin -d mcp_ecosystem \
 ## Support
 
 ### Documentation
+
 - NextCloud: https://docs.nextcloud.com/
 - Plex: https://support.plex.tv/
 - FFmpeg: https://ffmpeg.org/documentation.html
 
 ### Logs for Support
+
 ```bash
 # Collect all logs for troubleshooting
 /tmp/support-logs-$(date +%Y%m%d).tar.gz

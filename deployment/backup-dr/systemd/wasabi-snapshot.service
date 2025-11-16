@@ -1,0 +1,58 @@
+[Unit]
+Description=Wasabi S3 6-Hour Snapshot Backup
+Documentation=file:///etc/wasabi-backup/README.md
+After=network-online.target
+Wants=network-online.target
+ConditionPathExists=/etc/wasabi-backup/gfs-policy.conf
+
+[Service]
+Type=oneshot
+ExecStart=/etc/wasabi-backup/scripts/wasabi-snapshot.sh
+
+# User and group
+User=root
+Group=root
+
+# Environment
+Environment="PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=wasabi-snapshot
+StandardInput=null
+
+# Security settings
+PrivateTmp=yes
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+ReadWritePaths=/var/log/wasabi-backup /var/backup/temp /var/backup/cache /etc/wasabi-backup/manifests /root/.ssh
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictRealtime=yes
+RestrictNamespaces=yes
+LockPersonality=yes
+MemoryDenyWriteExecute=no
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+PrivateDevices=no
+SystemCallFilter=@system-service
+SystemCallErrorNumber=EPERM
+
+# Resource limits
+CPUQuota=80%
+MemoryLimit=2G
+TasksMax=100
+
+# Timeout (1 hour for backup operations)
+TimeoutStartSec=0
+TimeoutStopSec=30s
+TimeoutSec=3600
+
+# Restart policy
+Restart=on-failure
+RestartSec=5min
+
+[Install]
+WantedBy=multi-user.target

@@ -40,12 +40,13 @@ scp -r phase2 root@154.26.158.31:/opt/
 ```
 
 **Verify**:
+
 ```bash
 ssh root@154.26.158.31 "ls -la /opt/phase2"
 ```
 
 - [ ] Files transferred successfully
-- [ ] All scripts are executable (deploy-*.sh, *.sh)
+- [ ] All scripts are executable (deploy-_.sh, _.sh)
 
 ---
 
@@ -63,6 +64,7 @@ bash deploy-phase2.sh
 ```
 
 **Expected output**:
+
 ```
 ================================================
    VMI03 Security Gateway Deployment
@@ -83,6 +85,7 @@ bash deploy-phase2.sh
 ```
 
 **Deployment checklist**:
+
 - [ ] System packages updated
 - [ ] WireGuard tunnels created
 - [ ] Keycloak container running
@@ -123,6 +126,7 @@ mailq
 ```
 
 **Verification checklist**:
+
 - [ ] All 3 WireGuard interfaces up (wg-root, wg-mcp, wg-red)
 - [ ] Keycloak container running and healthy
 - [ ] PiHole container running and resolving DNS
@@ -144,6 +148,7 @@ ls -la ~/wireguard-clients/
 ```
 
 **Files to download**:
+
 - [ ] root-tunnel-macbook.conf
 - [ ] root-tunnel-mobile.conf
 - [ ] root-tunnel-mobile-qr.png
@@ -152,6 +157,7 @@ ls -la ~/wireguard-clients/
 - [ ] red-tunnel-guest-qr.png
 
 **SECURITY WARNING**:
+
 - These files contain private keys
 - Never send via unencrypted email
 - Delete from server after secure distribution
@@ -182,6 +188,7 @@ ssh root@46.250.243.123
 ```
 
 **Verification**:
+
 - [ ] VPN tunnel connected
 - [ ] Can ping 10.100.0.1
 - [ ] Can SSH to VMI01 (46.250.243.123)
@@ -199,6 +206,7 @@ ssh root@46.250.243.123
 ```
 
 **Verification**:
+
 - [ ] VPN tunnel connected
 - [ ] Can access http://10.100.0.1:8080 (Keycloak)
 - [ ] Internet still works
@@ -215,6 +223,7 @@ ssh root@154.26.158.31 "cat /opt/keycloak/.env | grep KEYCLOAK_ADMIN_PASSWORD"
 ```
 
 **Steps**:
+
 1. [ ] Connect to Root VPN tunnel
 2. [ ] Navigate to http://10.100.0.1:8080/admin
 3. [ ] Login as alex.campkin with password from .env
@@ -229,6 +238,7 @@ ssh root@154.26.158.31 "cat /opt/keycloak/.env | grep KEYCLOAK_ADMIN_PASSWORD"
 8. [ ] Test OAuth2 client creation (optional)
 
 **Service Account Passwords**:
+
 ```bash
 ssh root@154.26.158.31 "cat /opt/keycloak/service-accounts.txt"
 ```
@@ -249,6 +259,7 @@ ssh root@154.26.158.31 "cat /opt/pihole/.env | grep PIHOLE_WEB_PASSWORD"
 ```
 
 **Steps**:
+
 1. [ ] Connect to Root VPN tunnel
 2. [ ] Navigate to http://10.102.0.1/admin
 3. [ ] Login with password from .env
@@ -259,6 +270,7 @@ ssh root@154.26.158.31 "cat /opt/pihole/.env | grep PIHOLE_WEB_PASSWORD"
 8. [ ] Test DNS resolution from Red tunnel client
 
 **Custom blocklists** (optional):
+
 - [ ] https://dbl.oisd.nl/ (comprehensive)
 - [ ] https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/pro.txt (privacy)
 
@@ -276,12 +288,14 @@ bash test-mail.sh
 ```
 
 **Verification**:
+
 - [ ] Test script runs without errors
 - [ ] Check email (acampkinpersonnal@gmail.com)
 - [ ] Received test emails (may be in spam initially)
 - [ ] Mail queue empty (`mailq`)
 
 **If mail not received**:
+
 - [ ] Check spam folder
 - [ ] Review /var/log/mail.log for errors
 - [ ] Consider configuring SMTP relay (see Postfix docs)
@@ -302,6 +316,7 @@ tail -f /var/log/suricata/fast.log
 ```
 
 **Initial alerts**:
+
 - [ ] Suricata generating alerts
 - [ ] Alerts logged to /var/log/suricata/fast.log
 - [ ] Alerts forwarded to VMI01 syslog (verify on VMI01)
@@ -392,6 +407,7 @@ echo "0 2 * * * /usr/local/bin/backup-phase2.sh" | crontab -
 ### Test 1: Root Tunnel Connectivity
 
 **From Root tunnel client**:
+
 ```bash
 # Verify VPN connection
 ping 10.100.0.1
@@ -417,6 +433,7 @@ traceroute 8.8.8.8  # Should NOT go through VPN
 ### Test 2: MCP Tunnel Connectivity
 
 **From MCP tunnel client**:
+
 ```bash
 # Verify VPN connection
 ping 10.101.0.1
@@ -440,6 +457,7 @@ ping 46.250.241.70  # Should timeout or fail
 ### Test 3: Red Tunnel Security
 
 **From Red tunnel client**:
+
 ```bash
 # Verify VPN connection
 ping 10.102.0.1
@@ -551,6 +569,7 @@ chmod +x /usr/local/bin/vmi03-status.sh
 ```
 
 **All services should show ACTIVE/Running**:
+
 - [ ] WireGuard Root: ACTIVE
 - [ ] WireGuard MCP: ACTIVE
 - [ ] WireGuard Red: ACTIVE
@@ -591,6 +610,7 @@ chmod +x /usr/local/bin/vmi03-status.sh
 ### Issue: WireGuard Won't Start
 
 **Solution**:
+
 ```bash
 # Check logs
 journalctl -u wg-quick@wg-root -n 50
@@ -607,6 +627,7 @@ ufw allow 51820/udp
 ### Issue: Keycloak Database Connection Failed
 
 **Solution**:
+
 ```bash
 # Test PostgreSQL connectivity
 nc -zv 46.250.243.123 5432
@@ -621,6 +642,7 @@ cat /opt/keycloak/.env
 ### Issue: PiHole DNS Not Resolving
 
 **Solution**:
+
 ```bash
 # Check container
 docker ps | grep pihole
@@ -637,6 +659,7 @@ docker-compose restart pihole
 ### Issue: Mail Not Delivering
 
 **Solution**:
+
 ```bash
 # Check queue
 mailq
@@ -682,16 +705,18 @@ For complete troubleshooting, see [TROUBLESHOOTING.md](TROUBLESHOOTING.md)
 ### Deployment Summary
 
 **Server**: VMI03 (154.26.158.31)
-**Deployment Date**: _______________
-**Deployed By**: _______________
+**Deployment Date**: **\*\***\_\_\_**\*\***
+**Deployed By**: **\*\***\_\_\_**\*\***
 
 **Services Deployed**:
+
 - [x] WireGuard VPN (3 tunnels)
 - [x] Keycloak Identity Management
 - [x] PiHole DNS + Suricata IDS/IPS
 - [x] Postfix Mail Server
 
 **Access Information**:
+
 - Root VPN: 10.100.0.0/24 (Port 51820)
 - MCP VPN: 10.101.0.0/24 (Port 51821)
 - Red VPN: 10.102.0.0/24 (Port 51822)
@@ -699,6 +724,7 @@ For complete troubleshooting, see [TROUBLESHOOTING.md](TROUBLESHOOTING.md)
 - PiHole: http://10.102.0.1/admin
 
 **Critical Files**:
+
 - Client configs: /etc/wireguard/clients/
 - Keycloak passwords: /opt/keycloak/.env
 - Service accounts: /opt/keycloak/service-accounts.txt
@@ -707,11 +733,14 @@ For complete troubleshooting, see [TROUBLESHOOTING.md](TROUBLESHOOTING.md)
 
 ---
 
-**Deployment Status**: ☐ In Progress  ☐ Complete  ☐ Issues
+**Deployment Status**: ☐ In Progress ☐ Complete ☐ Issues
 
 **Notes**:
-_____________________________________________
-_____________________________________________
-_____________________________________________
 
-**Sign-off**: _______________  Date: _______________
+---
+
+---
+
+---
+
+**Sign-off**: **\*\***\_\_\_**\*\*** Date: **\*\***\_\_\_**\*\***

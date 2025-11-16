@@ -1,0 +1,27 @@
+[Unit]
+Description=VPN Invite System
+Documentation=https://github.com/your-org/vpn-invite-system
+Requires=docker.service
+After=docker.service network-online.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+WorkingDirectory=/opt/vpn-invite-system/deployment
+EnvironmentFile=/opt/vpn-invite-system/deployment/.env
+
+# Start services
+ExecStart=/usr/bin/docker-compose up -d
+
+# Stop services
+ExecStop=/usr/bin/docker-compose down
+
+# Reload services
+ExecReload=/usr/bin/docker-compose restart
+
+# Restart policy
+Restart=on-failure
+RestartSec=10s
+
+[Install]
+WantedBy=multi-user.target

@@ -11,6 +11,7 @@ Complete, production-ready backup system for all three VMs (VMI01, VMI02D, VMI03
 **Total Files Created: 25**
 
 #### Scripts (6 files)
+
 1. `backup-to-s3.sh` - Daily incremental backup (488 lines)
 2. `full-backup-to-s3.sh` - Weekly full backup (537 lines)
 3. `restore-from-s3.sh` - Interactive restore wizard (547 lines)
@@ -19,12 +20,14 @@ Complete, production-ready backup system for all three VMs (VMI01, VMI02D, VMI03
 6. `etc-git-tracker.sh` - Configuration tracking with git (337 lines)
 
 #### Configuration (4 files)
+
 1. `rclone.conf` - Wasabi S3 configuration with placeholders
 2. `backup-exclude.txt` - Exclusion patterns for backups
 3. `backup-manifest-template.json` - Metadata template
 4. `gpg-backup-key.txt` - Encryption setup guide
 
 #### Scheduling (7 files)
+
 1. `backup-daily.service` - Systemd service for daily backup
 2. `backup-daily.timer` - Systemd timer (2 AM daily)
 3. `backup-weekly.service` - Systemd service for weekly backup
@@ -34,10 +37,12 @@ Complete, production-ready backup system for all three VMs (VMI01, VMI02D, VMI03
 7. `etc-git-commit.cron` - Daily /etc tracking
 
 #### Monitoring (2 files)
+
 1. `backup-status-check.sh` - Prometheus metrics exporter (201 lines)
 2. `alert-on-failure.sh` - Health checks and alerting (286 lines)
 
 #### Documentation (6 files)
+
 1. `BACKUP_GUIDE.md` - Complete user guide (500+ lines)
 2. `RESTORE_GUIDE.md` - Restore procedures (650+ lines)
 3. `DISASTER_RECOVERY.md` - DR plan and procedures (800+ lines)
@@ -46,6 +51,7 @@ Complete, production-ready backup system for all three VMs (VMI01, VMI02D, VMI03
 6. `QUICK_REFERENCE.md` - Quick reference card
 
 #### Deployment (1 file)
+
 1. `deploy-backups.sh` - Master deployment script (439 lines)
 
 ## Key Features Implemented
@@ -53,6 +59,7 @@ Complete, production-ready backup system for all three VMs (VMI01, VMI02D, VMI03
 ### 1. Comprehensive Backup Strategy
 
 **Daily Incremental Backups (2 AM)**
+
 - System configuration (`/etc`)
 - Application data (`/opt/mcp`, `/opt/keycloak`)
 - SSH keys and credentials (`/key`)
@@ -61,6 +68,7 @@ Complete, production-ready backup system for all three VMs (VMI01, VMI02D, VMI03
 - VM-specific data
 
 **Weekly Full Backups (Sunday 3 AM)**
+
 - Everything from daily backup
 - Complete system state
 - Extended application directories
@@ -68,6 +76,7 @@ Complete, production-ready backup system for all three VMs (VMI01, VMI02D, VMI03
 - Package lists and service states
 
 **Database Backups**
+
 - PostgreSQL: Custom format dumps with compression
 - Redis: Point-in-time RDB snapshots
 - Verification after dump creation
@@ -76,24 +85,28 @@ Complete, production-ready backup system for all three VMs (VMI01, VMI02D, VMI03
 ### 2. Advanced Features
 
 **Incremental Backups**
+
 - Uses rsync methodology with --link-dest
 - Only backs up changed files
 - Significantly reduces storage costs
 - Maintains full restore capability
 
 **Compression**
+
 - zstd compression (level 3 for daily, 6 for weekly)
 - High compression ratio with fast decompression
 - Multi-threaded compression support
 - 40-60% size reduction typical
 
 **Integrity Verification**
+
 - SHA-256 checksums for all files
 - Automated checksum verification
 - Manifest with metadata
 - Corruption detection
 
 **Parallel Processing**
+
 - 4 concurrent rclone transfers
 - Multi-threaded compression
 - Optimized for network and CPU
@@ -102,6 +115,7 @@ Complete, production-ready backup system for all three VMs (VMI01, VMI02D, VMI03
 ### 3. Monitoring & Alerting
 
 **Prometheus Metrics**
+
 - `backup_status` - Success/failure indicator
 - `backup_age_hours` - Time since last backup
 - `backup_size_bytes` - Backup size
@@ -111,12 +125,14 @@ Complete, production-ready backup system for all three VMs (VMI01, VMI02D, VMI03
 - `backup_total_storage_bytes` - Total usage
 
 **Email Notifications**
+
 - Success: Summary with size, duration, contents
 - Failure: Error details and diagnostics
 - Sent to: acampkinpersonnal@gmail.com
 - Includes recent log entries
 
 **Health Checks**
+
 - Backup age monitoring (alert if > 36 hours)
 - S3 connectivity verification
 - Backup size anomaly detection
@@ -126,6 +142,7 @@ Complete, production-ready backup system for all three VMs (VMI01, VMI02D, VMI03
 ### 4. Configuration Tracking
 
 **Git-Based /etc Tracking**
+
 - Automatic initialization on deployment
 - Daily auto-commits of changes
 - Full history preservation
@@ -133,6 +150,7 @@ Complete, production-ready backup system for all three VMs (VMI01, VMI02D, VMI03
 - 30-day retention of bundles
 
 **Rebuild Playbook Generation**
+
 - Ansible playbook from current state
 - Package list capture
 - Service configuration
@@ -142,6 +160,7 @@ Complete, production-ready backup system for all three VMs (VMI01, VMI02D, VMI03
 ### 5. Disaster Recovery
 
 **Recovery Capabilities**
+
 - Single file restore
 - Selective path restore
 - Database-only restore
@@ -149,12 +168,14 @@ Complete, production-ready backup system for all three VMs (VMI01, VMI02D, VMI03
 - Interactive restore wizard
 
 **RTO/RPO**
+
 - Single file: 15 minutes / 24 hours
 - Service failure: 1 hour / 24 hours
 - VM failure: 4 hours / 24 hours
 - Complete DR: 24 hours / 24 hours
 
 **DR Scenarios Covered**
+
 - Single VM failure
 - Multiple VM failure
 - Data center outage
@@ -165,6 +186,7 @@ Complete, production-ready backup system for all three VMs (VMI01, VMI02D, VMI03
 ### 6. Retention Policy
 
 **Automated Cleanup**
+
 - Daily backups: 7 days retention
 - Weekly backups: 4 weeks retention
 - Monthly backups: 12 months retention (optional)
@@ -172,6 +194,7 @@ Complete, production-ready backup system for all three VMs (VMI01, VMI02D, VMI03
 - Automatic enforcement via cleanup script
 
 **Storage Optimization**
+
 - Incremental backups reduce duplication
 - Compression reduces size by 40-60%
 - Automatic cleanup prevents accumulation
@@ -182,6 +205,7 @@ Complete, production-ready backup system for all three VMs (VMI01, VMI02D, VMI03
 ### VMI01 (46.250.243.123) - Dev/MCP Server
 
 **Backed Up:**
+
 - `/etc/` - System configuration
 - `/opt/mcp/` - MCP applications
 - `/key/` - SSH keys and credentials
@@ -195,6 +219,7 @@ Complete, production-ready backup system for all three VMs (VMI01, VMI02D, VMI03
 - Package lists and service states
 
 **Special Handling:**
+
 - Database dumps with verification
 - Redis BGSAVE before backup
 - PostgreSQL globals (roles, permissions)
@@ -202,6 +227,7 @@ Complete, production-ready backup system for all three VMs (VMI01, VMI02D, VMI03
 ### VMI02D (46.250.241.70) - Storage Server
 
 **Backed Up:**
+
 - `/etc/` - System configuration
 - `/key/` - SSH keys
 - `/root/`, `/home/` - User directories
@@ -209,6 +235,7 @@ Complete, production-ready backup system for all three VMs (VMI01, VMI02D, VMI03
 - System logs
 
 **Special Considerations:**
+
 - 968GB disk - may have large data
 - Exclusion patterns for large files
 - Bandwidth limiting available if needed
@@ -216,6 +243,7 @@ Complete, production-ready backup system for all three VMs (VMI01, VMI02D, VMI03
 ### VMI03 (154.26.158.31) - Security Gateway
 
 **Backed Up:**
+
 - `/etc/` - System configuration
 - `/opt/keycloak/` - Keycloak installation
 - `/key/` - SSH keys
@@ -225,6 +253,7 @@ Complete, production-ready backup system for all three VMs (VMI01, VMI02D, VMI03
 - System logs
 
 **Special Handling:**
+
 - Keycloak data directory backup
 - Keycloak configuration backup
 - Realm export (requires Keycloak running)
@@ -232,6 +261,7 @@ Complete, production-ready backup system for all three VMs (VMI01, VMI02D, VMI03
 ## Wasabi S3 Configuration
 
 **Bucket Details:**
+
 - Bucket Name: `vmibackups`
 - Region: AP Southeast 2 (Sydney)
 - Endpoint: `s3.ap-southeast-2.wasabisys.com`
@@ -239,6 +269,7 @@ Complete, production-ready backup system for all three VMs (VMI01, VMI02D, VMI03
 - Access: Private (not public)
 
 **Bucket Structure:**
+
 ```
 vmibackups/
 ├── vmi01/
@@ -265,6 +296,7 @@ vmibackups/
 ## Cost Analysis
 
 ### Wasabi Pricing (2025)
+
 - Storage: $6.99 per TB per month
 - Minimum storage duration: 90 days
 - No egress fees
@@ -273,14 +305,15 @@ vmibackups/
 
 ### Estimated Storage Requirements
 
-| VM | Daily Backup | Weekly Backup | Monthly Total | Monthly Cost |
-|----|--------------|---------------|---------------|--------------|
-| VMI01 | 3 GB | 15 GB | ~80 GB | $0.56 |
-| VMI02D | 5 GB | 25 GB | ~150 GB | $1.05 |
-| VMI03 | 2 GB | 10 GB | ~60 GB | $0.42 |
-| **Total** | **10 GB** | **50 GB** | **~290 GB** | **$2.03** |
+| VM        | Daily Backup | Weekly Backup | Monthly Total | Monthly Cost |
+| --------- | ------------ | ------------- | ------------- | ------------ |
+| VMI01     | 3 GB         | 15 GB         | ~80 GB        | $0.56        |
+| VMI02D    | 5 GB         | 25 GB         | ~150 GB       | $1.05        |
+| VMI03     | 2 GB         | 10 GB         | ~60 GB        | $0.42        |
+| **Total** | **10 GB**    | **50 GB**     | **~290 GB**   | **$2.03**    |
 
 **With Retention Policy:**
+
 - 7 daily backups: ~70 GB
 - 4 weekly backups: ~200 GB
 - /etc git bundles: ~300 MB
@@ -290,6 +323,7 @@ vmibackups/
 **Estimated Monthly Cost: $3.50**
 
 ### Cost Optimization
+
 - Incremental backups reduce duplication
 - zstd compression (40-60% reduction)
 - Automated retention cleanup
@@ -299,12 +333,14 @@ vmibackups/
 ## Deployment Process
 
 ### Prerequisites
+
 1. Wasabi account with credentials
 2. SSH access to all VMs
 3. VMs have internet access
 4. Minimum 20GB free disk space per VM
 
 ### Deployment Steps
+
 1. Run `./deploy-backups.sh --all`
 2. Enter Wasabi credentials
 3. Scripts deploy to all VMs automatically
@@ -313,6 +349,7 @@ vmibackups/
 6. Initial backup can be run manually
 
 ### Post-Deployment
+
 1. Verify first backup completes
 2. Check email notifications
 3. Verify backups in S3
@@ -323,18 +360,21 @@ vmibackups/
 ## Security Features
 
 ### Data Protection
+
 - AES-256 encryption at rest (S3 SSE)
 - HTTPS encryption in transit
 - Optional client-side GPG encryption
 - Secure credential storage (chmod 600)
 
 ### Access Control
+
 - Dedicated S3 user recommended
 - Minimal required permissions
 - Root-only script access
 - Audit logging enabled
 
 ### Best Practices Implemented
+
 - No credentials in scripts
 - Secure configuration files
 - Regular security updates
@@ -344,12 +384,14 @@ vmibackups/
 ## Monitoring Integration
 
 ### Prometheus
+
 - Metrics endpoint provided
 - Standard metric format
 - Multiple metric types
 - Historical data support
 
 ### AlertManager Rules
+
 ```yaml
 - alert: BackupStale
   expr: backup_age_hours > 36
@@ -365,6 +407,7 @@ vmibackups/
 ```
 
 ### Grafana Dashboard
+
 - Backup success rate
 - Backup size trends
 - Storage utilization
@@ -374,12 +417,14 @@ vmibackups/
 ## Testing & Validation
 
 ### Automated Tests
+
 - Backup verification after completion
 - Checksum validation
 - Database dump verification
 - Archive integrity checks
 
 ### Manual Testing Checklist
+
 - [ ] Deploy to all VMs
 - [ ] Run initial backup
 - [ ] Verify in S3
@@ -391,6 +436,7 @@ vmibackups/
 - [ ] Validate retention cleanup
 
 ### Monthly Restore Drill
+
 1. Select random backup
 2. Restore to test location
 3. Verify data integrity
@@ -400,6 +446,7 @@ vmibackups/
 ## Documentation Provided
 
 ### User Documentation
+
 1. **BACKUP_GUIDE.md** (500+ lines)
    - Backup contents and schedule
    - Manual operations
@@ -422,11 +469,13 @@ vmibackups/
    - Testing schedules
 
 ### Operational Documentation
+
 4. **README.md** - Quick start and overview
 5. **DEPLOYMENT_CHECKLIST.md** - Step-by-step deployment
 6. **QUICK_REFERENCE.md** - Command reference card
 
 ### Technical Documentation
+
 - Inline script comments (2000+ lines total)
 - Configuration templates
 - Example outputs
@@ -435,6 +484,7 @@ vmibackups/
 ## Key Technical Decisions
 
 ### Why Wasabi?
+
 - Cost-effective ($6.99/TB vs $23/TB AWS)
 - No egress fees (important for restores)
 - S3-compatible (standard tooling)
@@ -442,6 +492,7 @@ vmibackups/
 - Good performance from Sydney region
 
 ### Why rclone?
+
 - Mature, battle-tested
 - Excellent S3 support
 - Built-in retry logic
@@ -450,6 +501,7 @@ vmibackups/
 - Better than s3cmd for reliability
 
 ### Why zstd?
+
 - Better compression than gzip
 - Much faster than bzip2/xz
 - Multi-threaded
@@ -457,6 +509,7 @@ vmibackups/
 - Industry standard for backups
 
 ### Why systemd timers over cron?
+
 - Better logging (journald)
 - Dependency management
 - OnFailure hooks
@@ -465,6 +518,7 @@ vmibackups/
 - (Cron files also provided as alternative)
 
 ### Why git for /etc?
+
 - Natural fit for text configs
 - Full history tracking
 - Diff capabilities
@@ -475,6 +529,7 @@ vmibackups/
 ## Unique Features
 
 ### 1. Configuration Snapshot System
+
 - Git-based /etc tracking
 - Daily auto-commits
 - S3-backed git bundles
@@ -482,6 +537,7 @@ vmibackups/
 - Rebuild documentation
 
 ### 2. Comprehensive Metadata
+
 - JSON manifest for each backup
 - SHA-256 checksums
 - Backup verification
@@ -489,6 +545,7 @@ vmibackups/
 - Easy restore selection
 
 ### 3. Multi-Level Verification
+
 - Checksum validation
 - Archive integrity checks
 - Database dump verification
@@ -496,6 +553,7 @@ vmibackups/
 - Test restore capability
 
 ### 4. Intelligent Alerting
+
 - Age-based alerts
 - Size anomaly detection
 - S3 connectivity monitoring
@@ -503,6 +561,7 @@ vmibackups/
 - Multiple notification channels
 
 ### 5. Production-Ready Code
+
 - Comprehensive error handling
 - Retry logic with exponential backoff
 - Lock files prevent concurrent runs
@@ -513,6 +572,7 @@ vmibackups/
 ## Success Metrics
 
 ### Reliability Targets
+
 - ✅ Backup success rate > 99%
 - ✅ RTO < 4 hours for VM restore
 - ✅ RPO < 24 hours (daily backups)
@@ -520,6 +580,7 @@ vmibackups/
 - ✅ Alert response < 30 minutes
 
 ### Performance Targets
+
 - ✅ Daily backup < 30 minutes
 - ✅ Weekly backup < 3 hours
 - ✅ Single file restore < 15 minutes
@@ -527,6 +588,7 @@ vmibackups/
 - ✅ Full VM restore < 4 hours
 
 ### Operational Targets
+
 - ✅ Zero manual intervention for daily ops
 - ✅ Email notification 100% of time
 - ✅ Automated retention cleanup
@@ -536,17 +598,20 @@ vmibackups/
 ## Maintenance Requirements
 
 ### Daily (Automated)
+
 - Backups run automatically (2 AM)
 - Email notifications sent
 - /etc changes tracked
 - No manual intervention needed
 
 ### Weekly (Automated)
+
 - Full backup runs (Sunday 3 AM)
 - Old backups cleaned up (Monday 4 AM)
 - No manual intervention needed
 
 ### Monthly (Manual - 30 minutes)
+
 - Review backup logs
 - Verify backup sizes reasonable
 - Test single file restore
@@ -554,6 +619,7 @@ vmibackups/
 - Review monitoring metrics
 
 ### Quarterly (Manual - 4 hours)
+
 - Full restore drill
 - Update documentation
 - Review and update exclusions
@@ -563,17 +629,20 @@ vmibackups/
 ## Support & Escalation
 
 ### Level 1: Self-Service
+
 - Documentation in `/opt/backup-scripts/docs/`
 - Quick reference card
 - Logs in `/var/log/backups/`
 - Automated health checks
 
 ### Level 2: Email Support
+
 - Email: acampkinpersonnal@gmail.com
 - Response time: 2-4 hours
 - Include: logs, error messages, steps taken
 
 ### Level 3: Vendor Support
+
 - Wasabi: support@wasabi.com
 - Phone: +1-844-WASABI-1
 - For S3 connectivity or billing issues
@@ -581,6 +650,7 @@ vmibackups/
 ## Future Enhancements (Optional)
 
 ### Potential Improvements
+
 1. **Multi-Region Replication**
    - Copy backups to second S3 region
    - Geographic redundancy

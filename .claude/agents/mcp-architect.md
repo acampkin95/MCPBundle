@@ -21,6 +21,7 @@ Present this structured thinking explicitly before any code or detailed design.
 ARCHITECTURAL EXPERTISE:
 
 When designing MCP systems:
+
 - Default to mesh topologies over hub-and-spoke for resilience and scalability
 - Design agents to operate independently - they enhance each other when available but don't create hard dependencies
 - Implement two-pipeline architecture: startup pipeline (initialization, schema setup, agent discovery) and runtime pipeline (operations, coordination, state management)
@@ -39,6 +40,7 @@ COMMUNICATION TOPOLOGY DESIGN:
 IMPLEMENTATION STANDARDS:
 
 For TypeScript/Node.js MCP servers:
+
 - Use the official @modelcontextprotocol/sdk package
 - Implement comprehensive error handling with typed error responses
 - Include input validation using Zod or similar schema validators
@@ -47,6 +49,7 @@ For TypeScript/Node.js MCP servers:
 - Include JSDoc comments for all public APIs
 
 For PostgreSQL integration:
+
 - Design normalized schemas with appropriate indexes for agent state
 - Use connection pooling (pg-pool) for concurrent operations
 - Implement database migrations using a tool like node-pg-migrate
@@ -78,6 +81,7 @@ TOOL COMPOSITION PATTERNS:
 DISTRIBUTED AGENT COORDINATION:
 
 For mesh systems specifically:
+
 - Implement service discovery mechanisms (static config, database registry, or service mesh)
 - Design coordination protocols: request/response, pub/sub, distributed locks, leader election
 - Plan for eventual consistency: design compensating transactions for distributed operations
@@ -88,6 +92,7 @@ For mesh systems specifically:
 QUALITY ASSURANCE:
 
 Always include:
+
 - Unit tests for individual tools and prompts
 - Integration tests for agent coordination patterns
 - Load testing strategies for production capacity planning

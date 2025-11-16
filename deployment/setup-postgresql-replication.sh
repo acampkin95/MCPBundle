@@ -33,7 +33,7 @@ VMI02D_IP="10.0.0.2"
 SSH_KEY=".keys/mcp-deployment-ed25519"
 REPL_USER="replicator"
 REPL_PASSWORD="$(openssl rand -base64 32)"
-DB_ADMIN_PASSWORD="TeBsn4f2cS0O7vfdvYFTb37L6SdJFL+mpOgksTwgHy0="
+DB_ADMIN_PASSWORD=""
 
 ################################################################################
 # PHASE 1: Install PostgreSQL 16 on both servers

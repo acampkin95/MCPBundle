@@ -22,7 +22,12 @@ declare -A VMS
 VMS["VMI01"]="46.250.243.123"
 VMS["VMI02D"]="46.250.241.70"
 VMS["VMI03"]="154.26.158.31"
-VM_PASSWORD="C0nnaught"
+VM_PASSWORD="${VM_PASSWORD:-${MCP_ROOT_PASSWORD:-}}"
+
+if [[ -z "${VM_PASSWORD:-}" ]]; then
+    echo "VM_PASSWORD (or MCP_ROOT_PASSWORD) must be exported via Contabo Secrets (npm run secrets:pull) before running." >&2
+    exit 1
+fi
 
 # Initialize report
 echo "{" > "$REPORT_FILE"
@@ -70,7 +75,7 @@ for vm_name in "${!VMS[@]}"; do
     vm_ip="${VMS[$vm_name]}"
     start_time=$(date +%s%N)
 
-    if sshpass -p "$VM_PASSWORD" ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 root@$vm_ip "echo 'SSH OK'" > /dev/null 2>&1; then
+    if SSHPASS="$VM_PASSWORD" sshpass -e ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 root@$vm_ip "echo 'SSH OK'" > /dev/null 2>&1; then
         end_time=$(date +%s%N)
         duration=$(( (end_time - start_time) / 1000000 ))
         log_test "ssh_connectivity_$vm_name" "PASS" "SSH connection successful to $vm_ip" $duration
@@ -92,7 +97,7 @@ for vm_name in "${!VMS[@]}"; do
             target_ip="${VMS[$target_name]}"
             start_time=$(date +%s%N)
 
-            avg_latency=$(sshpass -p "$VM_PASSWORD" ssh -o StrictHostKeyChecking=no root@$vm_ip \
+            avg_latency=$(SSHPASS="$VM_PASSWORD" sshpass -e ssh -o StrictHostKeyChecking=no root@$vm_ip \
                 "ping -c 5 -q $target_ip 2>/dev/null | grep 'avg' | awk -F'/' '{print \$5}'" 2>/dev/null || echo "error")
 
             end_time=$(date +%s%N)
@@ -114,7 +119,7 @@ for vm_name in "${!VMS[@]}"; do
     vm_ip="${VMS[$vm_name]}"
     start_time=$(date +%s%N)
 
-    dns_result=$(sshpass -p "$VM_PASSWORD" ssh -o StrictHostKeyChecking=no root@$vm_ip \
+    dns_result=$(SSHPASS="$VM_PASSWORD" sshpass -e ssh -o StrictHostKeyChecking=no root@$vm_ip \
         "nslookup google.com 2>&1 | grep -q 'Address:' && echo 'OK' || echo 'FAIL'" 2>/dev/null)
 
     end_time=$(date +%s%N)
@@ -134,7 +139,7 @@ for vm_name in "${!VMS[@]}"; do
     vm_ip="${VMS[$vm_name]}"
     start_time=$(date +%s%N)
 
-    wg_status=$(sshpass -p "$VM_PASSWORD" ssh -o StrictHostKeyChecking=no root@$vm_ip \
+    wg_status=$(SSHPASS="$VM_PASSWORD" sshpass -e ssh -o StrictHostKeyChecking=no root@$vm_ip \
         "wg show 2>/dev/null | grep -c 'interface:' || echo '0'" 2>/dev/null)
 
     end_time=$(date +%s%N)
@@ -154,7 +159,7 @@ for vm_name in "${!VMS[@]}"; do
     vm_ip="${VMS[$vm_name]}"
     start_time=$(date +%s%N)
 
-    fw_status=$(sshpass -p "$VM_PASSWORD" ssh -o StrictHostKeyChecking=no root@$vm_ip \
+    fw_status=$(SSHPASS="$VM_PASSWORD" sshpass -e ssh -o StrictHostKeyChecking=no root@$vm_ip \
         "ufw status 2>/dev/null | grep -q 'Status: active' && echo 'OK' || echo 'FAIL'" 2>/dev/null)
 
     end_time=$(date +%s%N)
@@ -175,7 +180,7 @@ for vm_name in "${!VMS[@]}"; do
     start_time=$(date +%s%N)
 
     # Check disk usage
-    disk_usage=$(sshpass -p "$VM_PASSWORD" ssh -o StrictHostKeyChecking=no root@$vm_ip \
+    disk_usage=$(SSHPASS="$VM_PASSWORD" sshpass -e ssh -o StrictHostKeyChecking=no root@$vm_ip \
         "df -h / | awk 'NR==2 {print \$5}' | sed 's/%//'" 2>/dev/null)
 
     end_time=$(date +%s%N)
@@ -191,7 +196,7 @@ for vm_name in "${!VMS[@]}"; do
 
     # Check memory usage
     start_time=$(date +%s%N)
-    mem_available=$(sshpass -p "$VM_PASSWORD" ssh -o StrictHostKeyChecking=no root@$vm_ip \
+    mem_available=$(SSHPASS="$VM_PASSWORD" sshpass -e ssh -o StrictHostKeyChecking=no root@$vm_ip \
         "free -m | awk 'NR==2 {print \$7}'" 2>/dev/null)
 
     end_time=$(date +%s%N)

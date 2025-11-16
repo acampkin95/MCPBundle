@@ -3,6 +3,7 @@
 ## Pre-Deployment
 
 ### Wasabi S3 Setup
+
 - [ ] Create Wasabi account (if not already done)
 - [ ] Create bucket: `vmibackups`
 - [ ] Region: AP Southeast 2
@@ -12,6 +13,7 @@
 - [ ] Configure bucket lifecycle policies (optional)
 
 ### Credentials Preparation
+
 - [ ] Note Access Key ID
 - [ ] Note Secret Access Key
 - [ ] Test credentials with Wasabi console
@@ -19,6 +21,7 @@
 - [ ] Prepare printed backup of credentials
 
 ### Network Verification
+
 - [ ] Verify SSH access to VMI01 (46.250.243.123)
 - [ ] Verify SSH access to VMI02D (46.250.241.70)
 - [ ] Verify SSH access to VMI03 (154.26.158.31)
@@ -27,6 +30,7 @@
 - [ ] Test connection to s3.ap-southeast-2.wasabisys.com
 
 ### Local Preparation
+
 - [ ] Clone/download backup scripts to local machine
 - [ ] Review deployment script: `deploy-backups.sh`
 - [ ] Verify SSH key exists: `~/.ssh/id_ed25519`
@@ -35,6 +39,7 @@
 ## Deployment to VMI01
 
 ### Initial Setup
+
 - [ ] SSH into VMI01: `ssh root@46.250.243.123`
 - [ ] Check disk space: `df -h` (need ~20GB free)
 - [ ] Check PostgreSQL running: `systemctl status postgresql`
@@ -42,12 +47,14 @@
 - [ ] Note current disk usage for comparison
 
 ### Deploy Scripts
+
 - [ ] Run: `./deploy-backups.sh --vm vmi01`
 - [ ] Enter Wasabi credentials when prompted
 - [ ] Verify deployment completes without errors
 - [ ] Check scripts installed: `ls -la /opt/backup-scripts/`
 
 ### Verify Installation
+
 - [ ] Test rclone config: `rclone lsd wasabi-vmi:vmibackups`
 - [ ] Check systemd timers: `systemctl list-timers backup-*`
 - [ ] Verify cron jobs: `ls -la /etc/cron.d/`
@@ -55,6 +62,7 @@
 - [ ] Verify log directory: `ls -la /var/log/backups/`
 
 ### Test Backup
+
 - [ ] Run dry-run: `/opt/backup-scripts/backup-to-s3.sh --dry-run`
 - [ ] Review dry-run output for errors
 - [ ] Run actual backup: `/opt/backup-scripts/backup-to-s3.sh`
@@ -63,6 +71,7 @@
 - [ ] Verify backup in S3: `rclone ls wasabi-vmi:vmibackups/vmi01/`
 
 ### Verify Backup
+
 - [ ] Run verification: `/opt/backup-scripts/verify-backup.sh`
 - [ ] Check backup manifest exists
 - [ ] Verify checksums pass
@@ -70,11 +79,13 @@
 - [ ] Test database dumps can be listed
 
 ### Initialize Git Tracking
+
 - [ ] Verify /etc git initialized: `cd /etc && git log`
 - [ ] Check git bundle in S3
 - [ ] Test manual commit: `/opt/backup-scripts/etc-git-tracker.sh --commit`
 
 ### VMI01 Final Checks
+
 - [ ] Timers active: `systemctl is-active backup-daily.timer`
 - [ ] Logs clean: `journalctl -u backup-daily.service -n 50`
 - [ ] Email notification received
@@ -84,22 +95,26 @@
 ## Deployment to VMI02D
 
 ### Initial Setup
+
 - [ ] SSH into VMI02D: `ssh root@46.250.241.70`
 - [ ] Check disk space: `df -h` (968GB disk, need space)
 - [ ] Note current disk usage
 - [ ] Identify large directories to potentially exclude
 
 ### Deploy Scripts
+
 - [ ] Run: `./deploy-backups.sh --vm vmi02d`
 - [ ] Verify deployment completes
 - [ ] Check scripts installed: `ls -la /opt/backup-scripts/`
 
 ### Verify Installation
+
 - [ ] Test rclone config: `rclone lsd wasabi-vmi:vmibackups`
 - [ ] Check systemd timers: `systemctl list-timers backup-*`
 - [ ] Verify dependencies installed
 
 ### Test Backup
+
 - [ ] Run dry-run: `/opt/backup-scripts/backup-to-s3.sh --dry-run`
 - [ ] Review what will be backed up
 - [ ] Adjust exclusions if needed (edit config/backup-exclude.txt)
@@ -107,11 +122,13 @@
 - [ ] Monitor progress (may be longer due to 968GB disk)
 
 ### Verify Backup
+
 - [ ] Run verification: `/opt/backup-scripts/verify-backup.sh --quick`
 - [ ] Check backup size
 - [ ] Verify backup in S3
 
 ### VMI02D Final Checks
+
 - [ ] Timers active
 - [ ] Email notification received
 - [ ] Backup completed successfully
@@ -120,32 +137,38 @@
 ## Deployment to VMI03
 
 ### Initial Setup
+
 - [ ] SSH into VMI03: `ssh root@154.26.158.31`
 - [ ] Check disk space: `df -h`
 - [ ] Check Keycloak status: `systemctl status keycloak`
 - [ ] Note current disk usage
 
 ### Deploy Scripts
+
 - [ ] Run: `./deploy-backups.sh --vm vmi03`
 - [ ] Verify deployment completes
 - [ ] Check scripts installed
 
 ### Verify Installation
+
 - [ ] Test rclone config
 - [ ] Check systemd timers
 - [ ] Verify dependencies
 
 ### Test Backup
+
 - [ ] Run dry-run
 - [ ] Run actual backup
 - [ ] Monitor progress
 
 ### Verify Backup
+
 - [ ] Run verification
 - [ ] Check Keycloak data backed up
 - [ ] Verify in S3
 
 ### VMI03 Final Checks
+
 - [ ] Timers active
 - [ ] Email notification received
 - [ ] Backup completed successfully
@@ -153,6 +176,7 @@
 ## Post-Deployment Verification
 
 ### All VMs
+
 - [ ] Check S3 bucket structure:
   ```
   vmibackups/
@@ -165,12 +189,14 @@
 - [ ] Confirm email notifications for all VMs
 
 ### Monitoring Setup
+
 - [ ] Add backup metrics to Prometheus (if used)
 - [ ] Configure Grafana dashboard (if used)
 - [ ] Set up AlertManager rules (if used)
 - [ ] Test alert notifications
 
 ### Documentation
+
 - [ ] Review BACKUP_GUIDE.md with team
 - [ ] Review RESTORE_GUIDE.md with team
 - [ ] Review DISASTER_RECOVERY.md with team
@@ -180,6 +206,7 @@
 ## Testing Schedule Setup
 
 ### Immediate (Week 1)
+
 - [ ] Day 1: Deploy to all VMs
 - [ ] Day 2: Verify daily backups ran
 - [ ] Day 3: Test selective file restore
@@ -189,17 +216,20 @@
 - [ ] Day 7: Document any issues
 
 ### Week 2
+
 - [ ] Test restore wizard on test VM
 - [ ] Verify retention cleanup works
 - [ ] Test monitoring alerts
 - [ ] Practice restore procedures
 
 ### Monthly
+
 - [ ] First Monday: Review backup sizes
 - [ ] Mid-month: Test restore drill
 - [ ] End of month: Verify retention policy
 
 ### Quarterly
+
 - [ ] Full system restore test
 - [ ] Update documentation
 - [ ] Review and update exclusion patterns
@@ -210,6 +240,7 @@
 ### Common Issues
 
 **Issue: S3 Connection Failed**
+
 ```bash
 # Check credentials
 cat /root/.config/rclone/rclone.conf | grep -v secret
@@ -222,6 +253,7 @@ curl -I https://s3.ap-southeast-2.wasabisys.com
 ```
 
 **Issue: Backup Script Fails**
+
 ```bash
 # Check logs
 tail -100 /var/log/backups/backup-*.log
@@ -234,6 +266,7 @@ ls -la /opt/backup-scripts/
 ```
 
 **Issue: Email Not Sending**
+
 ```bash
 # Test mail
 echo "Test" | mail -s "Test" acampkinpersonnal@gmail.com
@@ -246,6 +279,7 @@ apt install mailutils
 ```
 
 **Issue: Disk Space Full**
+
 ```bash
 # Check space
 df -h
@@ -288,6 +322,7 @@ rm -rf /var/backups/s3-staging*
 Deployment is considered successful when:
 
 ✅ **All VMs:**
+
 - [ ] Scripts installed to /opt/backup-scripts/
 - [ ] Systemd timers active
 - [ ] S3 connectivity working
@@ -296,18 +331,21 @@ Deployment is considered successful when:
 - [ ] Email notification received
 
 ✅ **S3 Bucket:**
+
 - [ ] Contains backups for all 3 VMs
 - [ ] Manifests are valid JSON
 - [ ] Checksums present
 - [ ] Total size < expected (check estimates)
 
 ✅ **Monitoring:**
+
 - [ ] Metrics available
 - [ ] Alerts configured
 - [ ] Logs accessible
 - [ ] No critical errors
 
 ✅ **Documentation:**
+
 - [ ] Team briefed
 - [ ] Credentials stored securely
 - [ ] Restore procedures reviewed
@@ -341,12 +379,12 @@ Deployment is considered successful when:
 
 ## Sign-Off
 
-Deployment completed by: ________________
+Deployment completed by: **\*\***\_\_\_\_**\*\***
 
-Date: ________________
+Date: **\*\***\_\_\_\_**\*\***
 
 All checklist items completed: [ ] Yes [ ] No
 
-Issues encountered: ____________________________________
+Issues encountered: **\*\***\*\*\*\***\*\***\_\_\_\_**\*\***\*\*\*\***\*\***
 
-Notes: ____________________________________________
+Notes: **\*\*\*\***\*\*\*\***\*\*\*\***\_\_\_\_**\*\*\*\***\*\*\*\***\*\*\*\***

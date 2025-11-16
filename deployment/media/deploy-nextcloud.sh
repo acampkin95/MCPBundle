@@ -31,6 +31,8 @@ readonly NEXTCLOUD_DOMAIN="nextcloud.vmi02d.local"
 readonly NEXTCLOUD_DIR="/var/www/nextcloud"
 readonly NEXTCLOUD_DATA_DIR="/nextcloud"
 readonly PLEX_INGEST_DIR="/nextcloud/plex-ingest"
+readonly REDIS_SOCKET="/run/redis/redis.sock"
+readonly SYSCTL_TUNE_FILE="/etc/sysctl.d/99-nextcloud-tuning.conf"
 
 # PostgreSQL Configuration (VMI01)
 readonly DB_HOST="46.250.243.123"
@@ -209,17 +211,48 @@ configure_php() {
     sed -i "s/max_input_time = .*/max_input_time = ${PHP_MAX_EXECUTION_TIME}/" "$php_ini"
     sed -i "s/;date.timezone.*/date.timezone = UTC/" "$php_ini"
     sed -i "s/;opcache.enable=.*/opcache.enable=1/" "$php_ini"
-    sed -i "s/;opcache.memory_consumption=.*/opcache.memory_consumption=128/" "$php_ini"
-    sed -i "s/;opcache.interned_strings_buffer=.*/opcache.interned_strings_buffer=16/" "$php_ini"
-    sed -i "s/;opcache.max_accelerated_files=.*/opcache.max_accelerated_files=10000/" "$php_ini"
-    sed -i "s/;opcache.revalidate_freq=.*/opcache.revalidate_freq=1/" "$php_ini"
+    sed -i "s/;opcache.enable_cli=.*/opcache.enable_cli=1/" "$php_ini"
+    sed -i "s/;opcache.memory_consumption=.*/opcache.memory_consumption=256/" "$php_ini"
+    sed -i "s/;opcache.interned_strings_buffer=.*/opcache.interned_strings_buffer=32/" "$php_ini"
+    sed -i "s/;opcache.max_accelerated_files=.*/opcache.max_accelerated_files=20000/" "$php_ini"
+    sed -i "s/;opcache.revalidate_freq=.*/opcache.revalidate_freq=60/" "$php_ini"
     sed -i "s/;opcache.save_comments=.*/opcache.save_comments=1/" "$php_ini"
+
+    if ! grep -q "NextCloud performance tuning" "$php_ini"; then
+        cat <<'EOF' >> "$php_ini"
+
+; NextCloud performance tuning
+opcache.jit=1255
+opcache.jit_buffer_size=128M
+opcache.max_wasted_percentage=10
+realpath_cache_size=4096K
+realpath_cache_ttl=600
+output_buffering=Off
+EOF
+    fi
+
+    local apcu_conf="/etc/php/${PHP_VERSION}/mods-available/apcu.ini"
+    if [[ -f "$apcu_conf" ]]; then
+        if grep -q "apc.enable_cli" "$apcu_conf"; then
+            sed -i "s/^;\\?apc.enable_cli.*/apc.enable_cli=1/" "$apcu_conf"
+        else
+            echo "apc.enable_cli=1" >> "$apcu_conf"
+        fi
+    fi
 
     # Configure PHP-FPM pool
     sed -i "s/pm.max_children = .*/pm.max_children = 120/" "$pool_conf"
     sed -i "s/pm.start_servers = .*/pm.start_servers = 12/" "$pool_conf"
     sed -i "s/pm.min_spare_servers = .*/pm.min_spare_servers = 6/" "$pool_conf"
     sed -i "s/pm.max_spare_servers = .*/pm.max_spare_servers = 18/" "$pool_conf"
+    sed -i "s/;pm.max_requests = .*/pm.max_requests = 500/" "$pool_conf"
+    sed -i "s/;pm.process_idle_timeout = .*/pm.process_idle_timeout = 20s/" "$pool_conf"
+    sed -i "s/;request_terminate_timeout = .*/request_terminate_timeout = 3600/" "$pool_conf"
+    if grep -q "^;\\?listen\\.backlog" "$pool_conf"; then
+        sed -i "s/^;\\?listen\\.backlog.*/listen.backlog = 1024/" "$pool_conf"
+    else
+        echo "listen.backlog = 1024" >> "$pool_conf"
+    fi
 
     # Restart PHP-FPM
     systemctl restart php${PHP_VERSION}-fpm
@@ -228,17 +261,80 @@ configure_php() {
     log_success "PHP configured and restarted"
 }
 
+configure_system_tuning() {
+    log_section "Applying kernel and network tuning..."
+
+    local tcp_cc="cubic"
+    if sysctl -n net.ipv4.tcp_available_congestion_control 2>/dev/null | grep -qw bbr; then
+        tcp_cc="bbr"
+    fi
+
+    cat > "$SYSCTL_TUNE_FILE" <<EOF
+# NextCloud throughput tuning
+net.core.default_qdisc = fq
+net.ipv4.tcp_congestion_control = ${tcp_cc}
+net.core.rmem_max = 536870912
+net.core.wmem_max = 536870912
+net.ipv4.tcp_rmem = 4096 262144 536870912
+net.ipv4.tcp_wmem = 4096 262144 536870912
+net.ipv4.tcp_mtu_probing = 1
+net.ipv4.tcp_fin_timeout = 15
+net.ipv4.ip_local_port_range = 10240 65535
+net.ipv4.tcp_tw_reuse = 1
+fs.inotify.max_user_instances = 16384
+fs.inotify.max_user_watches = 1048576
+vm.swappiness = 10
+vm.dirty_ratio = 10
+vm.dirty_background_ratio = 5
+EOF
+
+    sysctl -p "$SYSCTL_TUNE_FILE" >/dev/null
+    log_success "Kernel parameters tuned (TCP CC: ${tcp_cc})"
+}
+
+configure_redis() {
+    log_section "Optimizing Redis for caching and file locking..."
+
+    local redis_conf="/etc/redis/redis.conf"
+    local socket_dir
+    socket_dir=$(dirname "$REDIS_SOCKET")
+
+    install -o redis -g redis -m 750 -d "$socket_dir"
+
+    if ! grep -q "NextCloud Redis tuning" "$redis_conf"; then
+        cat <<EOF >> "$redis_conf"
+
+# NextCloud Redis tuning
+unixsocket ${REDIS_SOCKET}
+unixsocketperm 770
+timeout 0
+tcp-backlog 512
+tcp-keepalive 60
+supervised systemd
+maxmemory 512mb
+maxmemory-policy allkeys-lru
+# End NextCloud Redis tuning
+EOF
+    fi
+
+    usermod -aG redis www-data
+    systemctl enable redis-server
+    systemctl restart redis-server
+
+    log_success "Redis configured to use socket ${REDIS_SOCKET}"
+}
+
 create_database() {
     log_section "Creating PostgreSQL database..."
 
     # Check if database exists
-    if PGPASSWORD="TeBsn4f2cS0O7vfdvYFTb37L6SdJFL+mpOgksTwgHy0=" \
+    if PGPASSWORD="" \
        psql -h "$DB_HOST" -U mcp_admin -d postgres -tAc \
        "SELECT 1 FROM pg_database WHERE datname='$DB_NAME'" | grep -q 1; then
         log_warning "Database '$DB_NAME' already exists, skipping creation"
     else
         log_info "Creating database '$DB_NAME'..."
-        PGPASSWORD="TeBsn4f2cS0O7vfdvYFTb37L6SdJFL+mpOgksTwgHy0=" \
+        PGPASSWORD="" \
         psql -h "$DB_HOST" -U mcp_admin -d postgres <<EOF
 CREATE DATABASE ${DB_NAME};
 CREATE USER ${DB_USER} WITH PASSWORD '${DB_PASSWORD}';
@@ -364,6 +460,8 @@ server {
     ssl_protocols TLSv1.2 TLSv1.3;
     ssl_ciphers 'ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384';
     ssl_prefer_server_ciphers off;
+    ssl_session_cache shared:SSL:50m;
+    ssl_session_timeout 1d;
 
     # Add headers
     add_header Strict-Transport-Security "max-age=15768000; includeSubDomains" always;
@@ -383,7 +481,16 @@ server {
     # Client body size (for large file uploads)
     client_max_body_size 10G;
     client_body_timeout 300s;
-    fastcgi_buffers 64 4K;
+    client_body_buffer_size 512k;
+    sendfile on;
+    tcp_nopush on;
+    tcp_nodelay on;
+    keepalive_timeout 20s;
+    keepalive_requests 1000;
+    fastcgi_buffer_size 128k;
+    fastcgi_buffers 128 16k;
+    fastcgi_busy_buffers_size 256k;
+    server_tokens off;
 
     # Gzip
     gzip on;
@@ -533,8 +640,10 @@ install_nextcloud() {
     sudo -u www-data php ${NEXTCLOUD_DIR}/occ config:system:set memcache.local --value="\\OC\\Memcache\\APCu"
     sudo -u www-data php ${NEXTCLOUD_DIR}/occ config:system:set memcache.distributed --value="\\OC\\Memcache\\Redis"
     sudo -u www-data php ${NEXTCLOUD_DIR}/occ config:system:set memcache.locking --value="\\OC\\Memcache\\Redis"
-    sudo -u www-data php ${NEXTCLOUD_DIR}/occ config:system:set redis host --value="localhost"
-    sudo -u www-data php ${NEXTCLOUD_DIR}/occ config:system:set redis port --value="6379"
+    sudo -u www-data php ${NEXTCLOUD_DIR}/occ config:system:set redis host --value="${REDIS_SOCKET}"
+    sudo -u www-data php ${NEXTCLOUD_DIR}/occ config:system:set redis port --value="0" --type=integer
+    sudo -u www-data php ${NEXTCLOUD_DIR}/occ config:system:set redis timeout --value="1.5" --type=string
+    sudo -u www-data php ${NEXTCLOUD_DIR}/occ config:system:set filelocking.enabled --value="true" --type=boolean
 
     # Configure default quota
     log_info "Setting default quota..."
@@ -775,7 +884,9 @@ main() {
 
     # Installation steps
     install_prerequisites
+    configure_system_tuning
     configure_php
+    configure_redis
     create_database
     download_nextcloud
     configure_nginx

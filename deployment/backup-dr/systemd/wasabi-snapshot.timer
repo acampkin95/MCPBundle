@@ -1,0 +1,24 @@
+[Unit]
+Description=Wasabi S3 6-Hour Snapshot Timer
+Documentation=file:///etc/wasabi-backup/README.md
+Requires=wasabi-snapshot.service
+After=network-online.target
+
+[Timer]
+# Run every 6 hours at 00:00, 06:00, 12:00, and 18:00
+OnCalendar=00/6:00:00
+
+# Also run 5 minutes after boot if the system was off during a scheduled time
+OnBootSec=5min
+
+# If the system was off during a scheduled run, execute it as soon as possible
+Persistent=true
+
+# Prevent overlapping runs - if a backup is still running, skip this execution
+AccuracySec=1min
+
+# Associate with the snapshot service
+Unit=wasabi-snapshot.service
+
+[Install]
+WantedBy=timers.target

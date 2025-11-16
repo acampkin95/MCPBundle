@@ -183,7 +183,7 @@ DB_HOST=localhost
 DB_PORT=5432
 DB_NAME=mcp_ecosystem
 DB_USER=mcp_admin
-DB_PASS=TeBsn4f2cS0O7vfdvYFTb37L6SdJFL+mpOgksTwgHy0=
+DB_PASS=
 
 # Redis
 REDIS_HOST=localhost
@@ -214,7 +214,7 @@ DB_HOST=localhost
 DB_PORT=5432
 DB_NAME=mcp_ecosystem
 DB_USER=mcp_admin
-DB_PASS=TeBsn4f2cS0O7vfdvYFTb37L6SdJFL+mpOgksTwgHy0=
+DB_PASS=
 
 # Perplexity API
 PERPLEXITY_API_KEY=your_api_key_here
@@ -248,7 +248,7 @@ DB_HOST=localhost
 DB_PORT=5432
 DB_NAME=mcp_ecosystem
 DB_USER=mcp_admin
-DB_PASS=TeBsn4f2cS0O7vfdvYFTb37L6SdJFL+mpOgksTwgHy0=
+DB_PASS=
 
 # MCP Configuration
 MCP_SERVER_NAME=it-mcp

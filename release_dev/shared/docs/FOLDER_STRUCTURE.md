@@ -119,6 +119,7 @@ When ready to create a test build:
 ```
 
 Output: `devtestready/0.1/` with:
+
 - Compressed packages (.tar.gz)
 - Deployment scripts
 - Configuration files
@@ -261,6 +262,7 @@ ssh root@46.250.243.123 '/opt/mcp/diagnostic-runbook.sh'
 ### Version Incrementing
 
 Automatic during build process:
+
 - Minor version increments automatically (0.1 → 0.2)
 - Major version requires manual edit
 
@@ -269,6 +271,7 @@ Automatic during build process:
 Format: `MAJOR.MINOR`
 
 Examples:
+
 - `0.1` - Initial release
 - `0.2` - Bug fixes, minor features
 - `1.0` - Major stable release
@@ -280,6 +283,7 @@ Examples:
 ### What's Tracked
 
 **Tracked (committed to git)**:
+
 - `release_dev/` - All source code
 - `final/` - Production releases only
 - Root configuration files
@@ -288,6 +292,7 @@ Examples:
 - `.gitignore`
 
 **Not Tracked (gitignored)**:
+
 - `devtestready/` - Temporary test builds
 - `node_modules/` - Dependencies
 - `dist/` - Compiled code (regenerated)
@@ -350,6 +355,7 @@ Auto-generated per version in devtestready/VERSION/:
 ```
 
 Features:
+
 - Automatic backup of existing deployments
 - Atomic deployment (mv instead of cp)
 - Dependency installation
@@ -361,6 +367,7 @@ Features:
 ### Pre-Commit (Automatic)
 
 Via Husky + lint-staged:
+
 - ESLint auto-fix
 - Prettier auto-format
 - ShellCheck for scripts
@@ -370,6 +377,7 @@ Runs on: `git commit`
 ### Pre-Build (Required)
 
 Via code-quality.sh:
+
 1. TypeScript type check (strict mode)
 2. ESLint with security rules
 3. Prettier format check
@@ -384,6 +392,7 @@ Runs: Before creating devtestready/ package
 ### Pre-Production (Manual)
 
 Before promoting to final/:
+
 - [ ] All tests pass in dev environment
 - [ ] Diagnostic runbook shows no failures
 - [ ] Performance benchmarks meet targets
@@ -434,7 +443,7 @@ Diagnostic tool registered in MCP-Orchestrator:
 // Via MCP command
 mcp.executeTool('run_production_diagnostics', {
   checks: 'all',
-  save_results: true
+  save_results: true,
 });
 ```
 
@@ -472,6 +481,7 @@ Deployed to devtestready/ environment
 ### Break Testing
 
 Manual chaos engineering:
+
 - Service failures
 - Network partitions
 - Resource exhaustion

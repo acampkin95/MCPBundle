@@ -184,7 +184,7 @@ test_database_schema() {
 
     for table in "${REQUIRED_TABLES[@]}"; do
         TABLE_EXISTS=$(ssh "dev-admin@${VMI01_HOST}" \
-            "PGPASSWORD='TeBsn4f2cS0O7vfdvYFTb37L6SdJFL+mpOgksTwgHy0=' psql -h localhost -U mcp_admin -d mcp_ecosystem -tAc \"SELECT COUNT(*) FROM pg_tables WHERE tablename='$table'\"" 2>/dev/null || echo "0")
+            "PGPASSWORD='' psql -h localhost -U mcp_admin -d mcp_ecosystem -tAc \"SELECT COUNT(*) FROM pg_tables WHERE tablename='$table'\"" 2>/dev/null || echo "0")
 
         if [ "$TABLE_EXISTS" = "1" ]; then
             log_success "Table '$table' exists"
@@ -196,7 +196,7 @@ test_database_schema() {
     # Check full-text search function
     log_test "Full-text search function"
     FUNC_EXISTS=$(ssh "dev-admin@${VMI01_HOST}" \
-        "PGPASSWORD='TeBsn4f2cS0O7vfdvYFTb37L6SdJFL+mpOgksTwgHy0=' psql -h localhost -U mcp_admin -d mcp_ecosystem -tAc \"SELECT COUNT(*) FROM pg_proc WHERE proname='search_thoughts'\"" 2>/dev/null || echo "0")
+        "PGPASSWORD='' psql -h localhost -U mcp_admin -d mcp_ecosystem -tAc \"SELECT COUNT(*) FROM pg_proc WHERE proname='search_thoughts'\"" 2>/dev/null || echo "0")
 
     if [ "$FUNC_EXISTS" -ge "1" ]; then
         log_success "Full-text search function 'search_thoughts' exists"
@@ -294,7 +294,7 @@ EOF
         # Verify thought exists in database
         log_test "Verifying thought persistence in database"
         THOUGHT_EXISTS=$(ssh "dev-admin@${VMI01_HOST}" \
-            "PGPASSWORD='TeBsn4f2cS0O7vfdvYFTb37L6SdJFL+mpOgksTwgHy0=' psql -h localhost -U mcp_admin -d mcp_ecosystem -tAc \"SELECT COUNT(*) FROM thoughts WHERE thought_id='$THOUGHT_ID'\"" 2>/dev/null || echo "0")
+            "PGPASSWORD='' psql -h localhost -U mcp_admin -d mcp_ecosystem -tAc \"SELECT COUNT(*) FROM thoughts WHERE thought_id='$THOUGHT_ID'\"" 2>/dev/null || echo "0")
 
         if [ "$THOUGHT_EXISTS" = "1" ]; then
             log_success "Thought successfully persisted to database"
@@ -416,7 +416,7 @@ test_failure_recovery() {
     # Check sync queue for pending synchronizations
     log_test "Thought synchronization queue status"
     QUEUE_SIZE=$(ssh "dev-admin@${VMI01_HOST}" \
-        "PGPASSWORD='TeBsn4f2cS0O7vfdvYFTb37L6SdJFL+mpOgksTwgHy0=' psql -h localhost -U mcp_admin -d mcp_ecosystem -tAc \"SELECT COUNT(*) FROM thought_sync_queue WHERE sync_status='pending'\"" 2>/dev/null || echo "unknown")
+        "PGPASSWORD='' psql -h localhost -U mcp_admin -d mcp_ecosystem -tAc \"SELECT COUNT(*) FROM thought_sync_queue WHERE sync_status='pending'\"" 2>/dev/null || echo "unknown")
 
     if [ "$QUEUE_SIZE" != "unknown" ]; then
         if [ "$QUEUE_SIZE" -lt 100 ]; then
@@ -472,7 +472,7 @@ test_performance_metrics() {
     log_test "Database query performance"
     START_TIME=$(date +%s%N)
     ssh "dev-admin@${VMI01_HOST}" \
-        "PGPASSWORD='TeBsn4f2cS0O7vfdvYFTb37L6SdJFL+mpOgksTwgHy0=' psql -h localhost -U mcp_admin -d mcp_ecosystem -tAc \"SELECT COUNT(*) FROM thoughts\"" &>/dev/null
+        "PGPASSWORD='' psql -h localhost -U mcp_admin -d mcp_ecosystem -tAc \"SELECT COUNT(*) FROM thoughts\"" &>/dev/null
     END_TIME=$(date +%s%N)
 
     QUERY_TIME=$(( (END_TIME - START_TIME) / 1000000 ))

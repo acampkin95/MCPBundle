@@ -10,7 +10,12 @@
     "test": "jest",
     "lint": "eslint src/**/*.ts"
   },
-  "keywords": ["mcp", "monitoring", "health-check", "auto-recovery"],
+  "keywords": [
+    "mcp",
+    "monitoring",
+    "health-check",
+    "auto-recovery"
+  ],
   "author": "MCP Infrastructure Team",
   "license": "MIT",
   "dependencies": {

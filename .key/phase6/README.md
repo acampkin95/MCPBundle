@@ -7,11 +7,13 @@ Production-ready backup system for VMI01, VMI02D, and VMI03 using Wasabi S3 stor
 ## Features
 
 ✅ **Automated Backups**
+
 - Daily incremental backups (2 AM)
 - Weekly full backups (Sunday 3 AM)
 - Automatic retention management
 
 ✅ **Comprehensive Coverage**
+
 - System configurations (`/etc`)
 - Application data (`/opt`)
 - Databases (PostgreSQL, Redis)
@@ -20,6 +22,7 @@ Production-ready backup system for VMI01, VMI02D, and VMI03 using Wasabi S3 stor
 - SSH keys
 
 ✅ **Reliability**
+
 - Checksums verification
 - Retry logic for network failures
 - Email notifications
@@ -27,12 +30,14 @@ Production-ready backup system for VMI01, VMI02D, and VMI03 using Wasabi S3 stor
 - Automated testing
 
 ✅ **Security**
+
 - AES-256 encryption at rest
 - HTTPS transfer
 - Secure credential management
 - Audit logging
 
 ✅ **Configuration Tracking**
+
 - Git-based `/etc` tracking
 - Daily auto-commits
 - Full history preservation
@@ -49,6 +54,7 @@ Production-ready backup system for VMI01, VMI02D, and VMI03 using Wasabi S3 stor
 ### 2. Extract Credentials from Image
 
 If you have credentials in an image, use an OCR tool or manually transcribe:
+
 - Access Key ID
 - Secret Access Key
 
@@ -65,6 +71,7 @@ cd /Users/alex/Projects/MCP\ Bundle/.key/phase6/
 ```
 
 The script will:
+
 1. Ask for Wasabi credentials
 2. Deploy scripts and configurations
 3. Install dependencies
@@ -136,11 +143,11 @@ phase6/
 
 ## Backup Schedule
 
-| Type | Schedule | Retention | Storage (Est.) |
-|------|----------|-----------|----------------|
-| Daily Incremental | 2:00 AM daily | 7 days | ~10 GB/VM |
-| Weekly Full | 3:00 AM Sunday | 4 weeks | ~40 GB/VM |
-| /etc Git History | 11:50 PM daily | 30 days | < 100 MB/VM |
+| Type              | Schedule       | Retention | Storage (Est.) |
+| ----------------- | -------------- | --------- | -------------- |
+| Daily Incremental | 2:00 AM daily  | 7 days    | ~10 GB/VM      |
+| Weekly Full       | 3:00 AM Sunday | 4 weeks   | ~40 GB/VM      |
+| /etc Git History  | 11:50 PM daily | 30 days   | < 100 MB/VM    |
 
 ## S3 Bucket Structure
 
@@ -165,6 +172,7 @@ vmibackups/
 ## What Gets Backed Up
 
 ### VMI01 (Dev/MCP Server)
+
 - `/etc/` - System configuration
 - `/opt/mcp/` - MCP applications
 - `/key/` - SSH keys and credentials
@@ -174,6 +182,7 @@ vmibackups/
 - System logs (7 days)
 
 ### VMI02D (Storage Server - 968GB)
+
 - `/etc/` - System configuration
 - `/key/` - SSH keys
 - `/root/`, `/home/` - User directories
@@ -181,6 +190,7 @@ vmibackups/
 - System logs
 
 ### VMI03 (Security Gateway)
+
 - `/etc/` - System configuration
 - `/opt/keycloak/` - Keycloak installation
 - `/key/` - SSH keys
@@ -273,6 +283,7 @@ All backups send email to: `acampkinpersonnal@gmail.com`
 Available at: `/opt/backup-scripts/monitoring/backup-status-check.sh`
 
 Key metrics:
+
 - `backup_status` - Success/failure (1/0)
 - `backup_age_hours` - Age of latest backup
 - `backup_size_bytes` - Backup size
@@ -288,6 +299,7 @@ Run periodically or manually:
 ```
 
 Checks:
+
 - Backup age (alerts if > 36 hours)
 - S3 connectivity
 - Backup size anomalies
@@ -297,6 +309,7 @@ Checks:
 ## Cost Estimation
 
 ### Wasabi Pricing
+
 - Storage: $6.99/TB/month
 - No egress fees
 - No API requests fees
@@ -304,12 +317,12 @@ Checks:
 
 ### Estimated Usage
 
-| VM | Daily | Weekly | Total/Month | Cost/Month |
-|----|-------|--------|-------------|------------|
-| VMI01 | 3 GB | 15 GB | ~80 GB | $0.56 |
-| VMI02D | 5 GB | 25 GB | ~150 GB | $1.05 |
-| VMI03 | 2 GB | 10 GB | ~60 GB | $0.42 |
-| **Total** | | | **~290 GB** | **~$2.03** |
+| VM        | Daily | Weekly | Total/Month | Cost/Month |
+| --------- | ----- | ------ | ----------- | ---------- |
+| VMI01     | 3 GB  | 15 GB  | ~80 GB      | $0.56      |
+| VMI02D    | 5 GB  | 25 GB  | ~150 GB     | $1.05      |
+| VMI03     | 2 GB  | 10 GB  | ~60 GB      | $0.42      |
+| **Total** |       |        | **~290 GB** | **~$2.03** |
 
 With 7 daily + 4 weekly backups: **~500 GB total**
 
@@ -318,6 +331,7 @@ With 7 daily + 4 weekly backups: **~500 GB total**
 ## Testing Checklist
 
 ### Initial Deployment
+
 - [ ] Deploy to VMI01
 - [ ] Deploy to VMI02D
 - [ ] Deploy to VMI03
@@ -329,6 +343,7 @@ With 7 daily + 4 weekly backups: **~500 GB total**
 - [ ] Verify backup appears in S3
 
 ### Monthly Testing
+
 - [ ] Verify backups ran successfully
 - [ ] Check backup sizes are reasonable
 - [ ] Test restore of single file
@@ -337,6 +352,7 @@ With 7 daily + 4 weekly backups: **~500 GB total**
 - [ ] Review logs for errors
 
 ### Quarterly Testing
+
 - [ ] Full restore test on test VM
 - [ ] Database restore test
 - [ ] Document restore time
@@ -441,6 +457,7 @@ Internal use only. Do not distribute.
 ## Changelog
 
 ### Version 1.0.0 (2025-01-15)
+
 - Initial release
 - Daily and weekly backup support
 - PostgreSQL and Redis backup

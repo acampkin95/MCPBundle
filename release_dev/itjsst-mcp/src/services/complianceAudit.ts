@@ -1,5 +1,5 @@
-import { mkdir, writeFile } from "node:fs/promises";
-import { join, resolve } from "node:path";
+import { mkdir, writeFile } from 'node:fs/promises';
+import { join, resolve } from 'node:path';
 
 export interface System {
   readonly id: string;
@@ -10,8 +10,8 @@ export interface System {
   readonly mfaEnabled?: boolean;
   readonly applicationControl?: boolean;
   readonly hardeningBaseline?: string;
-  readonly backupStatus?: "healthy" | "warning" | "failed";
-  readonly loggingStatus?: "centralised" | "local-only" | "missing";
+  readonly backupStatus?: 'healthy' | 'warning' | 'failed';
+  readonly loggingStatus?: 'centralised' | 'local-only' | 'missing';
   readonly internetFacing?: boolean;
 }
 
@@ -26,7 +26,7 @@ export interface Control {
 export interface Finding {
   readonly id: string;
   readonly title: string;
-  readonly severity: "low" | "medium" | "high" | "critical";
+  readonly severity: 'low' | 'medium' | 'high' | 'critical';
   readonly details: string;
   readonly remediation?: string;
   readonly evidence?: string[];
@@ -34,14 +34,14 @@ export interface Finding {
 
 export interface EssentialEightChecklistItem {
   readonly area:
-    | "Application control"
-    | "Patch applications"
-    | "Configure Microsoft Office macro settings"
-    | "User application hardening"
-    | "Restrict administrative privileges"
-    | "Patch operating systems"
-    | "Multi-factor authentication"
-    | "Regular backups";
+    | 'Application control'
+    | 'Patch applications'
+    | 'Configure Microsoft Office macro settings'
+    | 'User application hardening'
+    | 'Restrict administrative privileges'
+    | 'Patch operating systems'
+    | 'Multi-factor authentication'
+    | 'Regular backups';
   readonly compliant: boolean;
   readonly evidence?: string[];
   readonly remediation?: string;
@@ -55,7 +55,7 @@ export interface EssentialEightAuditResult {
 }
 
 export interface NistValidationResult {
-  readonly framework: "NIST CSF" | "NIST 800-53";
+  readonly framework: 'NIST CSF' | 'NIST 800-53';
   readonly coverage: number;
   readonly gaps: Array<{
     readonly controlId: string;
@@ -73,7 +73,7 @@ export interface EvidencePackage {
 }
 
 export class ComplianceAuditService {
-  public constructor(private readonly evidenceRoot: string = resolve(process.cwd(), "evidence")) {}
+  public constructor(private readonly evidenceRoot: string = resolve(process.cwd(), 'evidence')) {}
 
   public auditEssential8(systems: System[]): EssentialEightAuditResult {
     const checklist: EssentialEightChecklistItem[] = [
@@ -98,22 +98,24 @@ export class ComplianceAuditService {
     const nonCompliant = checklist.filter((item) => !item.compliant);
     if (nonCompliant.length) {
       summaryLines.push(
-        "",
-        "Priority remediation areas:",
-        ...nonCompliant.map((item) => `- ${item.area}: ${item.remediation ?? "Add remediation plan"}`),
+        '',
+        'Priority remediation areas:',
+        ...nonCompliant.map(
+          (item) => `- ${item.area}: ${item.remediation ?? 'Add remediation plan'}`
+        )
       );
     }
 
     return {
       checklist,
       overallScore,
-      summary: summaryLines.join("\n"),
+      summary: summaryLines.join('\n'),
     };
   }
 
   public validateNIST(
     controls: Control[],
-    framework: "NIST CSF" | "NIST 800-53" = "NIST CSF",
+    framework: 'NIST CSF' | 'NIST 800-53' = 'NIST CSF'
   ): NistValidationResult {
     const implemented = controls.filter((control) => control.implemented);
     const coverage = controls.length === 0 ? 0 : (implemented.length / controls.length) * 100;
@@ -127,10 +129,12 @@ export class ComplianceAuditService {
       }));
 
     const evidenceRequests = controls
-      .filter((control) => control.implemented && (!control.evidence || control.evidence.length === 0))
+      .filter(
+        (control) => control.implemented && (!control.evidence || control.evidence.length === 0)
+      )
       .map(
         (control) =>
-          `Provide evidence for control ${control.id} (${control.family}) such as configuration exports or screenshots.`,
+          `Provide evidence for control ${control.id} (${control.family}) such as configuration exports or screenshots.`
       );
 
     return {
@@ -141,52 +145,54 @@ export class ComplianceAuditService {
     };
   }
 
-  public async generateEvidencePackage(findings: Finding[], name?: string): Promise<EvidencePackage> {
-    const id =
-      name ??
-      `evidence-${new Date()
-        .toISOString()
-        .replace(/[:.]/g, "-")}`;
+  public async generateEvidencePackage(
+    findings: Finding[],
+    name?: string
+  ): Promise<EvidencePackage> {
+    const id = name ?? `evidence-${new Date().toISOString().replace(/[:.]/g, '-')}`;
     const targetDir = join(this.evidenceRoot, id);
     await mkdir(targetDir, { recursive: true });
 
     const instructions: string[] = [
-      "Collect supporting artefacts for each finding:",
-      "- Export relevant configuration files (firewall, IAM, system policies).",
-      "- Capture screenshots demonstrating remediation or existing controls.",
-      "- Provide CLI command outputs where applicable (e.g., patch levels, MFA status).",
+      'Collect supporting artefacts for each finding:',
+      '- Export relevant configuration files (firewall, IAM, system policies).',
+      '- Capture screenshots demonstrating remediation or existing controls.',
+      '- Provide CLI command outputs where applicable (e.g., patch levels, MFA status).',
     ];
 
     await writeFile(
-      join(targetDir, "findings.json"),
+      join(targetDir, 'findings.json'),
       JSON.stringify(
         {
           generatedAt: new Date().toISOString(),
           findings,
         },
         null,
-        2,
+        2
       ),
-      "utf8",
+      'utf8'
     );
 
     return {
       id,
-      files: ["findings.json"],
+      files: ['findings.json'],
       instructions,
       location: targetDir,
     };
   }
 
   private buildApplicationControlCheck(systems: System[]): EssentialEightChecklistItem {
-    const impacted = systems.filter((system) => system.applicationControl === false).map((sys) => sys.name);
+    const impacted = systems
+      .filter((system) => system.applicationControl === false)
+      .map((sys) => sys.name);
     return {
-      area: "Application control",
+      area: 'Application control',
       compliant: impacted.length === 0,
-      evidence: impacted.length === 0 ? ["Application control enforced on all systems."] : undefined,
+      evidence:
+        impacted.length === 0 ? ['Application control enforced on all systems.'] : undefined,
       remediation:
         impacted.length > 0
-          ? "Implement allow-list based application control on the impacted systems."
+          ? 'Implement allow-list based application control on the impacted systems.'
           : undefined,
       impactedSystems: impacted,
     };
@@ -204,11 +210,11 @@ export class ComplianceAuditService {
       .map((sys) => sys.name);
 
     return {
-      area: "Patch applications",
+      area: 'Patch applications',
       compliant: impacted.length === 0,
       remediation:
         impacted.length > 0
-          ? "Update vulnerable applications within 48 hours of patch release. Integrate with patch management tooling."
+          ? 'Update vulnerable applications within 48 hours of patch release. Integrate with patch management tooling.'
           : undefined,
       impactedSystems: impacted,
     };
@@ -217,11 +223,11 @@ export class ComplianceAuditService {
   private buildOfficeMacroCheck(systems: System[]): EssentialEightChecklistItem {
     const impacted = systems.filter((system) => system.internetFacing).map((sys) => sys.name);
     return {
-      area: "Configure Microsoft Office macro settings",
+      area: 'Configure Microsoft Office macro settings',
       compliant: impacted.length === 0,
       remediation:
         impacted.length > 0
-          ? "Disable macros from the internet and enforce trusted publisher rules for Office workloads."
+          ? 'Disable macros from the internet and enforce trusted publisher rules for Office workloads.'
           : undefined,
       impactedSystems: impacted,
     };
@@ -230,11 +236,11 @@ export class ComplianceAuditService {
   private buildUserApplicationHardeningCheck(systems: System[]): EssentialEightChecklistItem {
     const impacted = systems.filter((system) => system.internetFacing).map((sys) => sys.name);
     return {
-      area: "User application hardening",
+      area: 'User application hardening',
       compliant: impacted.length === 0,
       remediation:
         impacted.length > 0
-          ? "Harden browsers, disable unneeded plugins, and enforce TLS inspection policies on impacted endpoints."
+          ? 'Harden browsers, disable unneeded plugins, and enforce TLS inspection policies on impacted endpoints.'
           : undefined,
       impactedSystems: impacted,
     };
@@ -243,11 +249,11 @@ export class ComplianceAuditService {
   private buildAdminPrivilegeCheck(systems: System[]): EssentialEightChecklistItem {
     const impacted = systems.filter((system) => system.internetFacing).map((sys) => sys.name);
     return {
-      area: "Restrict administrative privileges",
+      area: 'Restrict administrative privileges',
       compliant: impacted.length === 0,
       remediation:
         impacted.length > 0
-          ? "Review privileged accounts, implement JIT access, and monitor privileged session activity."
+          ? 'Review privileged accounts, implement JIT access, and monitor privileged session activity.'
           : undefined,
       impactedSystems: impacted,
     };
@@ -265,11 +271,11 @@ export class ComplianceAuditService {
       .map((sys) => sys.name);
 
     return {
-      area: "Patch operating systems",
+      area: 'Patch operating systems',
       compliant: impacted.length === 0,
       remediation:
         impacted.length > 0
-          ? "Apply OS patches within two weeks or 48 hours for critical updates. Enable automatic patch verification."
+          ? 'Apply OS patches within two weeks or 48 hours for critical updates. Enable automatic patch verification.'
           : undefined,
       impactedSystems: impacted,
     };
@@ -278,11 +284,11 @@ export class ComplianceAuditService {
   private buildMfaCheck(systems: System[]): EssentialEightChecklistItem {
     const impacted = systems.filter((system) => !system.mfaEnabled).map((sys) => sys.name);
     return {
-      area: "Multi-factor authentication",
+      area: 'Multi-factor authentication',
       compliant: impacted.length === 0,
       remediation:
         impacted.length > 0
-          ? "Enforce MFA for remote access, privileged accounts, and internet-facing services."
+          ? 'Enforce MFA for remote access, privileged accounts, and internet-facing services.'
           : undefined,
       impactedSystems: impacted,
     };
@@ -290,15 +296,15 @@ export class ComplianceAuditService {
 
   private buildBackupCheck(systems: System[]): EssentialEightChecklistItem {
     const impacted = systems
-      .filter((system) => system.backupStatus && system.backupStatus !== "healthy")
+      .filter((system) => system.backupStatus && system.backupStatus !== 'healthy')
       .map((sys) => `${sys.name} (${sys.backupStatus})`);
 
     return {
-      area: "Regular backups",
+      area: 'Regular backups',
       compliant: impacted.length === 0,
       remediation:
         impacted.length > 0
-          ? "Review backup job status and ensure offline/immutable backups exist for critical systems."
+          ? 'Review backup job status and ensure offline/immutable backups exist for critical systems.'
           : undefined,
       impactedSystems: impacted,
     };

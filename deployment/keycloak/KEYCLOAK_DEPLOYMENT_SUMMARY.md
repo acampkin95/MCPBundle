@@ -7,12 +7,14 @@ Keycloak has been successfully deployed on VMI03 (154.26.158.31) with the follow
 ## Access Information
 
 ### Admin Console
+
 - **URL**: https://154.26.158.31:8443/admin
 - **Username**: admin
 - **Password**: `RJBZPH/r+ZdTy54E9EP00U32fImBH9N0pa5lwjUeh3s=`
 - **Note**: You'll need to accept the self-signed certificate warning in your browser
 
 ### Container Status
+
 ```
 - Keycloak container: Running on ports 8080 (HTTP) and 8443 (HTTPS)
 - PostgreSQL database: Running (internal to Docker network)
@@ -91,6 +93,7 @@ Once the `mcp-ecosystem` realm is created:
 ## Integration Example
 
 ### Node.js/Express Integration:
+
 ```javascript
 const { Issuer } = require('openid-client');
 
@@ -100,11 +103,12 @@ const client = new keycloakIssuer.Client({
   client_id: 'mcp-orchestrator',
   client_secret: 'YOUR_CLIENT_SECRET_HERE',
   redirect_uris: ['https://154.26.158.29/callback'],
-  response_types: ['code']
+  response_types: ['code'],
 });
 ```
 
 ### Environment Variables for MCP Services:
+
 ```env
 # Keycloak Configuration
 KEYCLOAK_REALM=mcp-ecosystem
@@ -129,6 +133,7 @@ KEYCLOAK_CONFIDENTIAL_PORT=0
 ## Docker Management
 
 ### View logs:
+
 ```bash
 ssh root@154.26.158.31
 cd /opt/keycloak
@@ -136,6 +141,7 @@ docker compose logs -f keycloak
 ```
 
 ### Restart services:
+
 ```bash
 ssh root@154.26.158.31
 cd /opt/keycloak
@@ -143,6 +149,7 @@ docker compose restart
 ```
 
 ### Backup database:
+
 ```bash
 docker exec keycloak-postgres pg_dump -U keycloak keycloak > keycloak_backup.sql
 ```
@@ -167,6 +174,7 @@ docker exec keycloak-postgres pg_dump -U keycloak keycloak > keycloak_backup.sql
 ## Troubleshooting
 
 If you encounter issues:
+
 1. Check container logs: `docker logs keycloak`
 2. Verify network connectivity: `curl -k https://154.26.158.31:8443/health/ready`
 3. Ensure firewall allows ports 8443
@@ -175,6 +183,7 @@ If you encounter issues:
 ## Security Note
 
 The current deployment uses:
+
 - Self-signed SSL certificate (replace for production)
 - Strong randomly generated passwords
 - Docker network isolation for database

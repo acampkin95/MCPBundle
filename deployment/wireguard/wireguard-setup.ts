@@ -28,8 +28,8 @@ const SERVERS: ServerConfig[] = [
     wgIPs: {
       root: '10.0.50.1',
       mcp: '10.0.51.1',
-      red: '10.0.52.1'
-    }
+      red: '10.0.52.1',
+    },
   },
   {
     name: 'VMI02D',
@@ -37,8 +37,8 @@ const SERVERS: ServerConfig[] = [
     wgIPs: {
       root: '10.0.50.2',
       mcp: '10.0.51.2',
-      red: '10.0.52.2'
-    }
+      red: '10.0.52.2',
+    },
   },
   {
     name: 'VMI03',
@@ -46,20 +46,26 @@ const SERVERS: ServerConfig[] = [
     wgIPs: {
       root: '10.0.50.3',
       mcp: '10.0.51.3',
-      red: '10.0.52.3'
-    }
-  }
+      red: '10.0.52.3',
+    },
+  },
 ];
 
-const ROOT_PASSWORD = 'C0nnaught';
+const ROOT_PASSWORD = process.env.MCP_ROOT_PASSWORD ?? process.env.PASSWORD ?? '';
+
+if (!ROOT_PASSWORD) {
+  throw new Error(
+    'Set MCP_ROOT_PASSWORD or PASSWORD (pull via npm run secrets:pull) before running this script.'
+  );
+}
 const TUNNELS = ['root', 'mcp', 'red'] as const;
 const TUNNEL_PORTS = {
   root: 51820,
   mcp: 51821,
-  red: 51822
+  red: 51822,
 };
 
-type TunnelName = typeof TUNNELS[number];
+type TunnelName = (typeof TUNNELS)[number];
 
 interface WireGuardKey {
   privateKey: string;
@@ -81,17 +87,20 @@ class WireGuardSetup {
    */
   private async remoteExec(server: ServerConfig, command: string[]): Promise<string> {
     // Validate server is in our trusted list
-    if (!SERVERS.find(s => s.ip === server.ip)) {
+    if (!SERVERS.find((s) => s.ip === server.ip)) {
       throw new Error(`Untrusted server IP: ${server.ip}`);
     }
 
     const result = await execFileNoThrow('sshpass', [
-      '-p', ROOT_PASSWORD,
+      '-p',
+      ROOT_PASSWORD,
       'ssh',
-      '-o', 'StrictHostKeyChecking=no',
-      '-o', 'BatchMode=no',
+      '-o',
+      'StrictHostKeyChecking=no',
+      '-o',
+      'BatchMode=no',
       `root@${server.ip}`,
-      command.join(' ')
+      command.join(' '),
     ]);
 
     if (!result.success) {
@@ -105,7 +114,11 @@ class WireGuardSetup {
    * Copy file to remote server
    * Input validation: Paths are sanitized
    */
-  private async remoteCopy(server: ServerConfig, localFile: string, remoteFile: string): Promise<void> {
+  private async remoteCopy(
+    server: ServerConfig,
+    localFile: string,
+    remoteFile: string
+  ): Promise<void> {
     // Path traversal prevention
     const safePath = path.normalize(localFile);
     if (safePath.includes('..')) {
@@ -113,11 +126,13 @@ class WireGuardSetup {
     }
 
     const result = await execFileNoThrow('sshpass', [
-      '-p', ROOT_PASSWORD,
+      '-p',
+      ROOT_PASSWORD,
       'scp',
-      '-o', 'StrictHostKeyChecking=no',
+      '-o',
+      'StrictHostKeyChecking=no',
       safePath,
-      `root@${server.ip}:${remoteFile}`
+      `root@${server.ip}:${remoteFile}`,
     ]);
 
     if (!result.success) {
@@ -133,15 +148,21 @@ class WireGuardSetup {
 
     // Update package list and install WireGuard
     await this.remoteExec(server, [
-      'apt-get', 'update', '&&',
-      'apt-get', 'install', '-y',
-      'wireguard', 'wireguard-tools', 'qrencode', 'ufw', 'fail2ban'
+      'apt-get',
+      'update',
+      '&&',
+      'apt-get',
+      'install',
+      '-y',
+      'wireguard',
+      'wireguard-tools',
+      'qrencode',
+      'ufw',
+      'fail2ban',
     ]);
 
     // Enable IP forwarding for VPN functionality
-    await this.remoteExec(server, [
-      'echo', '"net.ipv4.ip_forward=1"', '>>', '/etc/sysctl.conf'
-    ]);
+    await this.remoteExec(server, ['echo', '"net.ipv4.ip_forward=1"', '>>', '/etc/sysctl.conf']);
 
     await this.remoteExec(server, ['sysctl', '-p']);
 
@@ -161,37 +182,41 @@ class WireGuardSetup {
 
     for (const tunnel of TUNNELS) {
       // Create directory for keys
-      await this.remoteExec(server, [
-        'mkdir', '-p', `/etc/wireguard/keys/${tunnel}`
-      ]);
+      await this.remoteExec(server, ['mkdir', '-p', `/etc/wireguard/keys/${tunnel}`]);
 
       // Generate private key
-      const privateKey = await this.remoteExec(server, [
-        'wg', 'genkey'
-      ]);
+      const privateKey = await this.remoteExec(server, ['wg', 'genkey']);
 
       // Save private key and generate public key
       await this.remoteExec(server, [
-        'echo', `"${privateKey.trim()}"`, '>', `/etc/wireguard/keys/${tunnel}/privatekey`
+        'echo',
+        `"${privateKey.trim()}"`,
+        '>',
+        `/etc/wireguard/keys/${tunnel}/privatekey`,
       ]);
 
       const publicKey = await this.remoteExec(server, [
-        'echo', `"${privateKey.trim()}"`, '|', 'wg', 'pubkey'
+        'echo',
+        `"${privateKey.trim()}"`,
+        '|',
+        'wg',
+        'pubkey',
       ]);
 
       await this.remoteExec(server, [
-        'echo', `"${publicKey.trim()}"`, '>', `/etc/wireguard/keys/${tunnel}/publickey`
+        'echo',
+        `"${publicKey.trim()}"`,
+        '>',
+        `/etc/wireguard/keys/${tunnel}/publickey`,
       ]);
 
       // Set proper permissions (owner read only)
-      await this.remoteExec(server, [
-        'chmod', '600', `/etc/wireguard/keys/${tunnel}/privatekey`
-      ]);
+      await this.remoteExec(server, ['chmod', '600', `/etc/wireguard/keys/${tunnel}/privatekey`]);
 
       // Store keys in memory for config generation
       this.keys[server.name][tunnel] = {
         privateKey: privateKey.trim(),
-        publicKey: publicKey.trim()
+        publicKey: publicKey.trim(),
       };
 
       console.log(`✓ Keys generated for ${server.name} - ${tunnel} tunnel`);
@@ -280,26 +305,16 @@ PersistentKeepalive = 25
           `${server.name}-wg-${tunnel}.conf`
         );
 
-        await this.remoteCopy(
-          server,
-          configPath,
-          `/etc/wireguard/wg-${tunnel}.conf`
-        );
+        await this.remoteCopy(server, configPath, `/etc/wireguard/wg-${tunnel}.conf`);
 
         // Set proper permissions
-        await this.remoteExec(server, [
-          'chmod', '600', `/etc/wireguard/wg-${tunnel}.conf`
-        ]);
+        await this.remoteExec(server, ['chmod', '600', `/etc/wireguard/wg-${tunnel}.conf`]);
 
         // Start WireGuard interface
-        await this.remoteExec(server, [
-          'wg-quick', 'up', `wg-${tunnel}`
-        ]);
+        await this.remoteExec(server, ['wg-quick', 'up', `wg-${tunnel}`]);
 
         // Enable at boot
-        await this.remoteExec(server, [
-          'systemctl', 'enable', `wg-quick@wg-${tunnel}`
-        ]);
+        await this.remoteExec(server, ['systemctl', 'enable', `wg-quick@wg-${tunnel}`]);
 
         console.log(`✓ Deployed and started ${tunnel} tunnel on ${server.name}`);
       }
@@ -325,9 +340,7 @@ PersistentKeepalive = 25
 
     // Allow WireGuard ports
     for (const tunnel of TUNNELS) {
-      await this.remoteExec(server, [
-        'ufw', 'allow', `${TUNNEL_PORTS[tunnel]}/udp`
-      ]);
+      await this.remoteExec(server, ['ufw', 'allow', `${TUNNEL_PORTS[tunnel]}/udp`]);
     }
 
     // Allow inter-VM communication on WireGuard subnets
@@ -398,7 +411,12 @@ maxretry = 10
           if (source.name !== target.name) {
             try {
               const result = await this.remoteExec(source, [
-                'ping', '-c', '1', '-W', '2', target.wgIPs[tunnel]
+                'ping',
+                '-c',
+                '1',
+                '-W',
+                '2',
+                target.wgIPs[tunnel],
               ]);
 
               if (result.includes('1 received')) {
@@ -424,7 +442,10 @@ maxretry = 10
     // Generate client keypair
     const clientPrivateKey = crypto.randomBytes(32).toString('base64');
     const { stdout: clientPublicKey } = await execFileNoThrow('echo', [
-      clientPrivateKey, '|', 'wg', 'pubkey'
+      clientPrivateKey,
+      '|',
+      'wg',
+      'pubkey',
     ]);
 
     for (const tunnel of TUNNELS) {
@@ -511,7 +532,6 @@ PersistentKeepalive = 25
       console.log('\n=== Setup Complete ===');
       console.log('All VPN tunnels configured and secured');
       console.log('Client configurations available in deployment/wireguard/configs/');
-
     } catch (error) {
       console.error('Setup failed:', error);
       process.exit(1);

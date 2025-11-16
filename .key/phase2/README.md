@@ -61,6 +61,7 @@ bash deploy-phase2.sh
 ```
 
 The deployment script will:
+
 1. Update system packages
 2. Deploy WireGuard (3 tunnels)
 3. Deploy Keycloak
@@ -132,6 +133,7 @@ phase2/
 **Three isolated tunnels for different security levels:**
 
 #### Root Tunnel (10.100.0.0/24, Port 51820)
+
 - **Purpose**: Full administrative access to all VMs
 - **Network**: Split tunnel (only admin endpoints routed)
 - **Clients**: MacBook, mobile devices
@@ -139,6 +141,7 @@ phase2/
 - **Security**: High (MFA required, pre-authorized devices)
 
 #### MCP Tunnel (10.101.0.0/24, Port 51821)
+
 - **Purpose**: MCP agent communication
 - **Network**: Split tunnel (VMI01 + Perplexity API only)
 - **Clients**: MCP agents, developer machines
@@ -146,6 +149,7 @@ phase2/
 - **Security**: High (service accounts only)
 
 #### Red Tunnel (10.102.0.0/24, Port 51822)
+
 - **Purpose**: Guest VPN with enhanced security
 - **Network**: Full tunnel (all traffic through VPN)
 - **Clients**: Guest devices
@@ -153,12 +157,14 @@ phase2/
 - **Security**: Maximum (full monitoring, traffic filtering)
 
 **Deployment**:
+
 ```bash
 cd /opt/phase2/wireguard
 bash deploy-wireguard.sh
 ```
 
 **Client Setup**:
+
 ```bash
 # Client configs generated in: /etc/wireguard/clients/
 # QR codes for mobile: /etc/wireguard/clients/*-qr.png
@@ -181,6 +187,7 @@ scp root@154.26.158.31:/etc/wireguard/clients/root-macbook.conf .
 - **Database**: PostgreSQL on VMI01
 
 **Features**:
+
 - OAuth2/OIDC provider
 - User/group management
 - Service accounts (dev-admin, data-admin, sec-admin)
@@ -188,6 +195,7 @@ scp root@154.26.158.31:/etc/wireguard/clients/root-macbook.conf .
 - Pre-configured clients (WireGuard, MCP, NextCloud, Plex)
 
 **Deployment**:
+
 ```bash
 cd /opt/phase2/keycloak
 cp .env.example .env
@@ -196,6 +204,7 @@ bash init-keycloak.sh
 ```
 
 **Access**:
+
 ```bash
 # Get admin password
 cat /opt/keycloak/.env | grep KEYCLOAK_ADMIN_PASSWORD
@@ -216,6 +225,7 @@ cat /opt/keycloak/.env | grep KEYCLOAK_ADMIN_PASSWORD
 - **Upstream DNS**: Cloudflare DoH (1.1.1.1), Quad9 (9.9.9.9)
 
 **Features**:
+
 - Ad/malware/phishing blocking
 - Custom DNS entries for acdev.host
 - DNSSEC validation
@@ -224,18 +234,21 @@ cat /opt/keycloak/.env | grep KEYCLOAK_ADMIN_PASSWORD
 - Alert forwarding to VMI01
 
 **Blocklists**:
+
 - Steven Black unified hosts
 - Malware Domains
 - Disconnect.me tracking/ads
 - Phishing Army blocklist
 
 **Deployment**:
+
 ```bash
 cd /opt/phase2/pihole
 bash deploy-pihole.sh
 ```
 
 **Access**:
+
 ```bash
 # Get web password
 cat /opt/pihole/.env | grep PIHOLE_WEB_PASSWORD
@@ -245,6 +258,7 @@ cat /opt/pihole/.env | grep PIHOLE_WEB_PASSWORD
 ```
 
 **Optional DPI-SSL**:
+
 ```bash
 # For advanced threat detection
 bash dpi-ssl-setup.sh
@@ -260,18 +274,21 @@ bash dpi-ssl-setup.sh
 - **Config**: /etc/postfix/main.cf
 
 **Features**:
+
 - Local mail delivery
 - External mail relay
 - Alert formatting
 - Log forwarding
 
 **Deployment**:
+
 ```bash
 cd /opt/phase2/postfix
 bash install-postfix.sh
 ```
 
 **Testing**:
+
 ```bash
 bash test-mail.sh
 # Sends 3 test emails to verify delivery
@@ -294,6 +311,7 @@ scp -r root@154.26.158.31:/etc/wireguard/clients/ ./wireguard-clients/
 ### 2. Configure VPN Clients
 
 **macOS/Linux**:
+
 ```bash
 # Install WireGuard
 brew install wireguard-tools  # macOS
@@ -306,6 +324,7 @@ wg-quick up root-tunnel-macbook
 ```
 
 **iOS/Android**:
+
 ```
 1. Install WireGuard app from App Store/Play Store
 2. Scan QR code from: /etc/wireguard/clients/*-qr.png
@@ -508,16 +527,17 @@ For comprehensive troubleshooting information, see [TROUBLESHOOTING.md](TROUBLES
 
 **Common Issues**:
 
-| Issue | Quick Fix |
-|-------|-----------|
-| WireGuard won't start | `systemctl restart wg-quick@wg-root` |
-| Can't connect to VPN | Check firewall: `ufw allow 51820/udp` |
-| Keycloak not accessible | Verify Docker: `docker ps \| grep keycloak` |
-| PiHole DNS not working | Test: `dig @10.102.0.1 example.com` |
-| Suricata not running | Check config: `suricata -T -c /etc/suricata/suricata.yaml` |
-| Mail not delivered | Check queue: `mailq`, logs: `tail -f /var/log/mail.log` |
+| Issue                   | Quick Fix                                                  |
+| ----------------------- | ---------------------------------------------------------- |
+| WireGuard won't start   | `systemctl restart wg-quick@wg-root`                       |
+| Can't connect to VPN    | Check firewall: `ufw allow 51820/udp`                      |
+| Keycloak not accessible | Verify Docker: `docker ps \| grep keycloak`                |
+| PiHole DNS not working  | Test: `dig @10.102.0.1 example.com`                        |
+| Suricata not running    | Check config: `suricata -T -c /etc/suricata/suricata.yaml` |
+| Mail not delivered      | Check queue: `mailq`, logs: `tail -f /var/log/mail.log`    |
 
 **Get Help**:
+
 ```bash
 # Collect logs for support
 journalctl -u wg-quick@wg-root -n 100 > wg-root.log
@@ -536,6 +556,7 @@ tail -100 /var/log/mail.log > postfix.log
 For detailed security considerations, see [SECURITY.md](SECURITY.md).
 
 **Key Security Features**:
+
 - WireGuard encryption (ChaCha20-Poly1305)
 - Keycloak MFA (TOTP)
 - PiHole malware/phishing blocking
@@ -546,6 +567,7 @@ For detailed security considerations, see [SECURITY.md](SECURITY.md).
 - Automated backups
 
 **Best Practices**:
+
 1. Change all default passwords immediately
 2. Enable MFA for all admin accounts
 3. Rotate keys/passwords regularly
@@ -701,6 +723,7 @@ systemctl restart suricata
 **Email**: acampkinpersonnal@gmail.com
 
 **Issue Reporting**:
+
 1. Check [TROUBLESHOOTING.md](TROUBLESHOOTING.md)
 2. Review service logs
 3. Collect logs using collection script

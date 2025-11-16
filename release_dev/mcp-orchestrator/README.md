@@ -42,27 +42,30 @@ SERVER-MCP is a specialized MCP server that runs **directly on Ubuntu infrastruc
 
 ### Key Differences from IT-MCP
 
-| Aspect | IT-MCP | SERVER-MCP |
-|--------|---------|------------|
-| **Deployment** | Desktop/laptop (macOS/Windows/Linux) | Ubuntu server (server.acdev.host) |
-| **Execution** | SSH/WinRM to remote servers | Local commands via sudo |
-| **Database** | SQLite primary + PostgreSQL sync (optional) | PostgreSQL primary + SQLite cache |
-| **Focus** | Cross-platform diagnostics, remote admin | Database management, service health, backups |
-| **MCP Client** | Claude Desktop, CLI tools | Headless (API-driven by IT-MCP or cron) |
+| Aspect           | IT-MCP                                           | SERVER-MCP                                                         |
+| ---------------- | ------------------------------------------------ | ------------------------------------------------------------------ |
+| **Deployment**   | Desktop/laptop (macOS/Windows/Linux)             | Ubuntu server (server.acdev.host)                                  |
+| **Execution**    | SSH/WinRM to remote servers                      | Local commands via sudo                                            |
+| **Database**     | SQLite primary + PostgreSQL sync (optional)      | PostgreSQL primary + SQLite cache                                  |
+| **Focus**        | Cross-platform diagnostics, remote admin         | Database management, service health, backups                       |
+| **MCP Client**   | Claude Desktop, CLI tools                        | Headless (API-driven by IT-MCP or cron)                            |
 | **Capabilities** | `local-shell`, `ssh-linux`, `ssh-macos`, `winrm` | `postgres-admin`, `redis-admin`, `keycloak-admin`, `ubuntu-server` |
 
 ## Features
 
 ### Database Management
+
 - **PostgreSQL**: Real-time connection stats, replication monitoring, table bloat detection, slow query analysis, automated VACUUM, reindexing, backup/restore
 - **Redis**: Memory stats, keyspace analysis, slow log, client list, BGSAVE automation
 
 ### Service Management
+
 - **Keycloak**: Realm stats, session monitoring, user management, event logs, client secret rotation
 - **NGINX**: Access log analysis, error log parsing, config testing, upstream health checks
 - **System**: Service restarts, package updates, Docker container management, PM2 process monitoring
 
 ### Automated Maintenance
+
 - Nightly database backups (PostgreSQL + Redis)
 - Weekly Docker image pruning
 - Monthly Keycloak secret rotation
@@ -70,6 +73,7 @@ SERVER-MCP is a specialized MCP server that runs **directly on Ubuntu infrastruc
 - Auto-restart failed services
 
 ### Integration
+
 - **Agent Registration**: Auto-registers with IT-MCP central registry on startup
 - **Command Queue**: Polls PostgreSQL command queue for remote jobs
 - **Heartbeat**: Sends heartbeat to Redis every 30 seconds
@@ -90,6 +94,7 @@ SERVER-MCP is a specialized MCP server that runs **directly on Ubuntu infrastruc
 ### Setup
 
 1. **Clone and install dependencies**:
+
    ```bash
    cd /opt
    sudo git clone <repository-url> server-mcp
@@ -98,6 +103,7 @@ SERVER-MCP is a specialized MCP server that runs **directly on Ubuntu infrastruc
    ```
 
 2. **Configure environment**:
+
    ```bash
    sudo cp .env.example .env
    sudo nano .env
@@ -105,17 +111,20 @@ SERVER-MCP is a specialized MCP server that runs **directly on Ubuntu infrastruc
    ```
 
 3. **Build TypeScript**:
+
    ```bash
    sudo npm run build
    ```
 
 4. **Create service user**:
+
    ```bash
    sudo useradd -r -s /bin/false mcp-agent
    sudo chown -R mcp-agent:mcp-agent /opt/server-mcp
    ```
 
 5. **Configure sudo access** (edit `/etc/sudoers.d/server-mcp`):
+
    ```
    mcp-agent ALL=(ALL) NOPASSWD: /usr/bin/systemctl
    mcp-agent ALL=(ALL) NOPASSWD: /usr/bin/docker
@@ -125,6 +134,7 @@ SERVER-MCP is a specialized MCP server that runs **directly on Ubuntu infrastruc
    ```
 
 6. **Install systemd service**:
+
    ```bash
    sudo cp systemd/server-mcp.service /etc/systemd/system/
    sudo systemctl daemon-reload
@@ -169,15 +179,15 @@ SERVER_MCP_BACKUP_DIR=/var/backups/server-mcp
 
 SERVER-MCP exposes 7 MCP tools (all execute locally, no SSH):
 
-| Tool | Description | Operations |
-|------|-------------|------------|
-| `database-diagnostics` | Database health checks | PostgreSQL/Redis/Keycloak/NGINX/firewall/system diagnostics (6 suites) |
-| `postgres-manage` | PostgreSQL operations | Connections, replication, bloat, slow queries, vacuum, reindex, backup |
-| `redis-manage` | Redis operations | Memory stats, keyspace, slow log, client list, BGSAVE |
-| `keycloak-manage` | Keycloak admin | Realm stats, sessions, users, events, secret rotation |
-| `nginx-monitor` | NGINX monitoring | Access log analysis, error log parsing, config testing, reload |
-| `system-metrics` | System health | Overview, processes, disk I/O, network, journal errors, service status |
-| `structured-thinking` | Structured reasoning management | Capture/revise/retrieve thoughts, generate summaries, inspect framework, trigger sync |
+| Tool                   | Description                     | Operations                                                                            |
+| ---------------------- | ------------------------------- | ------------------------------------------------------------------------------------- |
+| `database-diagnostics` | Database health checks          | PostgreSQL/Redis/Keycloak/NGINX/firewall/system diagnostics (6 suites)                |
+| `postgres-manage`      | PostgreSQL operations           | Connections, replication, bloat, slow queries, vacuum, reindex, backup                |
+| `redis-manage`         | Redis operations                | Memory stats, keyspace, slow log, client list, BGSAVE                                 |
+| `keycloak-manage`      | Keycloak admin                  | Realm stats, sessions, users, events, secret rotation                                 |
+| `nginx-monitor`        | NGINX monitoring                | Access log analysis, error log parsing, config testing, reload                        |
+| `system-metrics`       | System health                   | Overview, processes, disk I/O, network, journal errors, service status                |
+| `structured-thinking`  | Structured reasoning management | Capture/revise/retrieve thoughts, generate summaries, inspect framework, trigger sync |
 
 ## Usage
 
@@ -188,10 +198,10 @@ SERVER-MCP automatically registers with the IT-MCP agent registry on startup. IT
 ```typescript
 // From IT-MCP desktop client
 const result = await dispatchCommand({
-  tool: "postgres-manage",
-  operation: "vacuum",
-  database: "production",
-  targetAgent: "server.acdev.host"
+  tool: 'postgres-manage',
+  operation: 'vacuum',
+  database: 'production',
+  targetAgent: 'server.acdev.host',
 });
 ```
 
@@ -264,28 +274,24 @@ export class PostgresManagerService {
   public async getActiveConnections(): Promise<ConnectionStats> {
     // Direct PostgreSQL client query (not shell command)
     const result = await this.pool.query(
-      "SELECT state, count(*) FROM pg_stat_activity GROUP BY state"
+      'SELECT state, count(*) FROM pg_stat_activity GROUP BY state'
     );
     return this.parseConnections(result.rows);
   }
 }
 
 // Tool registration
-server.registerTool(
-  "postgres-manage",
-  schema,
-  async (params) => {
-    try {
-      const result = await deps.postgresManager.execute(params);
-      return {
-        content: [{ type: "text", text: formatResult(result) }],
-        structuredContent: result
-      };
-    } catch (error) {
-      return handleError(error);
-    }
+server.registerTool('postgres-manage', schema, async (params) => {
+  try {
+    const result = await deps.postgresManager.execute(params);
+    return {
+      content: [{ type: 'text', text: formatResult(result) }],
+      structuredContent: result,
+    };
+  } catch (error) {
+    return handleError(error);
   }
-);
+});
 ```
 
 ### Error Handling
@@ -293,9 +299,9 @@ server.registerTool(
 All services use `CommandRunner` for safe command execution:
 
 ```typescript
-const result = await this.runner.run("systemctl status postgresql", {
+const result = await this.runner.run('systemctl status postgresql', {
   requiresSudo: false,
-  timeoutMs: 10000
+  timeoutMs: 10000,
 });
 
 // Throws CommandExecutionError with full context on failure
@@ -384,6 +390,7 @@ RestartSec=10
 **Issue**: "Cannot connect to PostgreSQL"
 
 **Solution**: Verify PostgreSQL is running and credentials in `.env` are correct:
+
 ```bash
 sudo systemctl status postgresql
 psql -h localhost -U postgres -c "SELECT version();"
@@ -394,6 +401,7 @@ psql -h localhost -U postgres -c "SELECT version();"
 **Issue**: "Keycloak authentication failed"
 
 **Solution**: Verify Keycloak client exists and credentials are correct:
+
 ```bash
 curl -k -X POST https://acdev.host:8080/realms/mcp-agents/protocol/openid-connect/token \
   -d "client_id=server-mcp-agent" \
@@ -406,6 +414,7 @@ curl -k -X POST https://acdev.host:8080/realms/mcp-agents/protocol/openid-connec
 **Issue**: "Backup directory not writable"
 
 **Solution**: Check ownership and permissions:
+
 ```bash
 sudo mkdir -p /var/backups/server-mcp
 sudo chown mcp-agent:mcp-agent /var/backups/server-mcp
@@ -415,6 +424,7 @@ sudo chmod 750 /var/backups/server-mcp
 ## Roadmap
 
 ### Phase 1: Foundation ✅
+
 - [x] Project structure
 - [x] Core utilities (CommandRunner, logger)
 - [x] Package dependencies
@@ -422,6 +432,7 @@ sudo chmod 750 /var/backups/server-mcp
 - [x] Structured thinking service
 
 ### Phase 2: Core Services ✅
+
 - [x] ServerAdminService (from UbuntuAdminService)
 - [x] DatabaseDiagnosticsService (simplified, no SSH)
 - [x] PostgresManagerService (pg client)
@@ -431,11 +442,13 @@ sudo chmod 750 /var/backups/server-mcp
 - [x] SystemMetricsService
 
 ### Phase 3: MCP Tools ✅
+
 - [x] Tool registration with Zod schemas (6 tools)
 - [x] Error handling middleware
 - [x] Dual content format (text + structuredContent)
 
 ### Phase 4: Integration ✅
+
 - [x] AutoDiscoveryService integration (agent registration)
 - [x] KeycloakAuthService (JWT authentication)
 - [x] CommandQueueService (SQLite job queue)
@@ -443,6 +456,7 @@ sudo chmod 750 /var/backups/server-mcp
 - [x] Graceful startup/shutdown with cleanup
 
 ### Phase 5: Deployment ✅
+
 - [x] Systemd service file with security hardening
 - [x] PM2 ecosystem configuration
 - [x] Security hardening guide (docs/SECURITY.md)
@@ -453,6 +467,7 @@ sudo chmod 750 /var/backups/server-mcp
 - [ ] Production deployment on server.acdev.host (ready to deploy)
 
 ### Phase 6: Advanced Features
+
 - [ ] Automated maintenance scheduler
 - [ ] Backup automation
 - [ ] Health check endpoint
@@ -480,3 +495,7 @@ MIT
 ---
 
 **Questions?** Open an issue or contact the maintainers.
+
+### Log Aggregation
+
+Export `LOG_AGGREGATOR_URL` and `LOG_AGGREGATOR_TOKEN` (or the `SERVER_MCP_LOG_INGEST_*` overrides) plus `MCP_NODE_ID` to forward orchestrator logs, PM2 crash diagnostics, and security events into the compressed SQLite store exposed by cloudflare-mcp.

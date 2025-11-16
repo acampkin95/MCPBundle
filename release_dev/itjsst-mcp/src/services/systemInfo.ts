@@ -1,4 +1,4 @@
-import { CommandRunner, type CommandResult } from "../utils/commandRunner.js";
+import { CommandRunner, type CommandResult } from '../utils/commandRunner.js';
 
 export interface SystemOverview {
   readonly uname: string;
@@ -15,11 +15,11 @@ export class SystemInfoService {
   public async getSystemOverview(processCount: number = 10): Promise<SystemOverview> {
     const limit = Math.max(1, Math.min(processCount, 50));
     const [uname, uptime, top, vmStat, disk] = await Promise.all([
-      this.runner.run("uname -a"),
-      this.runner.run("uptime"),
+      this.runner.run('uname -a'),
+      this.runner.run('uptime'),
       this.runner.run(`top -l 1 -n ${limit}`),
-      this.runner.run("vm_stat"),
-      this.runner.run("df -h"),
+      this.runner.run('vm_stat'),
+      this.runner.run('df -h'),
     ]);
 
     return {
@@ -33,7 +33,7 @@ export class SystemInfoService {
   }
 
   public async listLaunchDaemons(): Promise<CommandResult> {
-    return this.runner.run("launchctl list");
+    return this.runner.run('launchctl list');
   }
 
   private extractLoadAverage(uptime: CommandResult): string {

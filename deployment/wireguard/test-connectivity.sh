@@ -17,7 +17,12 @@ echo -e "${BLUE}=== WireGuard VPN Connectivity Test ===${NC}"
 VMI01="46.250.243.123"
 VMI02D="46.250.241.70"
 VMI03="154.26.158.31"
-PASSWORD="C0nnaught"
+PASSWORD="${PASSWORD:-${MCP_ROOT_PASSWORD:-}}"
+
+if [[ -z "${PASSWORD:-}" ]]; then
+    echo "Set PASSWORD or MCP_ROOT_PASSWORD from Vault before running." >&2
+    exit 1
+fi
 
 # Test function
 test_tunnel() {
@@ -27,7 +32,7 @@ test_tunnel() {
     local target_name=$4
     local tunnel=$5
 
-    result=$(sshpass -p "$PASSWORD" ssh -o StrictHostKeyChecking=no root@$source_ip \
+    result=$(SSHPASS="$PASSWORD" sshpass -e ssh -o StrictHostKeyChecking=no root@$source_ip \
         "ping -c 1 -W 2 $target_ip 2>&1" || echo "FAILED")
 
     if echo "$result" | grep -q "1 received"; then
@@ -43,13 +48,13 @@ test_tunnel() {
 echo -e "\n${YELLOW}Checking WireGuard status on all VMs...${NC}"
 
 echo -e "\n${BLUE}VMI01 WireGuard Status:${NC}"
-sshpass -p "$PASSWORD" ssh -o StrictHostKeyChecking=no root@$VMI01 "wg show"
+SSHPASS="$PASSWORD" sshpass -e ssh -o StrictHostKeyChecking=no root@$VMI01 "wg show"
 
 echo -e "\n${BLUE}VMI02D WireGuard Status:${NC}"
-sshpass -p "$PASSWORD" ssh -o StrictHostKeyChecking=no root@$VMI02D "wg show"
+SSHPASS="$PASSWORD" sshpass -e ssh -o StrictHostKeyChecking=no root@$VMI02D "wg show"
 
 echo -e "\n${BLUE}VMI03 WireGuard Status:${NC}"
-sshpass -p "$PASSWORD" ssh -o StrictHostKeyChecking=no root@$VMI03 "wg show"
+SSHPASS="$PASSWORD" sshpass -e ssh -o StrictHostKeyChecking=no root@$VMI03 "wg show"
 
 # Test ROOT tunnel (10.0.50.0/24)
 echo -e "\n${YELLOW}Testing ROOT tunnel (10.0.50.0/24)...${NC}"
@@ -82,24 +87,24 @@ test_tunnel $VMI03 "VMI03" "10.0.52.2" "VMI02D" "RED"
 echo -e "\n${YELLOW}Checking firewall status...${NC}"
 
 echo -e "\n${BLUE}VMI01 Firewall Status:${NC}"
-sshpass -p "$PASSWORD" ssh -o StrictHostKeyChecking=no root@$VMI01 "ufw status numbered | head -20"
+SSHPASS="$PASSWORD" sshpass -e ssh -o StrictHostKeyChecking=no root@$VMI01 "ufw status numbered | head -20"
 
 echo -e "\n${BLUE}VMI02D Firewall Status:${NC}"
-sshpass -p "$PASSWORD" ssh -o StrictHostKeyChecking=no root@$VMI02D "ufw status numbered | head -20"
+SSHPASS="$PASSWORD" sshpass -e ssh -o StrictHostKeyChecking=no root@$VMI02D "ufw status numbered | head -20"
 
 echo -e "\n${BLUE}VMI03 Firewall Status:${NC}"
-sshpass -p "$PASSWORD" ssh -o StrictHostKeyChecking=no root@$VMI03 "ufw status numbered | head -20"
+SSHPASS="$PASSWORD" sshpass -e ssh -o StrictHostKeyChecking=no root@$VMI03 "ufw status numbered | head -20"
 
 # Check fail2ban status
 echo -e "\n${YELLOW}Checking fail2ban status...${NC}"
 
 echo -e "\n${BLUE}VMI01 fail2ban Status:${NC}"
-sshpass -p "$PASSWORD" ssh -o StrictHostKeyChecking=no root@$VMI01 "fail2ban-client status"
+SSHPASS="$PASSWORD" sshpass -e ssh -o StrictHostKeyChecking=no root@$VMI01 "fail2ban-client status"
 
 echo -e "\n${BLUE}VMI02D fail2ban Status:${NC}"
-sshpass -p "$PASSWORD" ssh -o StrictHostKeyChecking=no root@$VMI02D "fail2ban-client status"
+SSHPASS="$PASSWORD" sshpass -e ssh -o StrictHostKeyChecking=no root@$VMI02D "fail2ban-client status"
 
 echo -e "\n${BLUE}VMI03 fail2ban Status:${NC}"
-sshpass -p "$PASSWORD" ssh -o StrictHostKeyChecking=no root@$VMI03 "fail2ban-client status"
+SSHPASS="$PASSWORD" sshpass -e ssh -o StrictHostKeyChecking=no root@$VMI03 "fail2ban-client status"
 
 echo -e "\n${GREEN}=== Connectivity Test Complete ===${NC}"

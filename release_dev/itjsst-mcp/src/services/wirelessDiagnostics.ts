@@ -1,4 +1,4 @@
-import { CommandRunner, type CommandResult } from "../utils/commandRunner.js";
+import { CommandRunner, type CommandResult } from '../utils/commandRunner.js';
 
 export interface WirelessStatusOptions {
   readonly interfaceName?: string;
@@ -20,19 +20,19 @@ export interface WirelessPingOptions {
 
 export class WirelessDiagnosticsService {
   private static readonly AIRPORT_BINARY =
-    "/System/Library/PrivateFrameworks/Apple80211.framework/Versions/Current/Resources/airport";
+    '/System/Library/PrivateFrameworks/Apple80211.framework/Versions/Current/Resources/airport';
 
   public constructor(private readonly runner: CommandRunner) {}
 
   public currentStatus(options: WirelessStatusOptions = {}): Promise<CommandResult> {
-    const iface = options.interfaceName ? ` ${options.interfaceName}` : "";
+    const iface = options.interfaceName ? ` ${options.interfaceName}` : '';
     return this.runner.run(`${WirelessDiagnosticsService.AIRPORT_BINARY} -I${iface}`, {
       requiresSudo: true,
     });
   }
 
   public scanNetworks(options: WirelessScanOptions = {}): Promise<CommandResult> {
-    const iface = options.interfaceName ? ` ${options.interfaceName}` : "";
+    const iface = options.interfaceName ? ` ${options.interfaceName}` : '';
     return this.runner.run(`${WirelessDiagnosticsService.AIRPORT_BINARY} -s${iface}`, {
       requiresSudo: true,
     });
@@ -43,24 +43,25 @@ export class WirelessDiagnosticsService {
   }
 
   public airportPreferences(): Promise<CommandResult> {
-    return this.runner.run("defaults read /Library/Preferences/SystemConfiguration/com.apple.airport.preferences");
+    return this.runner.run(
+      'defaults read /Library/Preferences/SystemConfiguration/com.apple.airport.preferences'
+    );
   }
 
   public environmentReport(): Promise<CommandResult> {
-    return this.runner.run("system_profiler SPAirPortDataType");
+    return this.runner.run('system_profiler SPAirPortDataType');
   }
 
   public performanceSummary(): Promise<CommandResult> {
-    return this.runner.run("networkQuality -s");
+    return this.runner.run('networkQuality -s');
   }
 
   public wifiLogs(options: WirelessLogOptions = {}): Promise<CommandResult> {
     const minutes = Math.max(1, Math.min(1440, options.minutes ?? 10));
-    const predicate = "'subsystem == \"com.apple.wifi\"'";
-    return this.runner.run(
-      `log show --style syslog --predicate ${predicate} --last ${minutes}m`,
-      { requiresSudo: true },
-    );
+    const predicate = '\'subsystem == "com.apple.wifi"\'';
+    return this.runner.run(`log show --style syslog --predicate ${predicate} --last ${minutes}m`, {
+      requiresSudo: true,
+    });
   }
 
   public pingHost(options: WirelessPingOptions): Promise<CommandResult> {

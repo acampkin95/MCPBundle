@@ -1,0 +1,27 @@
+[Unit]
+Description=Wasabi S3 Backup Validation Timer (Weekly)
+Documentation=file:///etc/wasabi-backup/README.md
+Requires=wasabi-validation.service
+After=network-online.target
+
+[Timer]
+# Run weekly on Sunday at 03:00 (after the weekly backup at 00:00)
+OnCalendar=Sun *-*-* 03:00:00
+
+# Also run on the first day of every month at 04:00 (monthly validation)
+OnCalendar=*-*-01 04:00:00
+
+# Run 10 minutes after boot if system was off during scheduled time
+OnBootSec=10min
+
+# Persistent - catch up on missed runs
+Persistent=true
+
+# Accuracy
+AccuracySec=5min
+
+# Associate with the validation service
+Unit=wasabi-validation.service
+
+[Install]
+WantedBy=timers.target

@@ -1,23 +1,18 @@
-import { mkdir, readFile, writeFile } from "node:fs/promises";
-import { dirname, isAbsolute, join, resolve } from "node:path";
-import { createHash } from "node:crypto";
-import { CommandRunner, type CommandResult } from "../utils/commandRunner.js";
-import { SshService, type SshExecutionOptions } from "./ssh.js";
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { dirname, isAbsolute, join, resolve } from 'node:path';
+import { createHash } from 'node:crypto';
+import { CommandRunner, type CommandResult } from '../utils/commandRunner.js';
+import { SshService, type SshExecutionOptions } from './ssh.js';
 
-export type DiagnosticSuite =
-  | "hardware"
-  | "performance"
-  | "security"
-  | "network"
-  | "storage";
+export type DiagnosticSuite = 'hardware' | 'performance' | 'security' | 'network' | 'storage';
 
 export type RepairAction =
-  | "disk-verify"
-  | "disk-repair"
-  | "reset-spotlight"
-  | "flush-cache"
-  | "software-update"
-  | "rebuild-permissions";
+  | 'disk-verify'
+  | 'disk-repair'
+  | 'reset-spotlight'
+  | 'flush-cache'
+  | 'software-update'
+  | 'rebuild-permissions';
 
 export interface DiagnosticsResult {
   readonly label: string;
@@ -32,65 +27,75 @@ export interface RemoteMacOptions extends SshExecutionOptions {
   readonly username: string;
 }
 
-const SUITE_COMMANDS: Record<DiagnosticSuite, Array<{ label: string; command: string; requiresSudo?: boolean }>> = {
+const SUITE_COMMANDS: Record<
+  DiagnosticSuite,
+  Array<{ label: string; command: string; requiresSudo?: boolean }>
+> = {
   hardware: [
-    { label: "Hardware profile", command: "system_profiler SPHardwareDataType" },
-    { label: "Power profile", command: "system_profiler SPPowerDataType" },
-    { label: "Thermal sensors", command: "pmset -g thermlog" },
+    { label: 'Hardware profile', command: 'system_profiler SPHardwareDataType' },
+    { label: 'Power profile', command: 'system_profiler SPPowerDataType' },
+    { label: 'Thermal sensors', command: 'pmset -g thermlog' },
   ],
   performance: [
-    { label: "CPU / Power metrics", command: "sudo powermetrics --show-process-energy -n 1", requiresSudo: true },
-    { label: "Top processes", command: "top -l 1 -n 20" },
-    { label: "Disk usage spikes", command: "sudo fs_usage -w -t 5", requiresSudo: true },
+    {
+      label: 'CPU / Power metrics',
+      command: 'sudo powermetrics --show-process-energy -n 1',
+      requiresSudo: true,
+    },
+    { label: 'Top processes', command: 'top -l 1 -n 20' },
+    { label: 'Disk usage spikes', command: 'sudo fs_usage -w -t 5', requiresSudo: true },
   ],
   security: [
-    { label: "FileVault", command: "fdesetup status" },
-    { label: "Gatekeeper", command: "spctl --status" },
+    { label: 'FileVault', command: 'fdesetup status' },
+    { label: 'Gatekeeper', command: 'spctl --status' },
     {
-      label: "Application firewall",
-      command: "defaults read /Library/Preferences/com.apple.alf globalstate",
+      label: 'Application firewall',
+      command: 'defaults read /Library/Preferences/com.apple.alf globalstate',
       requiresSudo: true,
     },
     {
-      label: "Recent security logs",
-      command: "log show --last 1h --predicate 'subsystem CONTAINS \"com.apple.security\"' --info",
+      label: 'Recent security logs',
+      command: 'log show --last 1h --predicate \'subsystem CONTAINS "com.apple.security"\' --info',
       requiresSudo: true,
     },
   ],
   network: [
-    { label: "Interface status", command: "ifconfig" },
-    { label: "Active sockets", command: "netstat -an" },
-    { label: "Proxy settings", command: "scutil --proxy" },
+    { label: 'Interface status', command: 'ifconfig' },
+    { label: 'Active sockets', command: 'netstat -an' },
+    { label: 'Proxy settings', command: 'scutil --proxy' },
     {
-      label: "Network logs",
-      command: "log show --last 30m --predicate 'subsystem == \"com.apple.network\"'",
+      label: 'Network logs',
+      command: 'log show --last 30m --predicate \'subsystem == "com.apple.network"\'',
       requiresSudo: true,
     },
   ],
   storage: [
-    { label: "Disk usage", command: "df -h" },
-    { label: "APFS list", command: "diskutil apfs list" },
-    { label: "Volume verify", command: "sudo diskutil verifyVolume /", requiresSudo: true },
+    { label: 'Disk usage', command: 'df -h' },
+    { label: 'APFS list', command: 'diskutil apfs list' },
+    { label: 'Volume verify', command: 'sudo diskutil verifyVolume /', requiresSudo: true },
   ],
 };
 
-const REPAIR_COMMANDS: Record<RepairAction, { label: string; command: string; requiresSudo?: boolean }> = {
-  "disk-verify": { label: "Verify disk", command: "diskutil verifyVolume /" },
-  "disk-repair": { label: "Repair disk", command: "diskutil repairVolume /", requiresSudo: true },
-  "reset-spotlight": { label: "Reset Spotlight", command: "mdutil -E /", requiresSudo: true },
-  "flush-cache": {
-    label: "Flush DNS & directory cache",
-    command: "dscacheutil -flushcache && killall -HUP mDNSResponder",
+const REPAIR_COMMANDS: Record<
+  RepairAction,
+  { label: string; command: string; requiresSudo?: boolean }
+> = {
+  'disk-verify': { label: 'Verify disk', command: 'diskutil verifyVolume /' },
+  'disk-repair': { label: 'Repair disk', command: 'diskutil repairVolume /', requiresSudo: true },
+  'reset-spotlight': { label: 'Reset Spotlight', command: 'mdutil -E /', requiresSudo: true },
+  'flush-cache': {
+    label: 'Flush DNS & directory cache',
+    command: 'dscacheutil -flushcache && killall -HUP mDNSResponder',
     requiresSudo: true,
   },
-  "software-update": {
-    label: "Software Update",
-    command: "softwareupdate --install --all",
+  'software-update': {
+    label: 'Software Update',
+    command: 'softwareupdate --install --all',
     requiresSudo: true,
   },
-  "rebuild-permissions": {
-    label: "Reset user permissions",
-    command: "diskutil resetUserPermissions / `id -u`",
+  'rebuild-permissions': {
+    label: 'Reset user permissions',
+    command: 'diskutil resetUserPermissions / `id -u`',
     requiresSudo: true,
   },
 };
@@ -131,7 +136,10 @@ export class MacDiagnosticsService {
     { timestamp: number; results: DiagnosticsResult[] }
   >();
 
-  public constructor(private readonly runner: CommandRunner, private readonly ssh: SshService) {}
+  public constructor(
+    private readonly runner: CommandRunner,
+    private readonly ssh: SshService
+  ) {}
 
   public listSuites(): DiagnosticSuite[] {
     return Object.keys(SUITE_COMMANDS) as DiagnosticSuite[];
@@ -145,7 +153,9 @@ export class MacDiagnosticsService {
     return (await this.runLocalDiagnosticsWithBaseline({ suite })).results;
   }
 
-  public async runRemoteDiagnostics(options: RemoteMacOptions & { suite: DiagnosticSuite }): Promise<DiagnosticsResult[]> {
+  public async runRemoteDiagnostics(
+    options: RemoteMacOptions & { suite: DiagnosticSuite }
+  ): Promise<DiagnosticsResult[]> {
     const commands = SUITE_COMMANDS[options.suite];
     return this.runRemoteCommands(options, commands);
   }
@@ -155,7 +165,9 @@ export class MacDiagnosticsService {
     return this.runLocalCommands([command]);
   }
 
-  public async runRemoteRepair(options: RemoteMacOptions & { action: RepairAction }): Promise<DiagnosticsResult[]> {
+  public async runRemoteRepair(
+    options: RemoteMacOptions & { action: RepairAction }
+  ): Promise<DiagnosticsResult[]> {
     const command = REPAIR_COMMANDS[options.action];
     return this.runRemoteCommands(options, [command]);
   }
@@ -185,7 +197,10 @@ export class MacDiagnosticsService {
     if (!results) {
       const fresh = await this.runLocalCommands(commands);
       if (ttlMs > 0) {
-        this.cache.set(options.suite, { timestamp: Date.now(), results: fresh.map((entry) => ({ ...entry })) });
+        this.cache.set(options.suite, {
+          timestamp: Date.now(),
+          results: fresh.map((entry) => ({ ...entry })),
+        });
       }
       results = fresh;
     }
@@ -222,10 +237,14 @@ export class MacDiagnosticsService {
     };
   }
 
-  private async runLocalCommands(commands: Array<{ label: string; command: string; requiresSudo?: boolean }>): Promise<DiagnosticsResult[]> {
+  private async runLocalCommands(
+    commands: Array<{ label: string; command: string; requiresSudo?: boolean }>
+  ): Promise<DiagnosticsResult[]> {
     const results: DiagnosticsResult[] = [];
     for (const item of commands) {
-      const result = await this.runner.run(item.command, { requiresSudo: item.requiresSudo ?? false });
+      const result = await this.runner.run(item.command, {
+        requiresSudo: item.requiresSudo ?? false,
+      });
       results.push(this.formatResult(item.label, result));
     }
     return results;
@@ -233,7 +252,7 @@ export class MacDiagnosticsService {
 
   private async runRemoteCommands(
     options: RemoteMacOptions,
-    commands: Array<{ label: string; command: string; requiresSudo?: boolean }>,
+    commands: Array<{ label: string; command: string; requiresSudo?: boolean }>
   ): Promise<DiagnosticsResult[]> {
     const results: DiagnosticsResult[] = [];
     const sshOptions: SshExecutionOptions = {
@@ -253,7 +272,7 @@ export class MacDiagnosticsService {
           username: options.username,
           command: remoteCommand,
         },
-        sshOptions,
+        sshOptions
       );
       results.push(this.formatResult(item.label, result));
     }
@@ -275,12 +294,15 @@ export class MacDiagnosticsService {
       const trimmed = requestedPath.trim();
       return isAbsolute(trimmed) ? trimmed : resolve(process.cwd(), trimmed);
     }
-    const directory = join(process.cwd(), ".mcp", "baselines", "mac");
+    const directory = join(process.cwd(), '.mcp', 'baselines', 'mac');
     const filename = `${suite}.json`;
     return join(directory, filename);
   }
 
-  private compareAgainstBaseline(results: DiagnosticsResult[], baseline?: DiagnosticsBaseline): DiagnosticsComparison[] {
+  private compareAgainstBaseline(
+    results: DiagnosticsResult[],
+    baseline?: DiagnosticsBaseline
+  ): DiagnosticsComparison[] {
     const baselineMap = new Map<string, DiagnosticsBaselineEntry>();
     if (baseline?.entries) {
       for (const entry of baseline.entries) {
@@ -306,7 +328,7 @@ export class MacDiagnosticsService {
 
   private async loadBaseline(path: string): Promise<DiagnosticsBaseline | undefined> {
     try {
-      const file = await readFile(path, "utf8");
+      const file = await readFile(path, 'utf8');
       const parsed = JSON.parse(file) as DiagnosticsBaseline;
       return parsed;
     } catch {
@@ -314,7 +336,11 @@ export class MacDiagnosticsService {
     }
   }
 
-  private async saveBaseline(path: string, suite: DiagnosticSuite, results: DiagnosticsResult[]): Promise<void> {
+  private async saveBaseline(
+    path: string,
+    suite: DiagnosticSuite,
+    results: DiagnosticsResult[]
+  ): Promise<void> {
     const entries: DiagnosticsBaselineEntry[] = results.map((result) => ({
       label: result.label,
       command: result.command,
@@ -329,11 +355,11 @@ export class MacDiagnosticsService {
     };
 
     await this.ensureDirectory(path);
-    await writeFile(path, JSON.stringify(baseline, null, 2), "utf8");
+    await writeFile(path, JSON.stringify(baseline, null, 2), 'utf8');
   }
 
   private hashOutput(content: string): string {
-    return createHash("sha256").update(content).digest("hex");
+    return createHash('sha256').update(content).digest('hex');
   }
 
   private async ensureDirectory(path: string): Promise<void> {

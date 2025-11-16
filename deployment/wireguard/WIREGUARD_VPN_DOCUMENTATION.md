@@ -1,12 +1,15 @@
 # WireGuard VPN Mesh Network Documentation
+
 ## Infrastructure Security Implementation
 
 ### Overview
+
 A secure WireGuard VPN mesh network has been successfully deployed across three VMs, implementing defense-in-depth security with multiple isolated tunnels and comprehensive security hardening.
 
 ### Network Architecture
 
 #### VM Infrastructure
+
 - **VMI01**: 46.250.243.123 (Primary Node)
 - **VMI02D**: 46.250.241.70 (Secondary Node)
 - **VMI03**: 154.26.158.31 (Tertiary Node)
@@ -14,6 +17,7 @@ A secure WireGuard VPN mesh network has been successfully deployed across three 
 #### VPN Tunnels Configuration
 
 ##### 1. ROOT Tunnel (Port 51820)
+
 - **Network**: 10.0.50.0/24
 - **Security Level**: Full Administrative Access
 - **VM Assignments**:
@@ -23,6 +27,7 @@ A secure WireGuard VPN mesh network has been successfully deployed across three 
   - Admin Client: 10.0.50.254
 
 ##### 2. MCP Tunnel (Port 51821)
+
 - **Network**: 10.0.51.0/24
 - **Security Level**: Service Mesh Communication
 - **VM Assignments**:
@@ -32,6 +37,7 @@ A secure WireGuard VPN mesh network has been successfully deployed across three 
   - Admin Client: 10.0.51.254
 
 ##### 3. RED Tunnel (Port 51822)
+
 - **Network**: 10.0.52.0/24
 - **Security Level**: Restricted Network Access
 - **VM Assignments**:
@@ -43,7 +49,9 @@ A secure WireGuard VPN mesh network has been successfully deployed across three 
 ### Security Implementation
 
 #### 1. Firewall Configuration (UFW)
+
 All VMs have been configured with UFW firewall implementing:
+
 - **Default Policies**:
   - Deny all incoming connections
   - Allow all outgoing connections
@@ -58,7 +66,9 @@ All VMs have been configured with UFW firewall implementing:
   - Full access from 10.0.52.0/24 (RED)
 
 #### 2. Intrusion Prevention (fail2ban)
+
 Configured with the following jails:
+
 - **SSH Protection**:
   - Max retries: 3
   - Ban time: 7200 seconds (2 hours)
@@ -69,6 +79,7 @@ Configured with the following jails:
   - Monitors all three WireGuard ports
 
 #### 3. Cryptographic Security
+
 - **Key Generation**: Each tunnel uses unique keypairs
 - **Key Storage**: Private keys secured with 600 permissions
 - **Forward Secrecy**: Implemented through WireGuard's design
@@ -77,6 +88,7 @@ Configured with the following jails:
 ### File Locations
 
 #### Configuration Files
+
 ```
 /Users/alex/Projects/MCP Bundle/deployment/wireguard/
 ├── configs/
@@ -112,6 +124,7 @@ Configured with the following jails:
 ### Management Commands
 
 #### Check WireGuard Status
+
 ```bash
 # On any VM
 wg show                    # Show all interfaces
@@ -120,6 +133,7 @@ systemctl status wg-quick@wg-root
 ```
 
 #### Restart WireGuard Tunnels
+
 ```bash
 # On any VM
 systemctl restart wg-quick@wg-root
@@ -128,6 +142,7 @@ systemctl restart wg-quick@wg-red
 ```
 
 #### Check Security Status
+
 ```bash
 # Firewall status
 ufw status numbered
@@ -141,21 +156,25 @@ fail2ban-client status wireguard
 ### Client Connection
 
 #### Prerequisites
+
 - WireGuard client installed on local machine
 - Client configuration file from `configs/client-*.conf`
 
 #### Connection Steps
+
 1. Import the appropriate client configuration:
    - `client-root.conf` for full admin access
    - `client-mcp.conf` for service mesh access
    - `client-red.conf` for restricted access
 
 2. Activate the tunnel:
+
    ```bash
    wg-quick up /path/to/client-root.conf
    ```
 
 3. Test connectivity:
+
    ```bash
    ping 10.0.50.1  # VMI01 on ROOT tunnel
    ping 10.0.50.2  # VMI02D on ROOT tunnel
@@ -170,6 +189,7 @@ fail2ban-client status wireguard
 ### Security Audit Checklist
 
 #### OWASP Security Controls
+
 - [x] **A01:2021 - Broken Access Control**: Segregated network tunnels with different privilege levels
 - [x] **A02:2021 - Cryptographic Failures**: Strong WireGuard encryption (ChaCha20Poly1305)
 - [x] **A05:2021 - Security Misconfiguration**: Hardened firewall rules, fail2ban configured
@@ -177,6 +197,7 @@ fail2ban-client status wireguard
 - [x] **A09:2021 - Security Logging and Monitoring**: fail2ban monitoring active
 
 #### Network Security
+
 - [x] All tunnels operational and tested
 - [x] Firewall rules applied and active
 - [x] Intrusion prevention configured
@@ -184,13 +205,16 @@ fail2ban-client status wireguard
 - [x] NAT masquerading configured
 
 #### Access Control
+
 - [x] SSH access maintained (port 22)
 - [x] Root access preserved
 - [x] Password authentication enabled
 - [x] VPN segregation implemented
 
 ### Connectivity Test Results
+
 All VPN tunnels have been tested and verified:
+
 - **ROOT Tunnel**: 100% connectivity (6/6 paths tested)
 - **MCP Tunnel**: 100% connectivity (6/6 paths tested)
 - **RED Tunnel**: 100% connectivity (6/6 paths tested)
@@ -198,6 +222,7 @@ All VPN tunnels have been tested and verified:
 ### Maintenance Procedures
 
 #### Adding New Peers
+
 1. Generate keypair on new node
 2. Update existing configurations with new peer
 3. Deploy updated configurations
@@ -205,12 +230,14 @@ All VPN tunnels have been tested and verified:
 5. Test connectivity
 
 #### Key Rotation
+
 1. Generate new keypairs
 2. Update all peer configurations
 3. Deploy in coordinated manner
 4. Verify connectivity after rotation
 
 #### Monitoring
+
 - Check WireGuard handshake times: `wg show`
 - Monitor fail2ban logs: `journalctl -u fail2ban`
 - Review UFW logs: `grep UFW /var/log/syslog`
@@ -254,12 +281,14 @@ All VPN tunnels have been tested and verified:
 ### Compliance Notes
 
 This implementation follows security best practices aligned with:
+
 - OWASP Top 10 2021 guidelines
 - Defense in depth principle
 - Zero trust network architecture principles
 - Industry standard encryption (ChaCha20Poly1305)
 
 ### Contact Information
+
 - **Infrastructure Team**: Use ROOT tunnel for administrative access
 - **Service Teams**: Use MCP tunnel for service mesh operations
 - **Limited Access Users**: Use RED tunnel for restricted operations

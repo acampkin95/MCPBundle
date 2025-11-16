@@ -275,7 +275,7 @@ run_validation() {
     local new_tables=("thought_branches" "feedback_signals" "thought_relationships" "thought_sync_queue")
     for table in "${new_tables[@]}"; do
         if ssh "$DEPLOY_USER@$DEPLOY_HOST" \
-            "PGPASSWORD='TeBsn4f2cS0O7vfdvYFTb37L6SdJFL+mpOgksTwgHy0=' psql -h localhost -U mcp_admin -d mcp_ecosystem -tAc \"SELECT COUNT(*) FROM pg_tables WHERE tablename='$table'\"" | grep -q "1"; then
+            "PGPASSWORD='' psql -h localhost -U mcp_admin -d mcp_ecosystem -tAc \"SELECT COUNT(*) FROM pg_tables WHERE tablename='$table'\"" | grep -q "1"; then
             log_success "Table $table exists"
         else
             log_error "Table $table not found"

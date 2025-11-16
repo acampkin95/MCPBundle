@@ -72,25 +72,30 @@ class AppHealthAgent {
   private setupLogger(): winston.Logger {
     const transports: winston.transport[] = [];
     if (this.config.logging.console_enabled) {
-      transports.push(new winston.transports.Console({
-        format: winston.format.combine(
-          winston.format.colorize(),
-          winston.format.timestamp(),
-          winston.format.printf(({ timestamp, level, message, ...meta }) =>
-            `${timestamp} [${level}]: ${message} ${Object.keys(meta).length ? JSON.stringify(meta) : ''}`
-          )
-        )
-      }));
+      transports.push(
+        new winston.transports.Console({
+          format: winston.format.combine(
+            winston.format.colorize(),
+            winston.format.timestamp(),
+            winston.format.printf(
+              ({ timestamp, level, message, ...meta }) =>
+                `${timestamp} [${level}]: ${message} ${Object.keys(meta).length ? JSON.stringify(meta) : ''}`
+            )
+          ),
+        })
+      );
     }
     if (this.config.logging.file_enabled) {
       const logDir = path.dirname(this.config.logging.file_path);
       if (!fs.existsSync(logDir)) fs.mkdirSync(logDir, { recursive: true });
-      transports.push(new winston.transports.File({
-        filename: this.config.logging.file_path,
-        format: winston.format.combine(winston.format.timestamp(), winston.format.json()),
-        maxsize: parseInt(this.config.logging.max_size) || 100 * 1024 * 1024,
-        maxFiles: this.config.logging.max_files
-      }));
+      transports.push(
+        new winston.transports.File({
+          filename: this.config.logging.file_path,
+          format: winston.format.combine(winston.format.timestamp(), winston.format.json()),
+          maxsize: parseInt(this.config.logging.max_size) || 100 * 1024 * 1024,
+          maxFiles: this.config.logging.max_files,
+        })
+      );
     }
     return winston.createLogger({ level: this.config.logging.level, transports });
   }
@@ -101,45 +106,45 @@ class AppHealthAgent {
         name: 'app_health_heartbeat_total',
         help: 'Total heartbeats',
         labelNames: ['agent', 'vm'],
-        registers: [this.registry]
+        registers: [this.registry],
       }),
       serviceStatus: new promClient.Gauge({
         name: 'service_status',
         help: 'Service status (1=healthy, 0=unhealthy)',
         labelNames: ['service', 'type'],
-        registers: [this.registry]
+        registers: [this.registry],
       }),
       serviceCpu: new promClient.Gauge({
         name: 'service_cpu_percent',
         help: 'Service CPU usage',
         labelNames: ['service'],
-        registers: [this.registry]
+        registers: [this.registry],
       }),
       serviceMemory: new promClient.Gauge({
         name: 'service_memory_mb',
         help: 'Service memory usage in MB',
         labelNames: ['service'],
-        registers: [this.registry]
+        registers: [this.registry],
       }),
       serviceRestarts: new promClient.Counter({
         name: 'service_restarts_total',
         help: 'Total service restarts',
         labelNames: ['service'],
-        registers: [this.registry]
+        registers: [this.registry],
       }),
       responseTime: new promClient.Histogram({
         name: 'service_response_time_ms',
         help: 'Service response time',
         labelNames: ['service'],
         buckets: [10, 50, 100, 500, 1000, 5000],
-        registers: [this.registry]
+        registers: [this.registry],
       }),
       errors: new promClient.Counter({
         name: 'app_health_errors_total',
         help: 'Total errors',
         labelNames: ['type'],
-        registers: [this.registry]
-      })
+        registers: [this.registry],
+      }),
     };
   }
 
@@ -154,7 +159,7 @@ class AppHealthAgent {
       password,
       max: this.config.database.max_connections,
       idleTimeoutMillis: this.config.database.idle_timeout,
-      connectionTimeoutMillis: this.config.database.connection_timeout
+      connectionTimeoutMillis: this.config.database.connection_timeout,
     });
   }
 
@@ -166,7 +171,7 @@ class AppHealthAgent {
       password: password || undefined,
       db: this.config.redis.db,
       keyPrefix: this.config.redis.key_prefix,
-      retryStrategy: (times) => times > 10 ? null : Math.min(times * 100, 3000)
+      retryStrategy: (times) => (times > 10 ? null : Math.min(times * 100, 3000)),
     });
   }
 
@@ -180,21 +185,23 @@ class AppHealthAgent {
       memory_mb: 0,
       uptime_seconds: 0,
       restart_count: this.restartAttempts.get(service.name) || 0,
-      last_check: new Date()
+      last_check: new Date(),
     };
 
     try {
       if (service.type === 'process') {
         const processes = await si.processes();
-        const proc = processes.list.find(p => 
-          service.process_name && new RegExp(service.process_name).test(p.command)
+        const proc = processes.list.find(
+          (p) => service.process_name && new RegExp(service.process_name).test(p.command)
         );
-        
+
         if (proc) {
           status.running = true;
           status.cpu_percent = proc.cpu || 0;
           status.memory_mb = (proc.mem_rss || 0) / (1024 * 1024);
-          status.uptime_seconds = Math.floor(Date.now() / 1000 - (proc.started ? new Date(proc.started).getTime() / 1000 : 0));
+          status.uptime_seconds = Math.floor(
+            Date.now() / 1000 - (proc.started ? new Date(proc.started).getTime() / 1000 : 0)
+          );
         }
       } else if (service.type === 'systemd') {
         const { stdout } = await execAsync(`systemctl is-active ${service.service_name}`);
@@ -215,11 +222,10 @@ class AppHealthAgent {
       );
       this.metrics.serviceCpu.set({ service: service.name }, status.cpu_percent);
       this.metrics.serviceMemory.set({ service: service.name }, status.memory_mb);
-      
+
       if (status.response_time_ms) {
         this.metrics.responseTime.observe({ service: service.name }, status.response_time_ms);
       }
-
     } catch (error: any) {
       status.status = 'unhealthy';
       status.error_message = error.message;
@@ -252,14 +258,17 @@ class AppHealthAgent {
 
       this.restartAttempts.set(service.name, attempts + 1);
       this.metrics.serviceRestarts.inc({ service: service.name });
-      
-      await new Promise(resolve => setTimeout(resolve, service.restart_delay || 5000));
-      
+
+      await new Promise((resolve) => setTimeout(resolve, service.restart_delay || 5000));
+
       const newStatus = await this.checkService(service);
       if (newStatus.status === 'healthy') {
         this.logger.info(`Successfully restarted ${service.name}`);
         this.restartAttempts.delete(service.name);
-        await this.generateAlert('service_restarted', { service: service.name, attempts: attempts + 1 });
+        await this.generateAlert('service_restarted', {
+          service: service.name,
+          attempts: attempts + 1,
+        });
       }
     } catch (error) {
       this.logger.error(`Failed to restart ${service.name}:`, error);
@@ -270,7 +279,7 @@ class AppHealthAgent {
   private async monitorServices(): Promise<void> {
     for (const service of this.config.monitoring.services) {
       const status = await this.checkService(service);
-      
+
       if (status.status === 'unhealthy' && service.critical) {
         await this.generateAlert('service_down', { service: service.name, ...status });
         await this.recoverService(service, status);
@@ -285,7 +294,10 @@ class AppHealthAgent {
       if (status.memory_mb > 0) {
         const memPercent = (status.memory_mb / (await si.mem()).total) * 100;
         if (memPercent > this.config.monitoring.thresholds.memory_percent_max) {
-          await this.generateAlert('high_memory', { service: service.name, memory_mb: status.memory_mb });
+          await this.generateAlert('high_memory', {
+            service: service.name,
+            memory_mb: status.memory_mb,
+          });
         }
       }
 
@@ -295,18 +307,18 @@ class AppHealthAgent {
 
   private async generateAlert(type: string, data: any): Promise<void> {
     if (!this.config.alerts.enabled) return;
-    
+
     const severity = this.getAlertSeverity(type);
     const alert = {
       type,
       severity,
       agent: this.config.agent.name,
       timestamp: new Date().toISOString(),
-      data
+      data,
     };
 
     this.logger.warn(`Alert: ${type}`, alert);
-    
+
     if (this.config.alerts.channels.includes('redis')) {
       await this.redis.lpush('alerts', JSON.stringify(alert));
       await this.redis.ltrim('alerts', 0, 999);
@@ -345,7 +357,7 @@ class AppHealthAgent {
       );
       await gateway.pushAdd({
         jobName: this.config.prometheus.job_name,
-        groupings: this.config.prometheus.labels
+        groupings: this.config.prometheus.labels,
       });
     } catch (error) {
       this.logger.error('Failed to push metrics:', error);
@@ -353,39 +365,44 @@ class AppHealthAgent {
   }
 
   private setupHealthCheck(): void {
-    http.createServer(async (req, res) => {
-      if (req.url === '/health') {
-        const health = {
-          status: 'healthy',
-          agent: this.config.agent.name,
-          timestamp: new Date().toISOString(),
-          services: Array.from(this.serviceStatuses.entries()).map(([name, status]) => ({
-            name,
-            status: status.status
-          }))
-        };
-        res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify(health, null, 2));
-      } else if (req.url === '/metrics') {
-        res.writeHead(200, { 'Content-Type': this.registry.contentType });
-        res.end(await this.registry.metrics());
-      } else {
-        res.writeHead(404);
-        res.end('Not Found');
-      }
-    }).listen(this.config.monitoring.health_check_port);
+    http
+      .createServer(async (req, res) => {
+        if (req.url === '/health') {
+          const health = {
+            status: 'healthy',
+            agent: this.config.agent.name,
+            timestamp: new Date().toISOString(),
+            services: Array.from(this.serviceStatuses.entries()).map(([name, status]) => ({
+              name,
+              status: status.status,
+            })),
+          };
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify(health, null, 2));
+        } else if (req.url === '/metrics') {
+          res.writeHead(200, { 'Content-Type': this.registry.contentType });
+          res.end(await this.registry.metrics());
+        } else {
+          res.writeHead(404);
+          res.end('Not Found');
+        }
+      })
+      .listen(this.config.monitoring.health_check_port);
   }
 
   public async start(): Promise<void> {
     this.logger.info(`Starting ${this.config.agent.name}`);
     this.setupHealthCheck();
 
-    cron.schedule(`*/${Math.floor(this.config.monitoring.metrics_interval / 1000)} * * * * *`, async () => {
-      if (!this.isShuttingDown) {
-        await this.monitorServices();
-        await this.pushMetrics();
+    cron.schedule(
+      `*/${Math.floor(this.config.monitoring.metrics_interval / 1000)} * * * * *`,
+      async () => {
+        if (!this.isShuttingDown) {
+          await this.monitorServices();
+          await this.pushMetrics();
+        }
       }
-    });
+    );
 
     this.logger.info('Agent started');
   }
@@ -403,10 +420,10 @@ class AppHealthAgent {
 async function main() {
   const configPath = process.env.CONFIG_PATH || path.join(__dirname, '../config/config.yaml');
   const agent = new AppHealthAgent(configPath);
-  
+
   process.on('SIGTERM', () => agent.shutdown());
   process.on('SIGINT', () => agent.shutdown());
-  
+
   await agent.start();
 }
 

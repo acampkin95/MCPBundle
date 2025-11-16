@@ -1,0 +1,30 @@
+{
+  "name": "admin-panel",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev -p 3100",
+    "build": "next build",
+    "start": "next start -p 3100",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit",
+    "panel:snapshot": "NODE_OPTIONS=--enable-source-maps tsx scripts/panelSnapshot.ts",
+    "test": "next lint"
+  },
+  "dependencies": {
+    "next": "14.2.5",
+    "next-auth": "4.24.7",
+    "react": "18.3.1",
+    "react-dom": "18.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "20.11.30",
+    "@types/react": "18.3.3",
+    "@types/react-dom": "18.3.0",
+    "eslint": "8.57.0",
+    "eslint-config-next": "14.2.5",
+    "typescript": "5.6.3",
+    "tsx": "4.19.1"
+  }
+}

@@ -19,7 +19,12 @@ TESTS_RUN=0
 VMI01_IP="46.250.243.123"
 VMI02D_IP="46.250.241.70"
 VMI03_IP="154.26.158.31"
-VM_PASSWORD="C0nnaught"
+VM_PASSWORD="${VM_PASSWORD:-${MCP_ROOT_PASSWORD:-}}"
+
+if [[ -z "${VM_PASSWORD:-}" ]]; then
+    echo "VM_PASSWORD (or MCP_ROOT_PASSWORD) must be exported via Contabo Secrets (npm run secrets:pull) before running." >&2
+    exit 1
+fi
 
 # Initialize report
 echo "{" > "$REPORT_FILE"
@@ -66,7 +71,7 @@ echo "Testing SSH Connectivity..."
 
 # Test VMI01
 start_time=$(date +%s%3N 2>/dev/null || date +%s)
-if sshpass -p "$VM_PASSWORD" ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 root@$VMI01_IP "echo 'SSH OK'" > /dev/null 2>&1; then
+if SSHPASS="$VM_PASSWORD" sshpass -e ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 root@$VMI01_IP "echo 'SSH OK'" > /dev/null 2>&1; then
     end_time=$(date +%s%3N 2>/dev/null || date +%s)
     duration=$(( end_time - start_time ))
     log_test "ssh_connectivity_VMI01" "PASS" "SSH connection successful to $VMI01_IP" $duration
@@ -78,7 +83,7 @@ fi
 
 # Test VMI02D
 start_time=$(date +%s%3N 2>/dev/null || date +%s)
-if sshpass -p "$VM_PASSWORD" ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 root@$VMI02D_IP "echo 'SSH OK'" > /dev/null 2>&1; then
+if SSHPASS="$VM_PASSWORD" sshpass -e ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 root@$VMI02D_IP "echo 'SSH OK'" > /dev/null 2>&1; then
     end_time=$(date +%s%3N 2>/dev/null || date +%s)
     duration=$(( end_time - start_time ))
     log_test "ssh_connectivity_VMI02D" "PASS" "SSH connection successful to $VMI02D_IP" $duration
@@ -90,7 +95,7 @@ fi
 
 # Test VMI03
 start_time=$(date +%s%3N 2>/dev/null || date +%s)
-if sshpass -p "$VM_PASSWORD" ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 root@$VMI03_IP "echo 'SSH OK'" > /dev/null 2>&1; then
+if SSHPASS="$VM_PASSWORD" sshpass -e ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 root@$VMI03_IP "echo 'SSH OK'" > /dev/null 2>&1; then
     end_time=$(date +%s%3N 2>/dev/null || date +%s)
     duration=$(( end_time - start_time ))
     log_test "ssh_connectivity_VMI03" "PASS" "SSH connection successful to $VMI03_IP" $duration
@@ -106,7 +111,7 @@ echo "Testing Network Latency..."
 
 # VMI01 to VMI02D
 start_time=$(date +%s%3N 2>/dev/null || date +%s)
-avg_latency=$(sshpass -p "$VM_PASSWORD" ssh -o StrictHostKeyChecking=no root@$VMI01_IP \
+avg_latency=$(SSHPASS="$VM_PASSWORD" sshpass -e ssh -o StrictHostKeyChecking=no root@$VMI01_IP \
     "ping -c 5 -q $VMI02D_IP 2>/dev/null | grep 'avg' | awk -F'/' '{print \$5}'" 2>/dev/null || echo "error")
 end_time=$(date +%s%3N 2>/dev/null || date +%s)
 duration=$(( end_time - start_time ))
@@ -123,7 +128,7 @@ echo "Testing DNS Resolution..."
 
 # VMI01 DNS
 start_time=$(date +%s%3N 2>/dev/null || date +%s)
-dns_result=$(sshpass -p "$VM_PASSWORD" ssh -o StrictHostKeyChecking=no root@$VMI01_IP \
+dns_result=$(SSHPASS="$VM_PASSWORD" sshpass -e ssh -o StrictHostKeyChecking=no root@$VMI01_IP \
     "nslookup google.com 2>&1 | grep -q 'Address:' && echo 'OK' || echo 'FAIL'" 2>/dev/null)
 end_time=$(date +%s%3N 2>/dev/null || date +%s)
 duration=$(( end_time - start_time ))
@@ -140,7 +145,7 @@ echo "Testing WireGuard VPN..."
 
 # VMI01 WireGuard
 start_time=$(date +%s%3N 2>/dev/null || date +%s)
-wg_status=$(sshpass -p "$VM_PASSWORD" ssh -o StrictHostKeyChecking=no root@$VMI01_IP \
+wg_status=$(SSHPASS="$VM_PASSWORD" sshpass -e ssh -o StrictHostKeyChecking=no root@$VMI01_IP \
     "wg show 2>/dev/null | grep -c 'interface:' || echo '0'" 2>/dev/null)
 end_time=$(date +%s%3N 2>/dev/null || date +%s)
 duration=$(( end_time - start_time ))
@@ -157,7 +162,7 @@ echo "Testing Firewall..."
 
 # VMI01 Firewall
 start_time=$(date +%s%3N 2>/dev/null || date +%s)
-fw_status=$(sshpass -p "$VM_PASSWORD" ssh -o StrictHostKeyChecking=no root@$VMI01_IP \
+fw_status=$(SSHPASS="$VM_PASSWORD" sshpass -e ssh -o StrictHostKeyChecking=no root@$VMI01_IP \
     "ufw status 2>/dev/null | grep -q 'Status: active' && echo 'OK' || echo 'FAIL'" 2>/dev/null)
 end_time=$(date +%s%3N 2>/dev/null || date +%s)
 duration=$(( end_time - start_time ))
@@ -174,7 +179,7 @@ echo "Testing System Resources..."
 
 # VMI01 Disk Usage
 start_time=$(date +%s%3N 2>/dev/null || date +%s)
-disk_usage=$(sshpass -p "$VM_PASSWORD" ssh -o StrictHostKeyChecking=no root@$VMI01_IP \
+disk_usage=$(SSHPASS="$VM_PASSWORD" sshpass -e ssh -o StrictHostKeyChecking=no root@$VMI01_IP \
     "df -h / | awk 'NR==2 {print \$5}' | sed 's/%//'" 2>/dev/null)
 end_time=$(date +%s%3N 2>/dev/null || date +%s)
 duration=$(( end_time - start_time ))

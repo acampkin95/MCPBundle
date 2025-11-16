@@ -62,6 +62,7 @@ Agent → PostgreSQL (metrics storage)
 ### System Requirements
 
 **All VMs**:
+
 - Ubuntu 20.04 LTS or newer
 - Node.js >= 18.0.0
 - npm >= 9.0.0
@@ -70,6 +71,7 @@ Agent → PostgreSQL (metrics storage)
 - Root/sudo access
 
 **VMI01 Only**:
+
 - PostgreSQL >= 13
 - Redis >= 6.0
 - Prometheus Pushgateway
@@ -96,6 +98,7 @@ Agent → PostgreSQL (metrics storage)
 **Purpose**: PostgreSQL performance monitoring and optimization
 
 **Metrics**:
+
 - `db_connections_active{database}`: Active connections
 - `db_cache_hit_ratio{database}`: Cache efficiency (target >95%)
 - `db_dead_tuples{schema,table}`: Dead tuples needing vacuum
@@ -105,16 +108,19 @@ Agent → PostgreSQL (metrics storage)
 - `db_index_scans{schema,table,index}`: Index usage stats
 
 **Auto-Actions**:
+
 - VACUUM when dead_tuples > 10,000
 - ANALYZE after data changes
 - Index recommendations for seq_scan heavy tables
 
 **Alerts**:
+
 - Critical: Connection pool exhausted, replication lag
 - Warning: Cache hit <95%, bloat >30%
 - Info: Vacuum needed, unused indexes
 
 **Configuration**:
+
 ```yaml
 monitoring:
   thresholds:
@@ -135,6 +141,7 @@ monitoring:
 **Purpose**: Application service monitoring and auto-recovery
 
 **Services Monitored**:
+
 - MCP Orchestrator (port 3000)
 - Perplexity-MCP (port 3001)
 - ITJSST-MCP (port 3002)
@@ -143,6 +150,7 @@ monitoring:
 - Keycloak (port 8080)
 
 **Metrics**:
+
 - `service_status{service,type}`: 1=healthy, 0=unhealthy
 - `service_cpu_percent{service}`: CPU usage
 - `service_memory_mb{service}`: Memory usage
@@ -150,12 +158,14 @@ monitoring:
 - `service_response_time_ms{service}`: HTTP response time
 
 **Auto-Recovery**:
+
 - Restart failed processes (max 3 attempts)
 - Exponential backoff: 5s, 10s, 20s
 - Clear Redis cache on memory pressure
 - Log pattern analysis for early warnings
 
 **Alerts**:
+
 - Critical: Service down, auto-restart failed
 - Warning: High CPU/memory (>80%), slow response
 - Info: Service restarted, degraded performance
@@ -170,6 +180,7 @@ monitoring:
 **Purpose**: Disk space and snapshot monitoring
 
 **Metrics**:
+
 - `disk_usage_percent{mount}`: Disk utilization
 - `snapshot_age_days{snapshot}`: Snapshot freshness
 - `disk_io_wait_percent`: I/O bottleneck indicator
@@ -177,17 +188,20 @@ monitoring:
 - `dedup_opportunities_gb`: Potential savings
 
 **Auto-Actions**:
+
 - Alert at 80% disk usage
 - Rotate snapshots >30 days old
 - Verify snapshot integrity
 - Recommend cleanup actions
 
 **Alerts**:
+
 - Critical: Disk >90%, SMART errors
 - Warning: Disk >80%, old snapshots
 - Info: Deduplication opportunities
 
 **Configuration**:
+
 ```yaml
 monitoring:
   thresholds:
@@ -206,12 +220,14 @@ monitoring:
 **Purpose**: NextCloud/Plex service monitoring
 
 **Services Monitored**:
+
 - NextCloud (port 8081)
 - Plex Media Server (port 32400)
 - Background cron jobs
 - File sync status
 
 **Metrics**:
+
 - `service_api_status{service}`: API availability
 - `service_db_connection{service}`: Database health
 - `service_disk_io_mb{service}`: I/O throughput
@@ -219,6 +235,7 @@ monitoring:
 - `nextcloud_sync_errors_total`: Sync failures
 
 **Auto-Recovery**:
+
 - Restart hung services
 - Clear file locks
 - Reset failed cron jobs
@@ -234,6 +251,7 @@ monitoring:
 **Purpose**: Network tunnel and IDS monitoring
 
 **Metrics**:
+
 - `wireguard_tunnel_status{tunnel}`: 1=up, 0=down
 - `wireguard_peer_handshake_seconds{peer}`: Last handshake age
 - `ids_alerts_total{severity}`: Suricata alerts
@@ -241,26 +259,29 @@ monitoring:
 - `fail2ban_jail_count{jail}`: Banned IPs
 
 **Auto-Actions**:
+
 - Restart disconnected tunnels
 - Block malicious IPs via fail2ban
 - Log security events to PostgreSQL
 - Alert on repeated auth failures
 
 **Alerts**:
+
 - Critical: Tunnel down, active intrusion
 - Warning: High alert rate, unusual traffic
 - Info: Tunnel reconnected, jail updates
 
 **Configuration**:
+
 ```yaml
 monitoring:
   tunnels:
-    - name: "root"
-      interface: "wg-root"
-    - name: "mcp"
-      interface: "wg-mcp"
-    - name: "red"
-      interface: "wg-red"
+    - name: 'root'
+      interface: 'wg-root'
+    - name: 'mcp'
+      interface: 'wg-mcp'
+    - name: 'red'
+      interface: 'wg-red'
 ```
 
 **Port**: 9300
@@ -273,6 +294,7 @@ monitoring:
 **Purpose**: Keycloak authentication monitoring
 
 **Metrics**:
+
 - `keycloak_active_sessions`: Current user sessions
 - `keycloak_auth_attempts_total{result}`: success/failure count
 - `keycloak_token_expiry_seconds`: Token TTL distribution
@@ -280,12 +302,14 @@ monitoring:
 - `keycloak_failed_auth_rate`: Brute force detection
 
 **Auto-Actions**:
+
 - Lock accounts after 5 failed attempts
 - Clear expired sessions
 - Restart Keycloak on health check failure
 - Alert on brute force patterns
 
 **Alerts**:
+
 - Critical: Keycloak down, brute force attack
 - Warning: High failure rate, slow response
 - Info: Token expiry, session cleanup
@@ -511,20 +535,20 @@ scrape_configs:
   - job_name: 'agents-vmi01'
     static_configs:
       - targets:
-        - 'localhost:9100'  # db-optimizer
-        - 'localhost:9101'  # app-health
+          - 'localhost:9100' # db-optimizer
+          - 'localhost:9101' # app-health
 
   - job_name: 'agents-vmi02d'
     static_configs:
       - targets:
-        - '<vmi02d-ip>:9200'  # storage-mgmt
-        - '<vmi02d-ip>:9201'  # service-health
+          - '<vmi02d-ip>:9200' # storage-mgmt
+          - '<vmi02d-ip>:9201' # service-health
 
   - job_name: 'agents-vmi03'
     static_configs:
       - targets:
-        - '<vmi03-ip>:9300'  # network-sec
-        - '<vmi03-ip>:9301'  # identity-mgmt
+          - '<vmi03-ip>:9300' # network-sec
+          - '<vmi03-ip>:9301' # identity-mgmt
 ```
 
 ---
@@ -719,30 +743,36 @@ psql -U postgres -c "VACUUM ANALYZE mcp_ecosystem.system_metrics;"
 **Symptoms**: `systemctl status shows failed`
 
 **Diagnosis**:
+
 ```bash
 journalctl -u <agent-name> -n 50
 ```
 
 **Common Causes**:
+
 1. **Database connection failed**
+
    ```
    Solution: Verify DB_PASSWORD in /etc/mcp-agents/<agent>.env
    Test: psql -h localhost -U mcp_orchestrator -d mcp_ecosystem
    ```
 
 2. **Redis connection failed**
+
    ```
    Solution: Check Redis is running: systemctl status redis
    Test: redis-cli ping
    ```
 
 3. **Config file syntax error**
+
    ```
    Solution: Validate YAML: yamllint config/config.yaml
    Fix: Common issues are indentation or missing colons
    ```
 
 4. **Permission denied**
+
    ```
    Solution: Check ownership: ls -la /opt/mcp-agents/<agent>
    Fix: chown -R mcp-agent:mcp-agent /opt/mcp-agents/<agent>
@@ -759,6 +789,7 @@ journalctl -u <agent-name> -n 50
 **Symptoms**: Grafana shows no data
 
 **Diagnosis**:
+
 ```bash
 # 1. Check agent metrics endpoint
 curl http://localhost:910X/metrics
@@ -771,13 +802,16 @@ curl http://localhost:9090/api/v1/targets
 ```
 
 **Solutions**:
+
 1. **Agent not pushing**
+
    ```bash
    journalctl -u <agent> | grep "push"
    # Check prometheus.pushgateway_url in config.yaml
    ```
 
 2. **Pushgateway down**
+
    ```bash
    systemctl status pushgateway
    systemctl restart pushgateway
@@ -795,23 +829,27 @@ curl http://localhost:9090/api/v1/targets
 **Symptoms**: Agent using >500MB RAM
 
 **Diagnosis**:
+
 ```bash
 systemctl status <agent> | grep Memory
 ps aux | grep <agent> | awk '{print $6}'
 ```
 
 **Solutions**:
+
 1. **Reduce metrics interval**
+
    ```yaml
    # config.yaml
    monitoring:
-     metrics_interval: 120000  # Increase from 60000
+     metrics_interval: 120000 # Increase from 60000
    ```
 
 2. **Limit database connections**
+
    ```yaml
    database:
-     max_connections: 5  # Reduce from 10
+     max_connections: 5 # Reduce from 10
    ```
 
 3. **Adjust systemd limit**
@@ -827,22 +865,26 @@ ps aux | grep <agent> | awk '{print $6}'
 **Symptoms**: Hundreds of alerts in short time
 
 **Diagnosis**:
+
 ```bash
 redis-cli lrange alerts 0 10
 ```
 
 **Solutions**:
+
 1. **Increase thresholds temporarily**
+
    ```yaml
    monitoring:
      thresholds:
-       cpu_percent_max: 90  # Increase from 80
+       cpu_percent_max: 90 # Increase from 80
    ```
 
 2. **Disable auto-restart**
+
    ```yaml
    recovery:
-     enabled: false  # Temporarily disable
+     enabled: false # Temporarily disable
    ```
 
 3. **Identify root cause**
@@ -872,6 +914,7 @@ chmod 600 /etc/mcp-agents/*.env
 ### 2. Systemd Hardening
 
 All service files include:
+
 ```ini
 [Service]
 NoNewPrivileges=true       # Prevent privilege escalation
@@ -1015,17 +1058,17 @@ Based on observed metrics, adjust:
 
 ### B. Port Reference
 
-| Agent | Port | VM | Purpose |
-|-------|------|-----|---------|
-| db-optimizer | 9100 | VMI01 | Health/Metrics |
-| app-health | 9101 | VMI01 | Health/Metrics |
-| storage-mgmt | 9200 | VMI02D | Health/Metrics |
-| service-health | 9201 | VMI02D | Health/Metrics |
-| network-sec | 9300 | VMI03 | Health/Metrics |
-| identity-mgmt | 9301 | VMI03 | Health/Metrics |
-| Pushgateway | 9091 | VMI01 | Metrics aggregation |
-| Prometheus | 9090 | VMI01 | Metrics storage |
-| Grafana | 3030 | VMI01 | Visualization |
+| Agent          | Port | VM     | Purpose             |
+| -------------- | ---- | ------ | ------------------- |
+| db-optimizer   | 9100 | VMI01  | Health/Metrics      |
+| app-health     | 9101 | VMI01  | Health/Metrics      |
+| storage-mgmt   | 9200 | VMI02D | Health/Metrics      |
+| service-health | 9201 | VMI02D | Health/Metrics      |
+| network-sec    | 9300 | VMI03  | Health/Metrics      |
+| identity-mgmt  | 9301 | VMI03  | Health/Metrics      |
+| Pushgateway    | 9091 | VMI01  | Metrics aggregation |
+| Prometheus     | 9090 | VMI01  | Metrics storage     |
+| Grafana        | 3030 | VMI01  | Visualization       |
 
 ### C. Useful Commands
 

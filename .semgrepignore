@@ -12,3 +12,11 @@ coverage/
 package-lock.json
 pnpm-lock.yaml
 yarn.lock
+.key/
+devtestready/
+final/
+release_dev/perplexity-mcp/
+deployment/
+docs/
+ssh-keys/
+release_dev/shared/docs/

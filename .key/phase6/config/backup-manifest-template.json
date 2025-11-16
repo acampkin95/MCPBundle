@@ -8,21 +8,11 @@
   "duration_seconds": 0,
   "total_size_bytes": 0,
   "file_count": 0,
-  "backup_paths": [
-    "/etc",
-    "/opt/mcp",
-    "/key",
-    "/root",
-    "/home"
-  ],
+  "backup_paths": ["/etc", "/opt/mcp", "/key", "/root", "/home"],
   "databases": {
     "postgres": false,
     "redis": false,
-    "postgres_databases": [
-      "mcp_ecosystem",
-      "keycloak",
-      "nextcloud"
-    ]
+    "postgres_databases": ["mcp_ecosystem", "keycloak", "nextcloud"]
   },
   "s3_path": "s3://bucket/hostname/date",
   "compression": "zstd",

@@ -1,5 +1,5 @@
-import type { CommandRunner } from "../utils/commandRunner.js";
-import { UbuntuAdminService } from "./ubuntuAdmin.js";
+import type { CommandRunner } from '../utils/commandRunner.js';
+import { UbuntuAdminService } from './ubuntuAdmin.js';
 
 /**
  * Debian-focused administration service. Reuses the Ubuntu command runners while

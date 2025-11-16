@@ -19,6 +19,7 @@ npm install && npm run dev
 ## Documentation
 
 All documentation located in `release_dev/shared/docs/`:
+
 - `WORKFLOW_QUICKSTART.md` - Daily workflow guide
 - `FOLDER_STRUCTURE.md` - Complete structure reference
 - `TESTING.md` - Testing and performance guide

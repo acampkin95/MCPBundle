@@ -1,0 +1,59 @@
+{
+  "name": "server-mcp",
+  "version": "1.0.0",
+  "description": "On-server MCP agent for PostgreSQL, Redis, Keycloak, and NGINX management on Ubuntu infrastructure",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "server-mcp": "dist/index.js"
+  },
+  "scripts": {
+    "dev": "node --loader ts-node/esm src/index.ts",
+    "build": "tsc",
+    "build:watch": "tsc --watch",
+    "start": "node dist/index.js",
+    "lint": "eslint src --ext .ts",
+    "test": "jest",
+    "test:watch": "jest --watch"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "postgres",
+    "redis",
+    "keycloak",
+    "nginx",
+    "ubuntu",
+    "database-management",
+    "devops"
+  ],
+  "author": "Alex",
+  "license": "MIT",
+  "dependencies": {
+    "@keycloak/keycloak-admin-client": "^23.0.0",
+    "@modelcontextprotocol/sdk": "^1.20.2",
+    "better-sqlite3": "^9.4.3",
+    "express": "^5.1.0",
+    "ioredis": "^5.3.0",
+    "pg": "^8.11.0",
+    "winston": "^3.13.0",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.9",
+    "@types/express": "^5.0.5",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^20.11.19",
+    "@types/pg": "^8.11.0",
+    "@typescript-eslint/eslint-plugin": "^7.0.1",
+    "@typescript-eslint/parser": "^7.0.1",
+    "eslint": "^8.56.0",
+    "jest": "^30.2.0",
+    "ts-jest": "^29.4.5",
+    "ts-node": "^10.9.2",
+    "typescript": "5.5.4"
+  },
+  "engines": {
+    "node": ">=18.18.0"
+  }
+}

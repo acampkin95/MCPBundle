@@ -109,6 +109,7 @@ npm start
 ```
 
 That's it! The policy enforcement layer will:
+
 1. Initialize PolicyEnforcer with CommandQueue
 2. Initialize AuditLogger with SQLite database
 3. Configure tool wrappers
@@ -139,6 +140,7 @@ sqlite3 mcp_audit.db "
 ## 📊 Implementation Statistics
 
 **Code Written**: ~1,800 lines
+
 - PolicyEnforcer: 400 lines
 - AuditLogger: 500 lines
 - Policy Config: 350 lines
@@ -149,6 +151,7 @@ sqlite3 mcp_audit.db "
 - Test Script: 140 lines
 
 **Documentation Written**: ~2,400 lines
+
 - POLICY_ENFORCEMENT_GUIDE.md: 600 lines
 - POLICY_ENFORCEMENT_STATUS.md: 800 lines
 - ENABLE_POLICY_ENFORCEMENT.md: 500 lines
@@ -164,18 +167,22 @@ sqlite3 mcp_audit.db "
 ## 🔐 Security Features
 
 ### 1. Defense-in-Depth (4 Layers)
+
 ```
 HTTPS/TLS → JWT Auth → Capability Authorization → Audit Trail
 ```
 
 ### 2. Risk-Based Classification
+
 - **LOW**: Read-only operations → Execute immediately
 - **MEDIUM**: Diagnostic operations → Execute with audit log
 - **HIGH**: Privileged operations → Require approval if dangerous
 - **CRITICAL**: Destructive operations → Always require approval
 
 ### 3. Dangerous Pattern Detection
+
 Automatically flags:
+
 - `rm -rf`, `dd if=`, `mkfs`, `fdisk`
 - `systemctl stop/disable`, `kill -9`
 - `iptables -f`, `ufw delete`
@@ -184,13 +191,16 @@ Automatically flags:
 - `--force`, `--no-confirm` flags
 
 ### 4. Approval Workflow
+
 - HIGH/CRITICAL operations submitted to approval queue
 - Unique job ID for tracking
 - Human administrator reviews and approves/denies
 - All steps logged to immutable audit trail
 
 ### 5. Audit Trail
+
 Every tool invocation logged with:
+
 - Who (callerId from JWT)
 - What (tool + operation + args)
 - When (timestamp)
@@ -231,6 +241,7 @@ Every tool invocation logged with:
 ## 🎯 Key Commands
 
 ### Build & Run
+
 ```bash
 # Build the project
 npm run build
@@ -243,6 +254,7 @@ npm start
 ```
 
 ### Database Operations
+
 ```bash
 # View audit logs
 sqlite3 mcp_audit.db "SELECT * FROM audit_logs ORDER BY timestamp DESC LIMIT 10;"
@@ -276,6 +288,7 @@ sqlite3 mcp_audit.db "
 ```
 
 ### Monitoring
+
 ```bash
 # Watch audit log in real-time
 watch -n 2 "sqlite3 mcp_audit.db 'SELECT COUNT(*) FROM audit_logs;'"
@@ -306,6 +319,7 @@ sqlite3 mcp_command_queue.db "
 ## 🧪 Testing Scenarios
 
 ### Scenario 1: LOW Risk Operation (Allowed)
+
 ```bash
 # Tool: system-overview
 # Risk: LOW
@@ -314,6 +328,7 @@ sqlite3 mcp_command_queue.db "
 ```
 
 ### Scenario 2: HIGH Risk with Missing Capabilities (Denied)
+
 ```bash
 # Tool: ubuntu-admin (service restart)
 # Risk: HIGH
@@ -323,6 +338,7 @@ sqlite3 mcp_command_queue.db "
 ```
 
 ### Scenario 3: CRITICAL Risk (Requires Approval)
+
 ```bash
 # Tool: ssh-exec
 # Command: "sudo systemctl restart postgresql"
@@ -332,6 +348,7 @@ sqlite3 mcp_command_queue.db "
 ```
 
 ### Scenario 4: Dangerous Pattern Detected
+
 ```bash
 # Tool: ssh-exec
 # Command: "rm -rf /tmp/old-data"
@@ -364,6 +381,7 @@ sqlite3 mcp_command_queue.db "
 ## ⏭️ Next Steps
 
 ### Immediate (This Week)
+
 - [x] Core implementation complete
 - [x] Integration complete
 - [x] Documentation complete
@@ -373,6 +391,7 @@ sqlite3 mcp_command_queue.db "
 - [ ] Monitor audit logs
 
 ### Short-term (This Month)
+
 - [ ] Create Keycloak `mcp-agents` realm
 - [ ] Configure roles and capabilities mapping
 - [ ] Implement JWT extraction in `wrapWithPolicy()`
@@ -380,6 +399,7 @@ sqlite3 mcp_command_queue.db "
 - [ ] Set up monitoring dashboards (Grafana)
 
 ### Long-term (Next Quarter)
+
 - [ ] Wrap remaining MEDIUM-risk tools
 - [ ] Implement approval time windows
 - [ ] Add side effect tracking
@@ -454,14 +474,17 @@ sqlite3 mcp_command_queue.db "
 ## 🔗 Related Resources
 
 **Deployment Documentation**:
+
 - `/tmp/IT-MCP-DEPLOYMENT.md` - Server deployment on acdev.host
 - `/Users/alex/Projects/IT-MCP/INTEGRATION_READINESS.md` - Integration status
 
 **API Documentation**:
+
 - IT-MCP API running on `http://acdev.host:3001`
 - Endpoints: `/health`, `/api/v1/servers/register`, `/api/v1/commands/*`
 
 **Keycloak**:
+
 - URL: `https://acdev.host:8080`
 - Realm: `mcp-agents` (to be created)
 - Client: `it-mcp-server` (to be configured)
@@ -475,6 +498,7 @@ sqlite3 mcp_command_queue.db "
 **Repository**: `/Users/alex/Projects/IT-MCP`
 
 For questions about:
+
 - **Policy configuration**: See `src/config/policies.ts`
 - **Tool wrapping**: See `src/tools/registerTools.ts:348`
 - **Audit queries**: See `ENABLE_POLICY_ENFORCEMENT.md`
@@ -496,4 +520,3 @@ For questions about:
 ---
 
 **Status**: ✅ **PRODUCTION READY** - Enable and deploy!
-

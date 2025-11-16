@@ -2,9 +2,9 @@
  * Policy and authorization types for IT-MCP
  */
 
-export type RiskLevel = "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
+export type RiskLevel = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
 
-export type PolicyAction = "allow" | "deny" | "require_approval";
+export type PolicyAction = 'allow' | 'deny' | 'require_approval';
 
 /**
  * Context for authorization decisions
@@ -59,7 +59,7 @@ export interface AuditLogEntry {
   readonly context: AuthorizationContext;
   readonly decision: PolicyDecision;
   readonly execution?: {
-    readonly status: "success" | "failure" | "timeout";
+    readonly status: 'success' | 'failure' | 'timeout';
     readonly duration_ms: number;
     readonly sideEffects: readonly string[];
     readonly error?: string;

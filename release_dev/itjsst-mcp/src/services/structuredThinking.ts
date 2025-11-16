@@ -1,15 +1,15 @@
-import { mkdir, writeFile, access } from "node:fs/promises";
-import { constants } from "node:fs";
-import { homedir } from "node:os";
-import { dirname, extname, isAbsolute, join, resolve } from "node:path";
-import { SQLitePlannerService } from "./sqlitePlanner.js";
+import { mkdir, writeFile, access } from 'node:fs/promises';
+import { constants } from 'node:fs';
+import { homedir } from 'node:os';
+import { dirname, extname, isAbsolute, join, resolve } from 'node:path';
+import { SQLitePlannerService } from './sqlitePlanner.js';
 
 export type CognitiveStage =
-  | "problem_definition"
-  | "research"
-  | "analysis"
-  | "synthesis"
-  | "conclusion";
+  | 'problem_definition'
+  | 'research'
+  | 'analysis'
+  | 'synthesis'
+  | 'conclusion';
 
 export interface StageDescriptor {
   readonly id: CognitiveStage | string;
@@ -27,8 +27,8 @@ export interface FrameworkOptions {
 export interface ThoughtMetadata {
   readonly source?: string;
   readonly tags?: readonly string[];
-  readonly importance?: "low" | "medium" | "high";
-  readonly references?: readonly string[];
+  readonly importance?: 'low' | 'medium' | 'high';
+  readonly external_refs?: readonly string[];
   readonly thoughtNumber?: number;
   readonly totalThoughts?: number;
   readonly nextThoughtNeeded?: boolean;
@@ -94,13 +94,13 @@ export interface DiagnosticsOptions {
 }
 
 export interface StructuredReportOptions extends DiagnosticsOptions {
-  readonly format: "markdown" | "json";
+  readonly format: 'markdown' | 'json';
   readonly includeTimeline?: boolean;
   readonly maxEntries?: number;
 }
 
 export interface StructuredReport {
-  readonly format: "markdown" | "json";
+  readonly format: 'markdown' | 'json';
   readonly content: string;
   readonly diagnostics: StructuredDiagnostics;
   readonly summary: ThoughtTrackingResult;
@@ -109,7 +109,7 @@ export interface StructuredReport {
 
 export interface RelatedThoughtGroup {
   readonly tag?: string;
-  readonly importance?: ThoughtMetadata["importance"];
+  readonly importance?: ThoughtMetadata['importance'];
   readonly stage?: string;
   readonly thoughts: ThoughtRecord[];
 }
@@ -122,94 +122,94 @@ export interface ProgressSnapshot {
 }
 
 export interface ExportOptions {
-  readonly format: "json" | "jsonb" | "markdown" | "claude" | "agents";
+  readonly format: 'json' | 'jsonb' | 'markdown' | 'claude' | 'agents';
   readonly includeMetadata?: boolean;
 }
 
 export interface ImportPayload {
-  readonly format: ExportOptions["format"];
+  readonly format: ExportOptions['format'];
   readonly content: string;
 }
 
 const DEFAULT_STAGES: StageDescriptor[] = [
   {
-    id: "problem_definition",
-    title: "Problem Definition",
+    id: 'problem_definition',
+    title: 'Problem Definition',
     description:
-      "Clarify the goal, constraints, stakeholders, and success criteria. Capture any assumptions and unknowns.",
+      'Clarify the goal, constraints, stakeholders, and success criteria. Capture any assumptions and unknowns.',
     guidingQuestions: [
-      "What outcome am I trying to achieve?",
-      "What constraints or requirements exist?",
-      "Who is affected by the problem or solution?",
+      'What outcome am I trying to achieve?',
+      'What constraints or requirements exist?',
+      'Who is affected by the problem or solution?',
     ],
     exampleActivities: [
-      "State problem in own words",
-      "List must-haves vs nice-to-haves",
-      "Capture known risks or blockers",
+      'State problem in own words',
+      'List must-haves vs nice-to-haves',
+      'Capture known risks or blockers',
     ],
   },
   {
-    id: "research",
-    title: "Research",
+    id: 'research',
+    title: 'Research',
     description:
-      "Gather data, context, and precedents. Differentiate between facts, interpretations, and open questions.",
+      'Gather data, context, and precedents. Differentiate between facts, interpretations, and open questions.',
     guidingQuestions: [
-      "What information do I already have?",
-      "What sources should I consult?",
-      "What gaps still remain?",
+      'What information do I already have?',
+      'What sources should I consult?',
+      'What gaps still remain?',
     ],
     exampleActivities: [
-      "Review documentation or specs",
-      "Check analytics or logs",
-      "Consult subject matter experts",
+      'Review documentation or specs',
+      'Check analytics or logs',
+      'Consult subject matter experts',
     ],
   },
   {
-    id: "analysis",
-    title: "Analysis",
+    id: 'analysis',
+    title: 'Analysis',
     description:
-      "Process the collected information, identify patterns, root causes, opportunities, and trade-offs.",
+      'Process the collected information, identify patterns, root causes, opportunities, and trade-offs.',
     guidingQuestions: [
-      "What patterns or trends emerge?",
-      "What frameworks or models help explain the data?",
-      "What are the key risks, trade-offs, or dependencies?",
+      'What patterns or trends emerge?',
+      'What frameworks or models help explain the data?',
+      'What are the key risks, trade-offs, or dependencies?',
     ],
     exampleActivities: [
-      "Create cause/effect chains",
-      "Run what-if scenarios",
-      "Compare alternative approaches",
+      'Create cause/effect chains',
+      'Run what-if scenarios',
+      'Compare alternative approaches',
     ],
   },
   {
-    id: "synthesis",
-    title: "Synthesis",
+    id: 'synthesis',
+    title: 'Synthesis',
     description:
-      "Combine insights into actionable strategies or hypotheses. Identify experiments, solutions, or next steps.",
+      'Combine insights into actionable strategies or hypotheses. Identify experiments, solutions, or next steps.',
     guidingQuestions: [
-      "What solution paths appear viable?",
-      "How do we validate or de-risk the approach?",
-      "What is the recommended plan of action?",
+      'What solution paths appear viable?',
+      'How do we validate or de-risk the approach?',
+      'What is the recommended plan of action?',
     ],
     exampleActivities: [
-      "Outline decision options",
-      "Draft implementation plan",
-      "Define success metrics",
+      'Outline decision options',
+      'Draft implementation plan',
+      'Define success metrics',
     ],
   },
   {
-    id: "conclusion",
-    title: "Conclusion",
+    id: 'conclusion',
+    title: 'Conclusion',
     description:
-      "Summarise findings, decisions, and next actions. Capture outstanding questions and follow-ups.",
+      'Summarise findings, decisions, and next actions. Capture outstanding questions and follow-ups.',
     guidingQuestions: [
-      "What did we learn?",
-      "What decisions were made?",
-      "What are the immediate next steps?",
+      'What did we learn?',
+      'What decisions were made?',
+      'What are the immediate next steps?',
     ],
     exampleActivities: [
-      "Document final recommendations",
-      "Assign owners for follow-up tasks",
-      "Schedule reviews or retrospectives",
+      'Document final recommendations',
+      'Assign owners for follow-up tasks',
+      'Schedule reviews or retrospectives',
     ],
   },
 ];
@@ -242,9 +242,11 @@ export class StructuredThinkingService {
 
     const timeline: ThoughtRecord[] = existing.slice();
     entries.forEach((entry, index) => {
-      const order = autoNumbering ? nextOrder + index + 1 : entry.metadata?.thoughtNumber ?? nextOrder + index + 1;
+      const order = autoNumbering
+        ? nextOrder + index + 1
+        : (entry.metadata?.thoughtNumber ?? nextOrder + index + 1);
       const record: ThoughtRecord = {
-        id: `T${String(order).padStart(3, "0")}`,
+        id: `T${String(order).padStart(3, '0')}`,
         stage: entry.stage,
         order,
         thought: entry.thought.trim(),
@@ -298,13 +300,20 @@ export class StructuredThinkingService {
     return Promise.resolve();
   }
 
-  public appendThoughtRecord(record: ThoughtRecord, storagePath?: string): Promise<ThoughtRecord[]> {
+  public appendThoughtRecord(
+    record: ThoughtRecord,
+    storagePath?: string
+  ): Promise<ThoughtRecord[]> {
     const planner = this.getPlanner(storagePath);
     planner.appendThought(record);
     return this.loadStoredTimeline(storagePath);
   }
 
-  public async exportToFile(records: ThoughtTrackingResult, options: ExportOptions, destinationPath: string): Promise<string> {
+  public async exportToFile(
+    records: ThoughtTrackingResult,
+    options: ExportOptions,
+    destinationPath: string
+  ): Promise<string> {
     const contents = this.exportThoughts(records, options);
     const dir = dirname(destinationPath);
 
@@ -315,16 +324,16 @@ export class StructuredThinkingService {
       await mkdir(dir, { recursive: true });
     }
 
-    await writeFile(destinationPath, contents, "utf8");
+    await writeFile(destinationPath, contents, 'utf8');
     return contents;
   }
 
   public exportThoughts(records: ThoughtTrackingResult, options: ExportOptions): string {
     const includeMetadata = options.includeMetadata !== false;
     switch (options.format) {
-      case "json":
+      case 'json':
         return JSON.stringify(includeMetadata ? records : { timeline: records.timeline }, null, 2);
-      case "jsonb":
+      case 'jsonb':
         return JSON.stringify(
           {
             timeline: records.timeline,
@@ -339,14 +348,14 @@ export class StructuredThinkingService {
               : undefined,
           },
           null,
-          2,
+          2
         );
-      case "markdown":
-        return this.toMarkdown(records, "Standard");
-      case "claude":
-        return this.toMarkdown(records, "Claude");
-      case "agents":
-        return this.toMarkdown(records, "Agents");
+      case 'markdown':
+        return this.toMarkdown(records, 'Standard');
+      case 'claude':
+        return this.toMarkdown(records, 'Claude');
+      case 'agents':
+        return this.toMarkdown(records, 'Agents');
       default:
         throw new Error(`Unsupported export format: ${options.format}`);
     }
@@ -354,29 +363,32 @@ export class StructuredThinkingService {
 
   public importThoughts(payload: ImportPayload): ThoughtTrackingResult {
     switch (payload.format) {
-      case "json": {
+      case 'json': {
         const data = JSON.parse(payload.content);
         if (Array.isArray(data?.timeline)) {
           return this.summarizeTimeline(this.normaliseTimeline(data.timeline as ThoughtRecord[]));
         }
         return data as ThoughtTrackingResult;
       }
-      case "jsonb": {
+      case 'jsonb': {
         const data = JSON.parse(payload.content) as {
           timeline: ThoughtRecord[];
         };
         return this.summarizeTimeline(this.normaliseTimeline(data.timeline));
       }
-      case "markdown":
-      case "claude":
-      case "agents":
+      case 'markdown':
+      case 'claude':
+      case 'agents':
         return this.parseMarkdownTimeline(payload.content);
       default:
         throw new Error(`Unsupported import format: ${payload.format}`);
     }
   }
 
-  public diagnoseTimeline(timeline: ThoughtRecord[], options: DiagnosticsOptions = {}): StructuredDiagnostics {
+  public diagnoseTimeline(
+    timeline: ThoughtRecord[],
+    options: DiagnosticsOptions = {}
+  ): StructuredDiagnostics {
     const normalised = this.normaliseTimeline(timeline);
     const stageCoverage: Record<string, number> = {};
     const tagCloud: Record<string, number> = {};
@@ -399,11 +411,11 @@ export class StructuredThinkingService {
         staleEntries.push(record);
       }
 
-      if (record.metadata?.importance === "high" && record.metadata?.nextThoughtNeeded !== false) {
+      if (record.metadata?.importance === 'high' && record.metadata?.nextThoughtNeeded !== false) {
         highImportancePending.push(record);
       }
 
-      const source = record.metadata?.source ?? "unspecified";
+      const source = record.metadata?.source ?? 'unspecified';
       if (!sourceMap.has(source)) {
         sourceMap.set(source, {
           count: 0,
@@ -431,13 +443,15 @@ export class StructuredThinkingService {
     const frameworkStages = this.getFramework().map((stage) => stage.id);
     const missingStages = frameworkStages.filter((stage) => !stageCoverage[stage]);
 
-    const sourceSummaries: SourceSummary[] = Array.from(sourceMap.entries()).map(([source, info]) => ({
-      source,
-      count: info.count,
-      stages: Array.from(info.stages.values()),
-      tags: Array.from(info.tags.values()),
-      lastRecorded: info.lastRecorded,
-    }));
+    const sourceSummaries: SourceSummary[] = Array.from(sourceMap.entries()).map(
+      ([source, info]) => ({
+        source,
+        count: info.count,
+        stages: Array.from(info.stages.values()),
+        tags: Array.from(info.tags.values()),
+        lastRecorded: info.lastRecorded,
+      })
+    );
 
     const lastUpdated = normalised.length ? normalised[normalised.length - 1].timestamp : null;
 
@@ -453,7 +467,10 @@ export class StructuredThinkingService {
     };
   }
 
-  public generateReport(timeline: ThoughtRecord[], options: StructuredReportOptions): StructuredReport {
+  public generateReport(
+    timeline: ThoughtRecord[],
+    options: StructuredReportOptions
+  ): StructuredReport {
     const normalised = this.normaliseTimeline(timeline);
     const diagnostics = this.diagnoseTimeline(normalised, options);
     const summary = this.summarizeTimeline(normalised);
@@ -463,7 +480,7 @@ export class StructuredThinkingService {
     const subset = includeTimeline ? normalised.slice(-maxEntries) : undefined;
     const generatedAt = new Date().toISOString();
 
-    if (options.format === "json") {
+    if (options.format === 'json') {
       const jsonPayload = {
         generatedAt,
         diagnostics,
@@ -477,7 +494,7 @@ export class StructuredThinkingService {
         timeline: subset,
       };
       return {
-        format: "json",
+        format: 'json',
         content: JSON.stringify(jsonPayload, null, 2),
         diagnostics,
         summary,
@@ -488,52 +505,56 @@ export class StructuredThinkingService {
     const lines: string[] = [];
     lines.push(`# Structured Thinking Report`);
     lines.push(`Generated: ${generatedAt}`);
-    lines.push("\n## Summary");
+    lines.push('\n## Summary');
     lines.push(`- Total thoughts: ${summary.timeline.length}`);
-    lines.push(`- Progress: ${summary.progress.completed}/${summary.progress.total} (${summary.progress.percentage}%)`);
+    lines.push(
+      `- Progress: ${summary.progress.completed}/${summary.progress.total} (${summary.progress.percentage}%)`
+    );
     if (diagnostics.lastUpdated) {
       lines.push(`- Last updated: ${diagnostics.lastUpdated}`);
     }
 
-    lines.push("\n## Stage coverage");
+    lines.push('\n## Stage coverage');
     for (const [stage, count] of Object.entries(diagnostics.stageCoverage)) {
       lines.push(`- ${stage}: ${count}`);
     }
     if (diagnostics.missingStages.length) {
-      lines.push("\n## Missing stages");
+      lines.push('\n## Missing stages');
       diagnostics.missingStages.forEach((stage) => lines.push(`- ${stage}`));
     }
 
     if (diagnostics.highImportancePending.length) {
-      lines.push("\n## High-importance thoughts needing follow-up");
+      lines.push('\n## High-importance thoughts needing follow-up');
       diagnostics.highImportancePending.forEach((record) =>
-        lines.push(`- ${record.id} [${record.stage}] ${record.thought}`),
+        lines.push(`- ${record.id} [${record.stage}] ${record.thought}`)
       );
     }
 
     if (diagnostics.sourceSummaries.length) {
-      lines.push("\n## Source summaries");
+      lines.push('\n## Source summaries');
       diagnostics.sourceSummaries.forEach((summaryItem) => {
-        lines.push(`- ${summaryItem.source}: ${summaryItem.count} entries (last: ${summaryItem.lastRecorded})`);
+        lines.push(
+          `- ${summaryItem.source}: ${summaryItem.count} entries (last: ${summaryItem.lastRecorded})`
+        );
         if (summaryItem.stages.length) {
-          lines.push(`  * Stages: ${summaryItem.stages.join(", ")}`);
+          lines.push(`  * Stages: ${summaryItem.stages.join(', ')}`);
         }
         if (summaryItem.tags.length) {
-          lines.push(`  * Tags: ${summaryItem.tags.join(", ")}`);
+          lines.push(`  * Tags: ${summaryItem.tags.join(', ')}`);
         }
       });
     }
 
     if (subset) {
-      lines.push("\n## Recent timeline");
+      lines.push('\n## Recent timeline');
       subset.forEach((record) => {
         lines.push(`- ${record.id} [${record.stage}] ${record.thought}`);
       });
     }
 
     return {
-      format: "markdown",
-      content: lines.join("\n"),
+      format: 'markdown',
+      content: lines.join('\n'),
       diagnostics,
       summary,
       timeline: subset,
@@ -551,7 +572,7 @@ export class StructuredThinkingService {
       })
       .map((record, index) => ({
         ...record,
-        id: `T${String(index + 1).padStart(3, "0")}`,
+        id: `T${String(index + 1).padStart(3, '0')}`,
         order: index + 1,
         metadata: record.metadata
           ? {
@@ -607,18 +628,27 @@ export class StructuredThinkingService {
   private computeProgress(timeline: ThoughtRecord[]): ProgressSnapshot {
     const totalFromMetadata = timeline.reduce(
       (max, record) => Math.max(max, record.metadata?.totalThoughts ?? 0),
-      0,
+      0
     );
     const total = totalFromMetadata > 0 ? totalFromMetadata : timeline.length;
 
     const completedByNumber = timeline.reduce(
       (max, record) => Math.max(max, record.metadata?.thoughtNumber ?? 0),
-      0,
+      0
     );
-    const completedByFlag = timeline.filter((record) => record.metadata?.nextThoughtNeeded === false).length;
-    const completedByImportance = timeline.filter((record) => record.metadata?.importance === "high").length;
+    const completedByFlag = timeline.filter(
+      (record) => record.metadata?.nextThoughtNeeded === false
+    ).length;
+    const completedByImportance = timeline.filter(
+      (record) => record.metadata?.importance === 'high'
+    ).length;
 
-    const candidateCompleted = Math.max(completedByNumber, completedByFlag, completedByImportance, 0);
+    const candidateCompleted = Math.max(
+      completedByNumber,
+      completedByFlag,
+      completedByImportance,
+      0
+    );
     const boundedCompleted = total > 0 ? Math.min(candidateCompleted, total) : candidateCompleted;
     const remaining = Math.max(total - boundedCompleted, 0);
     const percentage = total === 0 ? 0 : Math.round((boundedCompleted / total) * 100);
@@ -674,7 +704,7 @@ export class StructuredThinkingService {
         byBranch.get(branch)?.push(record);
       }
 
-      if (typeof record.metadata?.revisesThought === "number") {
+      if (typeof record.metadata?.revisesThought === 'number') {
         const target = record.metadata.revisesThought;
         if (!byRevision.has(target)) {
           byRevision.set(target, []);
@@ -697,7 +727,7 @@ export class StructuredThinkingService {
 
     for (const [importance, records] of byImportance.entries()) {
       if (records.length > 1) {
-        groups.push({ importance: importance as ThoughtMetadata["importance"], thoughts: records });
+        groups.push({ importance: importance as ThoughtMetadata['importance'], thoughts: records });
       }
     }
 
@@ -720,7 +750,7 @@ export class StructuredThinkingService {
     timeline: ThoughtRecord[],
     stageTally: Record<string, number>,
     tags: Record<string, number>,
-    importanceBreakdown: Record<string, number>,
+    importanceBreakdown: Record<string, number>
   ): string {
     const progress = this.computeProgress(timeline);
 
@@ -755,23 +785,26 @@ export class StructuredThinkingService {
       lines.push(`- ${record.id} [${record.stage}] ${record.thought}`);
     }
 
-    return lines.join("\n");
+    return lines.join('\n');
   }
 
-  private toMarkdown(records: ThoughtTrackingResult, style: "Standard" | "Claude" | "Agents"): string {
+  private toMarkdown(
+    records: ThoughtTrackingResult,
+    style: 'Standard' | 'Claude' | 'Agents'
+  ): string {
     const lines: string[] = [];
     lines.push(`# Thought Timeline (${style})`);
     for (const record of records.timeline) {
       lines.push(
         `- **${record.id}** [${record.stage}] ${record.thought}` +
-          (record.metadata?.tags?.length ? ` _(tags: ${record.metadata.tags.join(", ")})_` : ""),
+          (record.metadata?.tags?.length ? ` _(tags: ${record.metadata.tags.join(', ')})_` : '')
       );
     }
 
-    lines.push("\n## Summary");
+    lines.push('\n## Summary');
     lines.push(records.summary);
 
-    return lines.join("\n");
+    return lines.join('\n');
   }
 
   private parseMarkdownTimeline(content: string): ThoughtTrackingResult {
@@ -780,17 +813,18 @@ export class StructuredThinkingService {
     const tags: Record<string, number> = {};
     const importanceBreakdown: Record<string, number> = {};
 
-    const timelineRegex = /^- \*\*(?<id>[^*]+)\*\* \[(?<stage>[^\]]+)\] (?<thought>[^_]+)(?: _\(tags: (?<tags>[^)]+)\)_)?$/gm;
+    const timelineRegex =
+      /^- \*\*(?<id>[^*]+)\*\* \[(?<stage>[^\]]+)\] (?<thought>[^_]+)(?: _\(tags: (?<tags>[^)]+)\)_)?$/gm;
     let index = 0;
     let match: RegExpExecArray | null;
     while ((match = timelineRegex.exec(content)) !== null) {
       index += 1;
-      const stage = match.groups?.stage ?? "planning";
+      const stage = match.groups?.stage ?? 'planning';
       const record: ThoughtRecord = {
-        id: match.groups?.id?.trim() ?? `T${String(index).padStart(3, "0")}`,
+        id: match.groups?.id?.trim() ?? `T${String(index).padStart(3, '0')}`,
         stage,
         order: index,
-        thought: match.groups?.thought?.trim() ?? "",
+        thought: match.groups?.thought?.trim() ?? '',
         timestamp: new Date().toISOString(),
         metadata: match.groups?.tags
           ? {
@@ -850,12 +884,12 @@ export class StructuredThinkingService {
     const expanded = trimmed.replace(/^~(?=$|[\\/])/, homedir());
     const absolute = isAbsolute(expanded) ? expanded : resolve(process.cwd(), expanded);
 
-    if (absolute.endsWith("/") || absolute.endsWith("\\")) {
-      return join(absolute, "mcp_plan.db");
+    if (absolute.endsWith('/') || absolute.endsWith('\\')) {
+      return join(absolute, 'mcp_plan.db');
     }
 
     if (!extname(absolute)) {
-      return join(absolute, "mcp_plan.db");
+      return join(absolute, 'mcp_plan.db');
     }
 
     return absolute;

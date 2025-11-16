@@ -1,0 +1,27 @@
+[Unit]
+Description=MCP Admin Panel - Next.js Dashboard
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=mcp-agent
+Group=mcp-agent
+WorkingDirectory=/opt/admin-panel
+Environment="NODE_ENV=production"
+EnvironmentFile=-/opt/admin-panel/admin-panel.env
+ExecStart=/usr/bin/npm run start
+Restart=always
+RestartSec=5
+StartLimitInterval=200
+StartLimitBurst=10
+
+# Hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/admin-panel
+
+[Install]
+WantedBy=multi-user.target

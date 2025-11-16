@@ -5,14 +5,10 @@
  * Provides structured JSON logging with Winston integration and SQLite persistence.
  */
 
-import Database from "better-sqlite3";
-import { join } from "node:path";
-import { logger } from "./logger.js";
-import type {
-  AuthorizationContext,
-  PolicyDecision,
-  AuditLogEntry,
-} from "../types/policy.js";
+import Database from 'better-sqlite3';
+import { join } from 'node:path';
+import { logger } from './logger.js';
+import type { AuthorizationContext, PolicyDecision, AuditLogEntry } from '../types/policy.js';
 
 /**
  * Audit logger with dual persistence (Winston + SQLite)
@@ -50,10 +46,10 @@ export class AuditLogger {
   private readonly db: Database.Database;
   private readonly dbPath: string;
 
-  constructor(dbPath: string = join(process.cwd(), "mcp_audit.db")) {
+  constructor(dbPath: string = join(process.cwd(), 'mcp_audit.db')) {
     this.dbPath = dbPath;
     this.db = new Database(dbPath);
-    this.db.pragma("journal_mode = WAL");
+    this.db.pragma('journal_mode = WAL');
     this.initialize();
   }
 
@@ -87,7 +83,7 @@ export class AuditLogger {
     `;
 
     this.db.exec(schema);
-    logger.info("AuditLogger initialized", { dbPath: this.dbPath });
+    logger.info('AuditLogger initialized', { dbPath: this.dbPath });
   }
 
   /**
@@ -96,10 +92,7 @@ export class AuditLogger {
    * @param context Authorization context (who, what, when)
    * @param decision Policy decision (allow/deny/require_approval)
    */
-  logDecision(
-    context: AuthorizationContext,
-    decision: PolicyDecision
-  ): AuditLogEntry {
+  logDecision(context: AuthorizationContext, decision: PolicyDecision): AuditLogEntry {
     const entry: AuditLogEntry = {
       id: crypto.randomUUID(),
       timestamp: new Date().toISOString(),
@@ -135,7 +128,7 @@ export class AuditLogger {
     });
 
     // Also log to Winston for SIEM integration
-    logger.info("Authorization decision", {
+    logger.info('Authorization decision', {
       auditId: entry.id,
       callerId: context.callerId,
       tool: context.tool,
@@ -159,7 +152,7 @@ export class AuditLogger {
    */
   logExecution(
     auditId: string,
-    status: "success" | "failure" | "timeout",
+    status: 'success' | 'failure' | 'timeout',
     durationMs: number,
     sideEffects: readonly string[],
     error?: string
@@ -173,15 +166,9 @@ export class AuditLogger {
       WHERE id = ?
     `);
 
-    stmt.run(
-      status,
-      durationMs,
-      JSON.stringify(sideEffects),
-      error ?? null,
-      auditId
-    );
+    stmt.run(status, durationMs, JSON.stringify(sideEffects), error ?? null, auditId);
 
-    logger.info("Execution result", {
+    logger.info('Execution result', {
       auditId,
       status,
       durationMs,
@@ -207,7 +194,7 @@ export class AuditLogger {
 
     stmt.run(approvedBy, new Date().toISOString(), auditId);
 
-    logger.info("Approval decision", {
+    logger.info('Approval decision', {
       auditId,
       approvedBy,
       approved,
@@ -230,48 +217,48 @@ export class AuditLogger {
     endDate?: string;
     limit?: number;
   }): AuditLogEntry[] {
-    let sql = "SELECT * FROM audit_logs WHERE 1=1";
+    let sql = 'SELECT * FROM audit_logs WHERE 1=1';
     const params: Record<string, string | number> = {};
 
     if (filters.callerId) {
-      sql += " AND caller_id = @callerId";
+      sql += ' AND caller_id = @callerId';
       params.callerId = filters.callerId;
     }
 
     if (filters.tool) {
-      sql += " AND tool = @tool";
+      sql += ' AND tool = @tool';
       params.tool = filters.tool;
     }
 
     if (filters.operation) {
-      sql += " AND operation = @operation";
+      sql += ' AND operation = @operation';
       params.operation = filters.operation;
     }
 
     if (filters.riskLevel) {
-      sql += " AND risk_level = @riskLevel";
+      sql += ' AND risk_level = @riskLevel';
       params.riskLevel = filters.riskLevel;
     }
 
     if (filters.requiresApproval !== undefined) {
-      sql += " AND requires_approval = @requiresApproval";
+      sql += ' AND requires_approval = @requiresApproval';
       params.requiresApproval = filters.requiresApproval ? 1 : 0;
     }
 
     if (filters.startDate) {
-      sql += " AND timestamp >= @startDate";
+      sql += ' AND timestamp >= @startDate';
       params.startDate = filters.startDate;
     }
 
     if (filters.endDate) {
-      sql += " AND timestamp <= @endDate";
+      sql += ' AND timestamp <= @endDate';
       params.endDate = filters.endDate;
     }
 
-    sql += " ORDER BY timestamp DESC";
+    sql += ' ORDER BY timestamp DESC';
 
     if (filters.limit) {
-      sql += " LIMIT @limit";
+      sql += ' LIMIT @limit';
       params.limit = filters.limit;
     }
 
@@ -378,13 +365,13 @@ export class AuditLogger {
     for (const row of decisionsRows) {
       stats.totalDecisions += row.count;
       switch (row.decision_action) {
-        case "allow":
+        case 'allow':
           stats.totalAllowed = row.count;
           break;
-        case "deny":
+        case 'deny':
           stats.totalDenied = row.count;
           break;
-        case "require_approval":
+        case 'require_approval':
           stats.totalApprovalRequired = row.count;
           break;
       }
@@ -393,11 +380,11 @@ export class AuditLogger {
     for (const row of executionsRows) {
       stats.totalExecutions += row.count;
       switch (row.execution_status) {
-        case "success":
+        case 'success':
           stats.totalSuccesses = row.count;
           break;
-        case "failure":
-        case "timeout":
+        case 'failure':
+        case 'timeout':
           stats.totalFailures += row.count;
           break;
       }
@@ -430,7 +417,7 @@ export class AuditLogger {
     `);
 
     const result = stmt.run(cutoffDate.toISOString());
-    logger.info("Purged old audit logs", {
+    logger.info('Purged old audit logs', {
       deleted: result.changes,
       daysOld,
     });
@@ -467,7 +454,7 @@ export class AuditLogger {
       return {
         ...baseEntry,
         execution: {
-          status: row.execution_status as "success" | "failure" | "timeout",
+          status: row.execution_status as 'success' | 'failure' | 'timeout',
           duration_ms: row.execution_duration_ms ?? 0,
           sideEffects: row.side_effects ? JSON.parse(row.side_effects) : [],
           error: row.error ?? undefined,
@@ -493,7 +480,7 @@ export class AuditLogger {
    */
   close(): void {
     this.db.close();
-    logger.info("AuditLogger closed");
+    logger.info('AuditLogger closed');
   }
 }
 
@@ -502,18 +489,14 @@ export class AuditLogger {
  */
 let auditLoggerInstance: AuditLogger | null = null;
 
-export function initializeAuditLogger(
-  dbPath?: string
-): AuditLogger {
+export function initializeAuditLogger(dbPath?: string): AuditLogger {
   auditLoggerInstance = new AuditLogger(dbPath);
   return auditLoggerInstance;
 }
 
 export function getAuditLogger(): AuditLogger {
   if (!auditLoggerInstance) {
-    throw new Error(
-      "AuditLogger not initialized. Call initializeAuditLogger() first."
-    );
+    throw new Error('AuditLogger not initialized. Call initializeAuditLogger() first.');
   }
   return auditLoggerInstance;
 }
@@ -522,14 +505,19 @@ export function getAuditLogger(): AuditLogger {
  * Helper function for direct audit logging (without AuditLogger instance)
  * Used by PolicyEnforcer when initialized with auditLogger callback
  */
-export function createAuditLogCallback(auditLogger: AuditLogger): (entry: Record<string, unknown>) => void {
+export function createAuditLogCallback(
+  auditLogger: AuditLogger
+): (entry: Record<string, unknown>) => void {
   return (entry: Record<string, unknown>) => {
     // Log structured event to Winston
     logger.info(`Audit: ${entry.type}`, entry);
 
     // If this is a decision event, also persist to SQLite
-    if (entry.type === "approval_requested" && entry.context && entry.decision) {
-      auditLogger.logDecision(entry.context as AuthorizationContext, entry.decision as PolicyDecision);
+    if (entry.type === 'approval_requested' && entry.context && entry.decision) {
+      auditLogger.logDecision(
+        entry.context as AuthorizationContext,
+        entry.decision as PolicyDecision
+      );
     }
   };
 }

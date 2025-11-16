@@ -45,21 +45,12 @@
     "isolatedModules": true,
 
     /* Type Roots */
-    "types": ["node", "vitest/globals"],
+    "types": ["node"],
     "typeRoots": ["./node_modules/@types"],
 
     /* Skip Lib Check for Performance */
     "skipLibCheck": true
   },
-  "include": [
-    "src/**/*",
-    "tests/**/*"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist",
-    "coverage",
-    "**/*.spec.ts",
-    "**/*.test.ts"
-  ]
+  "include": ["src/**/*", "tests/**/*"],
+  "exclude": ["node_modules", "dist", "coverage", "**/*.spec.ts", "**/*.test.ts"]
 }

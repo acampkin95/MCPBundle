@@ -15,16 +15,19 @@ Located in `/Users/alex/Projects/MCP Bundle/deployment/wireguard/configs/`:
 ### macOS
 
 1. **Install WireGuard**:
+
    ```bash
    brew install wireguard-tools
    ```
 
 2. **Copy configuration**:
+
    ```bash
    sudo cp client-root.conf /usr/local/etc/wireguard/
    ```
 
 3. **Connect**:
+
    ```bash
    sudo wg-quick up client-root
    ```
@@ -37,16 +40,19 @@ Located in `/Users/alex/Projects/MCP Bundle/deployment/wireguard/configs/`:
 ### Linux
 
 1. **Install WireGuard**:
+
    ```bash
    sudo apt install wireguard
    ```
 
 2. **Copy configuration**:
+
    ```bash
    sudo cp client-root.conf /etc/wireguard/
    ```
 
 3. **Connect**:
+
    ```bash
    sudo wg-quick up client-root
    ```
@@ -65,37 +71,40 @@ Located in `/Users/alex/Projects/MCP Bundle/deployment/wireguard/configs/`:
 ## Network Access by Tunnel
 
 ### ROOT Tunnel (client-root.conf)
+
 **Purpose**: Full administrative access
 **Network**: 10.0.50.0/24
 
-| Server | VPN IP     | Access Level |
-|--------|------------|--------------|
-| VMI01  | 10.0.50.1  | Full Admin   |
-| VMI02D | 10.0.50.2  | Full Admin   |
-| VMI03  | 10.0.50.3  | Full Admin   |
-| Client | 10.0.50.254| Full Admin   |
+| Server | VPN IP      | Access Level |
+| ------ | ----------- | ------------ |
+| VMI01  | 10.0.50.1   | Full Admin   |
+| VMI02D | 10.0.50.2   | Full Admin   |
+| VMI03  | 10.0.50.3   | Full Admin   |
+| Client | 10.0.50.254 | Full Admin   |
 
 ### MCP Tunnel (client-mcp.conf)
+
 **Purpose**: Service mesh communication
 **Network**: 10.0.51.0/24
 
-| Server | VPN IP     | Access Level |
-|--------|------------|--------------|
-| VMI01  | 10.0.51.1  | Service Mesh |
-| VMI02D | 10.0.51.2  | Service Mesh |
-| VMI03  | 10.0.51.3  | Service Mesh |
-| Client | 10.0.51.254| Service Mesh |
+| Server | VPN IP      | Access Level |
+| ------ | ----------- | ------------ |
+| VMI01  | 10.0.51.1   | Service Mesh |
+| VMI02D | 10.0.51.2   | Service Mesh |
+| VMI03  | 10.0.51.3   | Service Mesh |
+| Client | 10.0.51.254 | Service Mesh |
 
 ### RED Tunnel (client-red.conf)
+
 **Purpose**: Restricted network access
 **Network**: 10.0.52.0/24
 
-| Server | VPN IP     | Access Level |
-|--------|------------|--------------|
-| VMI01  | 10.0.52.1  | Restricted   |
-| VMI02D | 10.0.52.2  | Restricted   |
-| VMI03  | 10.0.52.3  | Restricted   |
-| Client | 10.0.52.254| Restricted   |
+| Server | VPN IP      | Access Level |
+| ------ | ----------- | ------------ |
+| VMI01  | 10.0.52.1   | Restricted   |
+| VMI02D | 10.0.52.2   | Restricted   |
+| VMI03  | 10.0.52.3   | Restricted   |
+| Client | 10.0.52.254 | Restricted   |
 
 ## Testing Your Connection
 
@@ -128,30 +137,34 @@ ssh root@10.0.50.1  # VMI01
 ssh root@10.0.50.2  # VMI02D
 ssh root@10.0.50.3  # VMI03
 
-# Password for all: C0nnaught
+# Password for all: Use Contabo secret `mcp-root-password` (export as `MCP_ROOT_PASSWORD`)
 ```
 
 ## Troubleshooting
 
 ### Cannot Connect
+
 1. Check if WireGuard is installed: `wg --version`
 2. Verify configuration file exists
 3. Run with sudo/admin privileges
 4. Check if ports are blocked by local firewall
 
 ### No Response from Servers
+
 1. Verify you're using the correct tunnel
 2. Check VPN interface is up: `wg show`
 3. Try pinging the gateway first
 4. Verify DNS is working: `nslookup google.com`
 
 ### Slow Performance
+
 1. Check MTU settings (default: 1420)
 2. Verify network latency: `ping -c 10 <vpn-ip>`
 3. Check for packet loss
 4. Consider using a different tunnel
 
 ### Connection Drops
+
 1. Check persistent keepalive is set (25 seconds)
 2. Verify your internet connection is stable
 3. Check if fail2ban has blocked your IP
@@ -170,6 +183,7 @@ ssh root@10.0.50.3  # VMI03
    - RED: For restricted operations
 
 3. **Monitor Your Connection**:
+
    ```bash
    # Check connection status
    sudo wg show
@@ -195,6 +209,7 @@ sudo systemctl start wg-quick@client-root
 ### Multiple Tunnels Simultaneously
 
 You can run multiple tunnels at once:
+
 ```bash
 sudo wg-quick up client-root
 sudo wg-quick up client-mcp

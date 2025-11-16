@@ -10,7 +10,12 @@
     "test": "jest",
     "lint": "eslint src/**/*.ts"
   },
-  "keywords": ["mcp", "postgresql", "monitoring", "optimization"],
+  "keywords": [
+    "mcp",
+    "postgresql",
+    "monitoring",
+    "optimization"
+  ],
   "author": "MCP Infrastructure Team",
   "license": "MIT",
   "dependencies": {

@@ -1,0 +1,24 @@
+# Build outputs
+out/
+dist/
+*.js
+*.d.ts
+*.js.map
+
+# Dependencies
+node_modules/
+
+# Test coverage
+coverage/
+.nyc_output/
+
+# VSCode extension package
+*.vsix
+
+# Editor directories
+.vscode/
+
+# Lock files
+package-lock.json
+yarn.lock
+pnpm-lock.yaml

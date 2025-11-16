@@ -1,6 +1,6 @@
-import { CommandRunner, type CommandOptions, type CommandResult } from "../utils/commandRunner.js";
+import { CommandRunner, type CommandOptions, type CommandResult } from '../utils/commandRunner.js';
 
-export type WindowsAuthMethod = "Default" | "Negotiate" | "Kerberos" | "Basic" | "Credssp";
+export type WindowsAuthMethod = 'Default' | 'Negotiate' | 'Kerberos' | 'Basic' | 'Credssp';
 
 export interface WindowsConnectionOptions {
   readonly host: string;
@@ -18,13 +18,13 @@ export interface WindowsCommandResult extends CommandResult {
 }
 
 export interface WindowsUpdateActionOptions {
-  readonly mode: "list" | "install";
+  readonly mode: 'list' | 'install';
   readonly includeOptional?: boolean;
   readonly categories?: string[];
 }
 
 export interface WindowsRoleFeatureOptions {
-  readonly action: "list" | "install" | "remove";
+  readonly action: 'list' | 'install' | 'remove';
   readonly featureNames?: string[];
   readonly includeManagementTools?: boolean;
 }
@@ -40,7 +40,7 @@ interface RemoteExecutionPlan {
   readonly env?: NodeJS.ProcessEnv;
 }
 
-const DEFAULT_PASSWORD_ENV = "WINDOWS_REMOTE_PASSWORD";
+const DEFAULT_PASSWORD_ENV = 'WINDOWS_REMOTE_PASSWORD';
 
 export class WindowsAdminService {
   public constructor(private readonly runner: CommandRunner) {}
@@ -80,11 +80,11 @@ $uptime = (Get-Date) - $os.LastBootUpTime
   public serviceAction(
     options: WindowsConnectionOptions & {
       readonly service: string;
-      readonly action: "status" | "start" | "stop" | "restart";
+      readonly action: 'status' | 'start' | 'stop' | 'restart';
       readonly force?: boolean;
-    },
+    }
   ): Promise<WindowsCommandResult> {
-    const forceFlag = options.force ? "$true" : "$false";
+    const forceFlag = options.force ? '$true' : '$false';
     const script = `
 $serviceName = ${this.quotePs(options.service)}
 $action = ${this.quotePs(options.action)}
@@ -114,12 +114,14 @@ $details = Get-CimInstance -ClassName Win32_Service -Filter "Name='$serviceName'
     options: WindowsConnectionOptions & {
       readonly nameFilter?: string;
       readonly top?: number;
-      readonly sortBy?: "cpu" | "memory";
-    },
+      readonly sortBy?: 'cpu' | 'memory';
+    }
   ): Promise<WindowsCommandResult> {
-    const filterClause = options.nameFilter ? `$processes = $processes | Where-Object { $_.Name -like ${this.quotePs(options.nameFilter)} }` : "";
-    const sortBy = options.sortBy === "memory" ? "WorkingSet64" : "CPU";
-    const top = typeof options.top === "number" ? Math.max(1, options.top) : 10;
+    const filterClause = options.nameFilter
+      ? `$processes = $processes | Where-Object { $_.Name -like ${this.quotePs(options.nameFilter)} }`
+      : '';
+    const sortBy = options.sortBy === 'memory' ? 'WorkingSet64' : 'CPU';
+    const top = typeof options.top === 'number' ? Math.max(1, options.top) : 10;
     const script = `
 $processes = Get-Process
 ${filterClause}
@@ -138,21 +140,21 @@ $processes | Select-Object -First ${top}
       readonly level?: 1 | 2 | 3 | 4 | 5;
       readonly eventId?: number;
       readonly provider?: string;
-    },
+    }
   ): Promise<WindowsCommandResult> {
     const filterParts = [`LogName = ${this.quotePs(options.logName)}`];
     if (options.level) {
       filterParts.push(`Level = ${options.level}`);
     }
-    if (typeof options.eventId === "number") {
+    if (typeof options.eventId === 'number') {
       filterParts.push(`Id = ${options.eventId}`);
     }
     const providerFilter = options.provider
       ? `$events = $events | Where-Object { $_.ProviderName -like ${this.quotePs(options.provider)} }`
-      : "";
+      : '';
 
     const script = `
-$filter = @{ ${filterParts.join("; ")} }
+$filter = @{ ${filterParts.join('; ')} }
 $events = Get-WinEvent -FilterHashtable $filter -MaxEvents ${Math.max(1, options.maxEvents)}
 ${providerFilter}
 $events | Select-Object TimeCreated, Id, LevelDisplayName, ProviderName, Message
@@ -188,7 +190,7 @@ try {
     options: WindowsConnectionOptions & {
       readonly includeRoutes?: boolean;
       readonly testHost?: string;
-    },
+    }
   ): Promise<WindowsCommandResult> {
     const routeClause = options.includeRoutes
       ? `
@@ -198,7 +200,7 @@ try {
   $routes = @()
 }
       `.trim()
-      : "$routes = @()";
+      : '$routes = @()';
     const testClause = options.testHost
       ? `
 try {
@@ -210,7 +212,7 @@ try {
   }
 }
       `.trim()
-      : "$test = $null";
+      : '$test = $null';
 
     const script = `
 try {
@@ -240,14 +242,14 @@ ${testClause}
     options: WindowsConnectionOptions & {
       readonly taskNameFilter?: string;
       readonly stateFilter?: string;
-    },
+    }
   ): Promise<WindowsCommandResult> {
     const nameFilter = options.taskNameFilter
       ? `$tasks = $tasks | Where-Object { $_.TaskName -like ${this.quotePs(options.taskNameFilter)} }`
-      : "";
+      : '';
     const stateFilter = options.stateFilter
       ? `$tasks = $tasks | Where-Object { $_.State -eq ${this.quotePs(options.stateFilter)} }`
-      : "";
+      : '';
 
     const script = `
 try {
@@ -282,21 +284,21 @@ $tasks | ForEach-Object {
       readonly includeRules?: boolean;
       readonly ruleNameFilter?: string;
       readonly profileFilter?: string;
-    },
+    }
   ): Promise<WindowsCommandResult> {
     const includeRules = options.includeRules ?? false;
     const ruleRetrieval = includeRules
       ? `
 try {
   $rules = Get-NetFirewallRule -Enabled True
-  ${options.profileFilter ? `$rules = $rules | Where-Object { $_.Profile -like ${this.quotePs(options.profileFilter)} }` : ""}
-  ${options.ruleNameFilter ? `$rules = $rules | Where-Object { $_.DisplayName -like ${this.quotePs(options.ruleNameFilter)} }` : ""}
+  ${options.profileFilter ? `$rules = $rules | Where-Object { $_.Profile -like ${this.quotePs(options.profileFilter)} }` : ''}
+  ${options.ruleNameFilter ? `$rules = $rules | Where-Object { $_.DisplayName -like ${this.quotePs(options.ruleNameFilter)} }` : ''}
   $rules = $rules | Select-Object -First 75 DisplayName, Direction, Action, Profile, Enabled
 } catch {
   $rules = @()
 }
 `
-      : "$rules = @()";
+      : '$rules = @()';
 
     const script = `
 try {
@@ -317,23 +319,23 @@ ${ruleRetrieval}
   public runScript(
     script: string,
     options: WindowsConnectionOptions,
-    expectJson: boolean,
+    expectJson: boolean
   ): Promise<WindowsCommandResult> {
     return this.invokeRemote(script, options, expectJson);
   }
 
   public windowsUpdateAction(
-    options: WindowsConnectionOptions & WindowsUpdateActionOptions,
+    options: WindowsConnectionOptions & WindowsUpdateActionOptions
   ): Promise<WindowsCommandResult> {
-    const queryParts = ["IsInstalled=0"];
+    const queryParts = ['IsInstalled=0'];
     if (!options.includeOptional) {
-      queryParts.push("IsHidden=0");
+      queryParts.push('IsHidden=0');
     }
     if (options.categories?.length) {
       const categoryClauses = options.categories.map((cat) => `CategoryIDs contains '{${cat}}'`);
-      queryParts.push(`(${categoryClauses.join(" or ")})`);
+      queryParts.push(`(${categoryClauses.join(' or ')})`);
     }
-    const searchQuery = queryParts.join(" and ");
+    const searchQuery = queryParts.join(' and ');
 
     const script = `
 $session = New-Object -ComObject Microsoft.Update.Session
@@ -352,7 +354,7 @@ for ($i = 0; $i -lt $searchResult.Updates.Count; $i++) {
   }
 }
 
-if (${options.mode === "install" ? "$true" : "$false"} -and $updates.Count -gt 0) {
+if (${options.mode === 'install' ? '$true' : '$false'} -and $updates.Count -gt 0) {
   $updateCollection = New-Object -ComObject Microsoft.Update.UpdateColl
   foreach ($update in $searchResult.Updates) {
     [void]$updateCollection.Add($update)
@@ -384,20 +386,20 @@ if (${options.mode === "install" ? "$true" : "$false"} -and $updates.Count -gt 0
   }
 
   public rolesAndFeatures(
-    options: WindowsConnectionOptions & WindowsRoleFeatureOptions,
+    options: WindowsConnectionOptions & WindowsRoleFeatureOptions
   ): Promise<WindowsCommandResult> {
     const featureList = options.featureNames?.length
-      ? options.featureNames.map((name) => this.quotePs(name)).join(",")
-      : "";
+      ? options.featureNames.map((name) => this.quotePs(name)).join(',')
+      : '';
     const script = (() => {
       switch (options.action) {
-        case "list":
+        case 'list':
           return `Get-WindowsFeature | Select-Object Name, DisplayName, Installed | ConvertTo-Json -Depth 3`;
-        case "install": {
+        case 'install': {
           if (!featureList) {
             throw new Error("Feature installation requires 'featureNames'.");
           }
-          const includeMgmt = options.includeManagementTools ? "-IncludeManagementTools" : "";
+          const includeMgmt = options.includeManagementTools ? '-IncludeManagementTools' : '';
           return `
 $result = Install-WindowsFeature -Name ${featureList} ${includeMgmt}
 [pscustomobject]@{
@@ -407,7 +409,7 @@ $result = Install-WindowsFeature -Name ${featureList} ${includeMgmt}
 }
           `.trim();
         }
-        case "remove": {
+        case 'remove': {
           if (!featureList) {
             throw new Error("Feature removal requires 'featureNames'.");
           }
@@ -431,11 +433,11 @@ $result = Remove-WindowsFeature -Name ${featureList}
   }
 
   public performanceSnapshot(
-    options: WindowsConnectionOptions & WindowsPerformanceOptions,
+    options: WindowsConnectionOptions & WindowsPerformanceOptions
   ): Promise<WindowsCommandResult> {
     const sampleSeconds = Math.max(1, Math.min(30, options.sampleSeconds ?? 5));
-    const includeDisks = options.includeDisks ? "$true" : "$false";
-    const includeNetwork = options.includeNetwork ? "$true" : "$false";
+    const includeDisks = options.includeDisks ? '$true' : '$false';
+    const includeNetwork = options.includeNetwork ? '$true' : '$false';
 
     const script = `
 $cpuSamples = Get-Counter -Counter "\\Processor(_Total)\\% Processor Time" -SampleInterval 1 -MaxSamples ${sampleSeconds}
@@ -487,7 +489,7 @@ if (${includeNetwork} ) {
   private async invokeRemote(
     scriptBody: string,
     options: WindowsConnectionOptions,
-    expectJson: boolean,
+    expectJson: boolean
   ): Promise<WindowsCommandResult> {
     const plan = this.buildRemoteExecution(scriptBody, options, expectJson);
     const runnerOptions: CommandOptions = plan.env ? { env: plan.env } : {};
@@ -519,35 +521,36 @@ if (${includeNetwork} ) {
   private buildRemoteExecution(
     scriptBody: string,
     options: WindowsConnectionOptions,
-    expectJson: boolean,
+    expectJson: boolean
   ): RemoteExecutionPlan {
     if (!options.host) {
-      throw new Error("Windows host is required.");
+      throw new Error('Windows host is required.');
     }
 
     const passwordEnvVar = options.passwordEnvVar ?? DEFAULT_PASSWORD_ENV;
     const sessionLines: string[] = [
       "$ErrorActionPreference = 'Stop'",
       `$sessionArgs = @{ ComputerName = ${this.quotePs(options.host)} }`,
-      `$sessionArgs.Authentication = ${this.quotePs(options.authentication ?? "Default")}`,
+      `$sessionArgs.Authentication = ${this.quotePs(options.authentication ?? 'Default')}`,
     ];
 
     if (options.useSsl) {
-      sessionLines.push("$sessionArgs.UseSSL = $true");
+      sessionLines.push('$sessionArgs.UseSSL = $true');
     }
-    if (typeof options.port === "number") {
+    if (typeof options.port === 'number') {
       sessionLines.push(`$sessionArgs.Port = ${options.port}`);
     }
     if (options.ignoreCertErrors) {
       sessionLines.push(
-        "$sessionArgs.SessionOption = New-PSSessionOption -SkipCACheck -SkipCNCheck -SkipRevocationCheck",
+        '$sessionArgs.SessionOption = New-PSSessionOption -SkipCACheck -SkipCNCheck -SkipRevocationCheck'
       );
     }
 
     if (options.username) {
       sessionLines.push(`$credentialUser = ${this.quotePs(options.username)}`);
       sessionLines.push(`$passwordEnvVar = ${this.quotePs(passwordEnvVar)}`);
-      sessionLines.push(`
+      sessionLines.push(
+        `
 $passwordValue = [Environment]::GetEnvironmentVariable($passwordEnvVar, [EnvironmentVariableTarget]::Process)
 if ([string]::IsNullOrEmpty($passwordValue)) {
   $passwordValue = [Environment]::GetEnvironmentVariable($passwordEnvVar, [EnvironmentVariableTarget]::User)
@@ -560,17 +563,19 @@ if (-not [string]::IsNullOrEmpty($passwordValue)) {
   $sessionArgs.Credential = [PSCredential]::new($credentialUser, $securePassword)
   [Environment]::SetEnvironmentVariable($passwordEnvVar, $null, [EnvironmentVariableTarget]::Process)
 }
-      `.trim());
+      `.trim()
+      );
     }
 
-    const remoteScriptEncoded = Buffer.from(scriptBody, "utf8").toString("base64");
+    const remoteScriptEncoded = Buffer.from(scriptBody, 'utf8').toString('base64');
     sessionLines.push(
-      `$remoteScript = [System.Text.Encoding]::UTF8.GetString([Convert]::FromBase64String(${this.quotePs(remoteScriptEncoded)}))`,
+      `$remoteScript = [System.Text.Encoding]::UTF8.GetString([Convert]::FromBase64String(${this.quotePs(remoteScriptEncoded)}))`
     );
-    sessionLines.push("$scriptBlock = [ScriptBlock]::Create($remoteScript)");
-    sessionLines.push("$result = Invoke-Command @sessionArgs -ScriptBlock $scriptBlock");
-    sessionLines.push(`$expectJson = ${expectJson ? "$true" : "$false"}`);
-    sessionLines.push(`
+    sessionLines.push('$scriptBlock = [ScriptBlock]::Create($remoteScript)');
+    sessionLines.push('$result = Invoke-Command @sessionArgs -ScriptBlock $scriptBlock');
+    sessionLines.push(`$expectJson = ${expectJson ? '$true' : '$false'}`);
+    sessionLines.push(
+      `
 if ($null -eq $result) {
   if ($expectJson) {
     ""
@@ -583,10 +588,11 @@ if ($null -eq $result) {
 } else {
   ($result | Out-String).TrimEnd()
 }
-    `.trim());
+    `.trim()
+    );
 
-    const fullScript = sessionLines.join("\n");
-    const encodedCommand = Buffer.from(fullScript, "utf16le").toString("base64");
+    const fullScript = sessionLines.join('\n');
+    const encodedCommand = Buffer.from(fullScript, 'utf16le').toString('base64');
     const command = `pwsh -NoLogo -NoProfile -EncodedCommand ${encodedCommand}`;
 
     const env = options.password
@@ -608,7 +614,10 @@ Get-VM | Select-Object Name, State, CPUUsage, @{Name='MemoryAssignedMB';Expressi
   }
 
   public hypervVMAction(
-    options: WindowsConnectionOptions & { readonly vmName: string; readonly action: "start" | "stop" | "save" | "restart" | "checkpoint" }
+    options: WindowsConnectionOptions & {
+      readonly vmName: string;
+      readonly action: 'start' | 'stop' | 'save' | 'restart' | 'checkpoint';
+    }
   ): Promise<WindowsCommandResult> {
     const { vmName, action } = options;
     const script = `
@@ -633,8 +642,10 @@ Get-VMSwitch | Select-Object Name, SwitchType, NetAdapterInterfaceDescription, A
   }
 
   // SQL Server Management
-  public sqlServerStatus(options: WindowsConnectionOptions & { readonly instanceName?: string }): Promise<WindowsCommandResult> {
-    const instanceName = options.instanceName ?? "MSSQLSERVER";
+  public sqlServerStatus(
+    options: WindowsConnectionOptions & { readonly instanceName?: string }
+  ): Promise<WindowsCommandResult> {
+    const instanceName = options.instanceName ?? 'MSSQLSERVER';
     const script = `
 $service = Get-Service -Name ${this.quotePs(instanceName)} -ErrorAction SilentlyContinue
 if ($service) {
@@ -649,8 +660,10 @@ if ($service) {
     return this.invokeRemote(script, options, true);
   }
 
-  public sqlServerDatabases(options: WindowsConnectionOptions & { readonly instanceName?: string }): Promise<WindowsCommandResult> {
-    const instanceName = options.instanceName ?? "localhost";
+  public sqlServerDatabases(
+    options: WindowsConnectionOptions & { readonly instanceName?: string }
+  ): Promise<WindowsCommandResult> {
+    const instanceName = options.instanceName ?? 'localhost';
     const script = `
 [System.Reflection.Assembly]::LoadWithPartialName('Microsoft.SqlServer.SMO') | Out-Null
 $server = New-Object Microsoft.SqlServer.Management.Smo.Server(${this.quotePs(instanceName)})
@@ -660,9 +673,13 @@ $server.Databases | Select-Object Name, Size, DataSpaceUsage, IndexSpaceUsage, S
   }
 
   public sqlServerBackup(
-    options: WindowsConnectionOptions & { readonly database: string; readonly backupPath: string; readonly instanceName?: string }
+    options: WindowsConnectionOptions & {
+      readonly database: string;
+      readonly backupPath: string;
+      readonly instanceName?: string;
+    }
   ): Promise<WindowsCommandResult> {
-    const instanceName = options.instanceName ?? "localhost";
+    const instanceName = options.instanceName ?? 'localhost';
     const script = `
 [System.Reflection.Assembly]::LoadWithPartialName('Microsoft.SqlServer.SMO') | Out-Null
 $server = New-Object Microsoft.SqlServer.Management.Smo.Server(${this.quotePs(instanceName)})
@@ -682,14 +699,18 @@ $backup.SqlBackup($server)
     return this.invokeRemote(script, options, false);
   }
 
-  public chocoInstall(options: WindowsConnectionOptions & { readonly packages: readonly string[] }): Promise<WindowsCommandResult> {
-    const packagesStr = options.packages.join(" ");
+  public chocoInstall(
+    options: WindowsConnectionOptions & { readonly packages: readonly string[] }
+  ): Promise<WindowsCommandResult> {
+    const packagesStr = options.packages.join(' ');
     const script = `choco install ${packagesStr} -y`;
     return this.invokeRemote(script, options, false);
   }
 
-  public chocoUpgrade(options: WindowsConnectionOptions & { readonly packages: readonly string[] }): Promise<WindowsCommandResult> {
-    const packagesStr = options.packages.join(" ");
+  public chocoUpgrade(
+    options: WindowsConnectionOptions & { readonly packages: readonly string[] }
+  ): Promise<WindowsCommandResult> {
+    const packagesStr = options.packages.join(' ');
     const script = `choco upgrade ${packagesStr} -y`;
     return this.invokeRemote(script, options, false);
   }
@@ -700,26 +721,34 @@ $backup.SqlBackup($server)
     return this.invokeRemote(script, options, false);
   }
 
-  public wingetInstall(options: WindowsConnectionOptions & { readonly package: string }): Promise<WindowsCommandResult> {
+  public wingetInstall(
+    options: WindowsConnectionOptions & { readonly package: string }
+  ): Promise<WindowsCommandResult> {
     const script = `winget install --id ${this.quotePs(options.package)} --accept-package-agreements --accept-source-agreements`;
     return this.invokeRemote(script, options, false);
   }
 
-  public wingetUpgrade(options: WindowsConnectionOptions & { readonly package: string }): Promise<WindowsCommandResult> {
+  public wingetUpgrade(
+    options: WindowsConnectionOptions & { readonly package: string }
+  ): Promise<WindowsCommandResult> {
     const script = `winget upgrade --id ${this.quotePs(options.package)} --accept-package-agreements --accept-source-agreements`;
     return this.invokeRemote(script, options, false);
   }
 
   // Certificate Management
-  public certList(options: WindowsConnectionOptions & { readonly store?: "My" | "Root" | "CA" }): Promise<WindowsCommandResult> {
-    const store = options.store ?? "My";
+  public certList(
+    options: WindowsConnectionOptions & { readonly store?: 'My' | 'Root' | 'CA' }
+  ): Promise<WindowsCommandResult> {
+    const store = options.store ?? 'My';
     const script = `
 Get-ChildItem -Path Cert:\\LocalMachine\\${store} | Select-Object Subject, Issuer, Thumbprint, NotBefore, NotAfter, @{Name='DaysUntilExpiry';Expression={($_.NotAfter - (Get-Date)).Days}}, HasPrivateKey, @{Name='FriendlyName';Expression={$_.FriendlyName}}
     `.trim();
     return this.invokeRemote(script, options, true);
   }
 
-  public certExpiring(options: WindowsConnectionOptions & { readonly daysThreshold?: number }): Promise<WindowsCommandResult> {
+  public certExpiring(
+    options: WindowsConnectionOptions & { readonly daysThreshold?: number }
+  ): Promise<WindowsCommandResult> {
     const days = options.daysThreshold ?? 30;
     const script = `
 Get-ChildItem -Path Cert:\\LocalMachine\\My | Where-Object {($_.NotAfter - (Get-Date)).Days -le ${days} -and ($_.NotAfter - (Get-Date)).Days -ge 0} | Select-Object Subject, Issuer, Thumbprint, NotAfter, @{Name='DaysUntilExpiry';Expression={($_.NotAfter - (Get-Date)).Days}}
@@ -735,7 +764,9 @@ Get-StoragePool -ErrorAction SilentlyContinue | Select-Object FriendlyName, Oper
     return this.invokeRemote(script, options, true);
   }
 
-  public storageSpacesVirtualDisks(options: WindowsConnectionOptions): Promise<WindowsCommandResult> {
+  public storageSpacesVirtualDisks(
+    options: WindowsConnectionOptions
+  ): Promise<WindowsCommandResult> {
     const script = `
 Get-VirtualDisk -ErrorAction SilentlyContinue | Select-Object FriendlyName, OperationalStatus, HealthStatus, @{Name='SizeGB';Expression={[math]::Round($_.Size/1GB, 2)}}, ResiliencySettingName, NumberOfColumns, NumberOfDataCopies
     `.trim();
@@ -750,7 +781,9 @@ Get-CimInstance -ClassName Win32_ShadowCopy | Select-Object ID, VolumeName, Inst
     return this.invokeRemote(script, options, true);
   }
 
-  public vssCreateShadow(options: WindowsConnectionOptions & { readonly volume: string }): Promise<WindowsCommandResult> {
+  public vssCreateShadow(
+    options: WindowsConnectionOptions & { readonly volume: string }
+  ): Promise<WindowsCommandResult> {
     const script = `
 $volume = ${this.quotePs(options.volume)}
 $class = [WMICLASS]"root\\cimv2:Win32_ShadowCopy"

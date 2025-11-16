@@ -206,15 +206,17 @@ class DatabaseOptimizerAgent {
     const transports: winston.transport[] = [];
 
     if (this.config.logging.console_enabled) {
-      transports.push(new winston.transports.Console({
-        format: winston.format.combine(
-          winston.format.colorize(),
-          winston.format.timestamp(),
-          winston.format.printf(({ timestamp, level, message, ...meta }) => {
-            return `${timestamp} [${level}]: ${message} ${Object.keys(meta).length ? JSON.stringify(meta) : ''}`;
-          })
-        )
-      }));
+      transports.push(
+        new winston.transports.Console({
+          format: winston.format.combine(
+            winston.format.colorize(),
+            winston.format.timestamp(),
+            winston.format.printf(({ timestamp, level, message, ...meta }) => {
+              return `${timestamp} [${level}]: ${message} ${Object.keys(meta).length ? JSON.stringify(meta) : ''}`;
+            })
+          ),
+        })
+      );
     }
 
     if (this.config.logging.file_enabled) {
@@ -224,20 +226,19 @@ class DatabaseOptimizerAgent {
         fs.mkdirSync(logDir, { recursive: true });
       }
 
-      transports.push(new winston.transports.File({
-        filename: this.config.logging.file_path,
-        format: winston.format.combine(
-          winston.format.timestamp(),
-          winston.format.json()
-        ),
-        maxsize: parseInt(this.config.logging.max_size) || 100 * 1024 * 1024,
-        maxFiles: this.config.logging.max_files
-      }));
+      transports.push(
+        new winston.transports.File({
+          filename: this.config.logging.file_path,
+          format: winston.format.combine(winston.format.timestamp(), winston.format.json()),
+          maxsize: parseInt(this.config.logging.max_size) || 100 * 1024 * 1024,
+          maxFiles: this.config.logging.max_files,
+        })
+      );
     }
 
     return winston.createLogger({
       level: this.config.logging.level,
-      transports
+      transports,
     });
   }
 
@@ -249,56 +250,56 @@ class DatabaseOptimizerAgent {
       name: 'db_optimizer_heartbeat_total',
       help: 'Total number of heartbeats sent',
       labelNames: ['agent', 'vm'],
-      registers: [this.registry]
+      registers: [this.registry],
     });
 
     const dbConnections = new promClient.Gauge({
       name: 'db_connections_active',
       help: 'Number of active database connections',
       labelNames: ['database'],
-      registers: [this.registry]
+      registers: [this.registry],
     });
 
     const cacheHitRatio = new promClient.Gauge({
       name: 'db_cache_hit_ratio',
       help: 'Database cache hit ratio',
       labelNames: ['database'],
-      registers: [this.registry]
+      registers: [this.registry],
     });
 
     const deadTuples = new promClient.Gauge({
       name: 'db_dead_tuples',
       help: 'Number of dead tuples in tables',
       labelNames: ['schema', 'table'],
-      registers: [this.registry]
+      registers: [this.registry],
     });
 
     const bloatRatio = new promClient.Gauge({
       name: 'db_bloat_ratio',
       help: 'Table bloat ratio',
       labelNames: ['schema', 'table'],
-      registers: [this.registry]
+      registers: [this.registry],
     });
 
     const slowQueries = new promClient.Counter({
       name: 'db_slow_queries_total',
       help: 'Total number of slow queries detected',
       labelNames: ['database'],
-      registers: [this.registry]
+      registers: [this.registry],
     });
 
     const vacuumRuns = new promClient.Counter({
       name: 'db_vacuum_runs_total',
       help: 'Total number of vacuum operations',
       labelNames: ['type'],
-      registers: [this.registry]
+      registers: [this.registry],
     });
 
     const indexScans = new promClient.Gauge({
       name: 'db_index_scans',
       help: 'Number of index scans',
       labelNames: ['schema', 'table', 'index'],
-      registers: [this.registry]
+      registers: [this.registry],
     });
 
     const metricsCollectionDuration = new promClient.Histogram({
@@ -306,14 +307,14 @@ class DatabaseOptimizerAgent {
       help: 'Duration of metrics collection',
       labelNames: ['operation'],
       buckets: [0.1, 0.5, 1, 2, 5, 10],
-      registers: [this.registry]
+      registers: [this.registry],
     });
 
     const errors = new promClient.Counter({
       name: 'db_optimizer_errors_total',
       help: 'Total number of errors',
       labelNames: ['type'],
-      registers: [this.registry]
+      registers: [this.registry],
     });
 
     return {
@@ -326,7 +327,7 @@ class DatabaseOptimizerAgent {
       vacuumRuns,
       indexScans,
       metricsCollectionDuration,
-      errors
+      errors,
     };
   }
 
@@ -336,7 +337,9 @@ class DatabaseOptimizerAgent {
   private setupDatabase(): Pool {
     const password = process.env[this.config.database.password_env];
     if (!password) {
-      throw new Error(`Database password not found in environment variable: ${this.config.database.password_env}`);
+      throw new Error(
+        `Database password not found in environment variable: ${this.config.database.password_env}`
+      );
     }
 
     return new Pool({
@@ -348,7 +351,7 @@ class DatabaseOptimizerAgent {
       max: this.config.database.max_connections,
       idleTimeoutMillis: this.config.database.idle_timeout,
       connectionTimeoutMillis: this.config.database.connection_timeout,
-      ssl: this.config.database.ssl
+      ssl: this.config.database.ssl,
     });
   }
 
@@ -369,7 +372,7 @@ class DatabaseOptimizerAgent {
           return null;
         }
         return Math.min(times * 100, 3000);
-      }
+      },
     });
   }
 
@@ -383,19 +386,22 @@ class DatabaseOptimizerAgent {
       const transport = new StdioClientTransport({
         command: 'node',
         args: ['dist/orchestrator.js'],
-        env: process.env
+        env: process.env,
       });
 
-      this.mcpClient = new Client({
-        name: this.config.agent.name,
-        version: this.config.agent.version
-      }, {
-        capabilities: {
-          tools: {},
-          resources: {},
-          prompts: {}
+      this.mcpClient = new Client(
+        {
+          name: this.config.agent.name,
+          version: this.config.agent.version,
+        },
+        {
+          capabilities: {
+            tools: {},
+            resources: {},
+            prompts: {},
+          },
         }
-      });
+      );
 
       await this.mcpClient.connect(transport);
       this.logger.info('MCP client connected successfully');
@@ -403,14 +409,15 @@ class DatabaseOptimizerAgent {
 
       // Register heartbeat
       await this.registerHeartbeat();
-
     } catch (error) {
       this.logger.error('Failed to initialize MCP client:', error);
       this.metrics.errors.inc({ type: 'mcp_connection' });
 
       if (this.reconnectAttempts < this.config.orchestrator.max_reconnect_attempts) {
         this.reconnectAttempts++;
-        this.logger.info(`Reconnection attempt ${this.reconnectAttempts}/${this.config.orchestrator.max_reconnect_attempts}`);
+        this.logger.info(
+          `Reconnection attempt ${this.reconnectAttempts}/${this.config.orchestrator.max_reconnect_attempts}`
+        );
         setTimeout(() => this.initMCPClient(), this.config.orchestrator.reconnect_interval);
       } else {
         this.logger.error('Max reconnection attempts reached, exiting...');
@@ -430,12 +437,13 @@ class DatabaseOptimizerAgent {
         version: this.config.agent.version,
         vm: 'vmi01',
         role: 'database-optimizer',
-        capabilities: ['monitoring', 'optimization', 'analysis']
-      }
+        capabilities: ['monitoring', 'optimization', 'analysis'],
+      },
     };
 
     try {
-      await this.dbPool.query(`
+      await this.dbPool.query(
+        `
         INSERT INTO mcp_ecosystem.agent_heartbeats (agent_id, status, metadata)
         VALUES ($1, $2, $3)
         ON CONFLICT (agent_id)
@@ -443,11 +451,13 @@ class DatabaseOptimizerAgent {
           status = $2,
           metadata = $3,
           last_heartbeat = CURRENT_TIMESTAMP
-      `, [heartbeatData.agent_id, heartbeatData.status, JSON.stringify(heartbeatData.metadata)]);
+      `,
+        [heartbeatData.agent_id, heartbeatData.status, JSON.stringify(heartbeatData.metadata)]
+      );
 
       this.metrics.heartbeat.inc({
         agent: this.config.agent.name,
-        vm: this.config.prometheus.labels.vm
+        vm: this.config.prometheus.labels.vm,
       });
 
       this.logger.debug('Heartbeat registered successfully');
@@ -461,7 +471,9 @@ class DatabaseOptimizerAgent {
    * Collect database metrics
    */
   private async collectDatabaseMetrics(): Promise<void> {
-    const end = this.metrics.metricsCollectionDuration.startTimer({ operation: 'database_metrics' });
+    const end = this.metrics.metricsCollectionDuration.startTimer({
+      operation: 'database_metrics',
+    });
 
     try {
       for (const dbName of this.config.monitoring.databases) {
@@ -495,11 +507,7 @@ class DatabaseOptimizerAgent {
           this.metrics.cacheHitRatio.set({ database: dbName }, metrics.cache_hit_ratio);
 
           // Store in Redis for trend analysis
-          await this.redis.zadd(
-            `metrics:database:${dbName}`,
-            Date.now(),
-            JSON.stringify(metrics)
-          );
+          await this.redis.zadd(`metrics:database:${dbName}`, Date.now(), JSON.stringify(metrics));
           await this.redis.expire(`metrics:database:${dbName}`, this.config.redis.ttl);
 
           // Check thresholds and generate alerts
@@ -507,7 +515,7 @@ class DatabaseOptimizerAgent {
             await this.generateAlert('cache_hit_low', {
               database: dbName,
               current: metrics.cache_hit_ratio,
-              threshold: this.config.monitoring.thresholds.cache_hit_ratio_min
+              threshold: this.config.monitoring.thresholds.cache_hit_ratio_min,
             });
           }
 
@@ -580,7 +588,7 @@ class DatabaseOptimizerAgent {
             schema: metrics.schema,
             table: metrics.table,
             dead_tuples: metrics.dead_tuples,
-            threshold: this.config.monitoring.thresholds.dead_tuples_max
+            threshold: this.config.monitoring.thresholds.dead_tuples_max,
           });
 
           // Auto-vacuum if enabled
@@ -594,7 +602,7 @@ class DatabaseOptimizerAgent {
             schema: metrics.schema,
             table: metrics.table,
             bloat_ratio: metrics.bloat_ratio,
-            threshold: this.config.monitoring.thresholds.bloat_ratio_max
+            threshold: this.config.monitoring.thresholds.bloat_ratio_max,
           });
         }
 
@@ -603,7 +611,7 @@ class DatabaseOptimizerAgent {
             schema: metrics.schema,
             table: metrics.table,
             index_scan_ratio: metrics.index_scan_ratio,
-            seq_scans: metrics.seq_scan
+            seq_scans: metrics.seq_scan,
           });
         }
 
@@ -652,12 +660,13 @@ class DatabaseOptimizerAgent {
         );
 
         // Detect unused indexes
-        if (metrics.scans === 0 && metrics.size_bytes > 1024 * 1024) { // > 1MB
+        if (metrics.scans === 0 && metrics.size_bytes > 1024 * 1024) {
+          // > 1MB
           await this.generateAlert('unused_index', {
             schema: metrics.schema,
             table: metrics.table,
             index: metrics.index,
-            size_mb: Math.round(metrics.size_bytes / (1024 * 1024))
+            size_mb: Math.round(metrics.size_bytes / (1024 * 1024)),
           });
         }
 
@@ -686,7 +695,9 @@ class DatabaseOptimizerAgent {
       `);
 
       if (extensionCheck.rows[0].count === 0) {
-        this.logger.warn('pg_stat_statements extension not installed, skipping slow query analysis');
+        this.logger.warn(
+          'pg_stat_statements extension not installed, skipping slow query analysis'
+        );
         return;
       }
 
@@ -704,7 +715,9 @@ class DatabaseOptimizerAgent {
         LIMIT 50
       `;
 
-      const result = await this.dbPool.query(query, [this.config.monitoring.thresholds.slow_query_ms]);
+      const result = await this.dbPool.query(query, [
+        this.config.monitoring.thresholds.slow_query_ms,
+      ]);
 
       for (const row of result.rows) {
         const slowQuery: SlowQuery = row;
@@ -714,7 +727,7 @@ class DatabaseOptimizerAgent {
         await this.generateAlert('slow_query_detected', {
           query: slowQuery.query.substring(0, 200),
           mean_time_ms: Math.round(slowQuery.mean_time),
-          calls: slowQuery.calls
+          calls: slowQuery.calls,
         });
 
         await this.storeMetrics('slow_queries', slowQuery);
@@ -754,11 +767,14 @@ class DatabaseOptimizerAgent {
    */
   private async storeMetrics(metricType: string, data: any): Promise<void> {
     try {
-      await this.dbPool.query(`
+      await this.dbPool.query(
+        `
         INSERT INTO mcp_ecosystem.system_metrics (
           agent_id, metric_type, metric_data, created_at
         ) VALUES ($1, $2, $3, CURRENT_TIMESTAMP)
-      `, [this.config.agent.name, metricType, JSON.stringify(data)]);
+      `,
+        [this.config.agent.name, metricType, JSON.stringify(data)]
+      );
     } catch (error) {
       this.logger.error(`Failed to store ${metricType} metrics:`, error);
     }
@@ -778,7 +794,7 @@ class DatabaseOptimizerAgent {
       severity,
       agent: this.config.agent.name,
       timestamp: new Date().toISOString(),
-      data
+      data,
     };
 
     this.logger.warn(`Alert generated: ${alertType}`, alert);
@@ -790,11 +806,14 @@ class DatabaseOptimizerAgent {
     }
 
     // Store in PostgreSQL
-    await this.dbPool.query(`
+    await this.dbPool.query(
+      `
       INSERT INTO mcp_ecosystem.system_metrics (
         agent_id, metric_type, metric_data
       ) VALUES ($1, 'alert', $2)
-    `, [this.config.agent.name, JSON.stringify(alert)]);
+    `,
+      [this.config.agent.name, JSON.stringify(alert)]
+    );
   }
 
   /**
@@ -817,14 +836,14 @@ class DatabaseOptimizerAgent {
       const gateway = new promClient.Pushgateway(
         this.config.prometheus.pushgateway_url,
         {
-          timeout: 5000
+          timeout: 5000,
         },
         this.registry
       );
 
       await gateway.pushAdd({
         jobName: this.config.prometheus.job_name,
-        groupings: this.config.prometheus.labels
+        groupings: this.config.prometheus.labels,
       });
 
       this.logger.debug('Metrics pushed to Pushgateway');
@@ -848,11 +867,11 @@ class DatabaseOptimizerAgent {
           checks: {
             database: await this.checkDatabase(),
             redis: await this.checkRedis(),
-            mcp: this.mcpClient !== null
-          }
+            mcp: this.mcpClient !== null,
+          },
         };
 
-        const isHealthy = Object.values(health.checks).every(check => check === true);
+        const isHealthy = Object.values(health.checks).every((check) => check === true);
         res.writeHead(isHealthy ? 200 : 503, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify(health, null, 2));
       } else if (req.url === '/metrics') {
@@ -865,7 +884,9 @@ class DatabaseOptimizerAgent {
     });
 
     server.listen(this.config.monitoring.health_check_port, () => {
-      this.logger.info(`Health check endpoint listening on port ${this.config.monitoring.health_check_port}`);
+      this.logger.info(
+        `Health check endpoint listening on port ${this.config.monitoring.health_check_port}`
+      );
     });
   }
 
@@ -906,16 +927,19 @@ class DatabaseOptimizerAgent {
     await this.initMCPClient();
 
     // Setup periodic tasks
-    cron.schedule(`*/${Math.floor(this.config.monitoring.metrics_interval / 1000)} * * * * *`, async () => {
-      if (!this.isShuttingDown) {
-        await this.registerHeartbeat();
-        await this.collectDatabaseMetrics();
-        await this.collectTableMetrics();
-        await this.collectIndexMetrics();
-        await this.analyzeSlowQueries();
-        await this.pushMetrics();
+    cron.schedule(
+      `*/${Math.floor(this.config.monitoring.metrics_interval / 1000)} * * * * *`,
+      async () => {
+        if (!this.isShuttingDown) {
+          await this.registerHeartbeat();
+          await this.collectDatabaseMetrics();
+          await this.collectTableMetrics();
+          await this.collectIndexMetrics();
+          await this.analyzeSlowQueries();
+          await this.pushMetrics();
+        }
       }
-    });
+    );
 
     this.logger.info('Agent started successfully');
   }
@@ -933,11 +957,14 @@ class DatabaseOptimizerAgent {
 
     try {
       // Update agent status
-      await this.dbPool.query(`
+      await this.dbPool.query(
+        `
         UPDATE mcp_ecosystem.agent_heartbeats
         SET status = 'stopped'
         WHERE agent_id = $1
-      `, [this.config.agent.name]);
+      `,
+        [this.config.agent.name]
+      );
 
       // Close connections
       if (this.mcpClient) {

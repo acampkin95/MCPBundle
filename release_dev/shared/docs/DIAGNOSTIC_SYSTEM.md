@@ -11,6 +11,7 @@ The MCP diagnostic system provides comprehensive health checks, performance test
 **Location**: `/opt/mcp/diagnostic-runbook.sh`
 
 Comprehensive diagnostic script that checks:
+
 - System health (CPU, memory, disk)
 - PostgreSQL database health and performance
 - Redis cache health and performance
@@ -56,8 +57,8 @@ await commandQueue.enqueue({
   priority: 'high',
   payload: {
     checks: 'all', // or specific checks
-    save_results: true
-  }
+    save_results: true,
+  },
 });
 ```
 
@@ -77,6 +78,7 @@ Set up cron job for regular health checks:
 ## Diagnostic Checks
 
 ### System Health (Check 1)
+
 - **CPU Usage**: Monitors CPU utilization across all cores
 - **Memory Usage**: Checks RAM usage and availability
 - **Disk Usage**: Monitors root filesystem capacity
@@ -86,6 +88,7 @@ Set up cron job for regular health checks:
   - FAIL: >95% usage
 
 ### PostgreSQL Health (Check 2)
+
 - **Service Status**: Verifies PostgreSQL is running
 - **Connection Count**: Active connections to mcp_ecosystem
 - **Database Size**: Current database size
@@ -93,6 +96,7 @@ Set up cron job for regular health checks:
 - **Performance Test**: Simple query execution time
 
 ### Redis Health (Check 3)
+
 - **Service Status**: Verifies Redis is running
 - **Connectivity**: PING/PONG test
 - **Memory Usage**: Current memory consumption
@@ -100,6 +104,7 @@ Set up cron job for regular health checks:
 - **Performance Test**: Latency measurement
 
 ### MCP-Orchestrator Health (Check 4)
+
 - **HTTP Health Endpoint**: `GET /health`
 - **Expected Response**: HTTP 200 with health status
 - **Checks**:
@@ -109,18 +114,22 @@ Set up cron job for regular health checks:
   - Queue depth
 
 ### Keycloak Health (Check 5)
+
 - **HTTP Health Endpoint**: `GET /health`
 - **Service Status**: Verifies Keycloak is running
 - **Realm Availability**: Checks mcp-enterprise realm
 
 ### Observability Stack (Check 6)
+
 - **Prometheus**: `GET /-/healthy`
 - **Grafana**: `GET /api/health`
 - **Loki**: `GET /ready`
 - **Jaeger**: `GET /` (UI availability)
 
 ### Network & Ports (Check 7)
+
 Verifies all required ports are listening:
+
 - 9090: MCP-Orchestrator
 - 9091: Prometheus
 - 3000: Grafana
@@ -131,6 +140,7 @@ Verifies all required ports are listening:
 - 8080: Keycloak
 
 ### Database Performance Test (Check 8)
+
 - Executes sample query: `SELECT COUNT(*) FROM mcp_agents`
 - Measures execution time in milliseconds
 - **Thresholds**:
@@ -139,6 +149,7 @@ Verifies all required ports are listening:
   - Slow: >500ms
 
 ### Redis Performance Test (Check 9)
+
 - Runs intrinsic latency test
 - Measures Redis response time
 - **Thresholds**:
@@ -147,6 +158,7 @@ Verifies all required ports are listening:
   - Slow: >10ms
 
 ### Agent Connectivity Test (Check 10)
+
 - Queries active agents from database
 - Checks agents with heartbeat within last 5 minutes
 - Reports: Active agents / Total agents
@@ -216,14 +228,14 @@ export class DiagnosticsTool implements Tool {
         type: 'string',
         enum: ['all', 'system', 'database', 'services'],
         description: 'Which diagnostic checks to run',
-        default: 'all'
+        default: 'all',
       },
       save_results: {
         type: 'boolean',
         description: 'Save results to database',
-        default: true
-      }
-    }
+        default: true,
+      },
+    },
   };
 
   async execute(args: any): Promise<any> {
@@ -250,13 +262,13 @@ export class DiagnosticsTool implements Tool {
         summary: results.summary,
         results: results.checks,
         message: `Diagnostics complete: ${results.summary.passed} passed, ${results.summary.warnings} warnings, ${results.summary.failed} failed`,
-        timestamp: results.timestamp
+        timestamp: results.timestamp,
       };
     } catch (error) {
       return {
         success: false,
         error: error.message,
-        message: 'Diagnostic execution failed'
+        message: 'Diagnostic execution failed',
       };
     }
   }
@@ -272,12 +284,12 @@ export class DiagnosticsTool implements Tool {
       results.timestamp,
       JSON.stringify(results.checks),
       JSON.stringify(results.summary),
-      JSON.stringify(results)
+      JSON.stringify(results),
     ]);
   }
 
   private async sendAlerts(results: any): Promise<void> {
-    const failedChecks = results.checks.filter(c => c.status === 'fail');
+    const failedChecks = results.checks.filter((c) => c.status === 'fail');
 
     for (const check of failedChecks) {
       // Send alert to monitoring system
@@ -325,6 +337,7 @@ CREATE INDEX idx_diagnostic_results_summary ON diagnostic_results USING gin(summ
 ### Grafana Dashboard
 
 Create dashboard with panels for:
+
 - Diagnostic success rate over time
 - Failed checks history
 - System health metrics
@@ -341,7 +354,7 @@ import { Counter, Gauge } from 'prom-client';
 const diagnosticRuns = new Counter({
   name: 'mcp_diagnostic_runs_total',
   help: 'Total diagnostic runs',
-  labelNames: ['status']
+  labelNames: ['status'],
 });
 
 const lastDiagnosticScore = new Gauge({
@@ -370,8 +383,8 @@ groups:
         labels:
           severity: warning
         annotations:
-          summary: "MCP diagnostic score below 80%"
-          description: "Diagnostic health score is {{ $value }}%"
+          summary: 'MCP diagnostic score below 80%'
+          description: 'Diagnostic health score is {{ $value }}%'
 
       - alert: CriticalDiagnosticFailures
         expr: mcp_diagnostic_score < 50
@@ -379,8 +392,8 @@ groups:
         labels:
           severity: critical
         annotations:
-          summary: "MCP diagnostic score critically low"
-          description: "Diagnostic health score is {{ $value }}%"
+          summary: 'MCP diagnostic score critically low'
+          description: 'Diagnostic health score is {{ $value }}%'
 ```
 
 ## Development Environment
@@ -411,17 +424,17 @@ services:
       POSTGRES_PASSWORD: test
       POSTGRES_DB: mcp_ecosystem_test
     ports:
-      - "5432:5432"
+      - '5432:5432'
 
   redis:
     image: redis:7
     ports:
-      - "6379:6379"
+      - '6379:6379'
 
   mcp-orchestrator:
     build: ./mcp-orchestrator
     ports:
-      - "9090:9090"
+      - '9090:9090'
     depends_on:
       - postgres
       - redis
@@ -430,26 +443,31 @@ services:
 ## Best Practices
 
 ### 1. Regular Execution
+
 - Run diagnostics hourly during business hours
 - Run full diagnostics daily at off-peak times
 - Trigger on-demand for troubleshooting
 
 ### 2. Alert Management
+
 - Configure alert thresholds appropriately
 - Set up escalation for critical failures
 - Use alert aggregation to prevent alert fatigue
 
 ### 3. Historical Tracking
+
 - Retain diagnostic results for 90 days
 - Archive older results to cold storage
 - Analyze trends to identify degradation
 
 ### 4. Integration Testing
+
 - Test diagnostic script in staging before production
 - Validate all checks are relevant and accurate
 - Update thresholds based on actual performance
 
 ### 5. Documentation
+
 - Document all diagnostic checks
 - Explain thresholds and reasoning
 - Provide remediation steps for failures
@@ -459,16 +477,19 @@ services:
 ### Diagnostic Script Fails
 
 1. Check permissions:
+
 ```bash
 chmod +x /opt/mcp/diagnostic-runbook.sh
 ```
 
 2. Verify dependencies:
+
 ```bash
 which jq bc curl ss
 ```
 
 3. Check logs:
+
 ```bash
 tail -f /var/log/mcp/diagnostics.log
 ```

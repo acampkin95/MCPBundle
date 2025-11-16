@@ -1,13 +1,13 @@
-import { logger } from "../../utils/logger.js";
-import type { ThoughtRecord } from "../structuredThinking.js";
-import { SQLitePlannerService } from "../sqlitePlanner.js";
+import { logger } from '../../utils/logger.js';
+import type { ThoughtRecord } from '../structuredThinking.js';
+import { SQLitePlannerService } from '../sqlitePlanner.js';
 
 export interface SyncStatus {
   readonly lastSyncAt: string;
   readonly pendingLocal: number;
   readonly pendingRemote: number;
   readonly conflictsDetected: number;
-  readonly syncState: "idle" | "syncing" | "error";
+  readonly syncState: 'idle' | 'syncing' | 'error';
   readonly lastError?: string;
 }
 
@@ -15,7 +15,7 @@ export interface SyncConfig {
   readonly postgresConnectionString?: string;
   readonly syncIntervalMs: number;
   readonly batchSize: number;
-  readonly conflictResolution: "last-write-wins" | "manual" | "merge";
+  readonly conflictResolution: 'last-write-wins' | 'manual' | 'merge';
   readonly enableAutoSync: boolean;
 }
 
@@ -50,18 +50,15 @@ export class DatabaseSyncService {
     pendingLocal: 0,
     pendingRemote: 0,
     conflictsDetected: 0,
-    syncState: "idle",
+    syncState: 'idle',
   };
 
-  public constructor(
-    localPlanner: SQLitePlannerService,
-    config: Partial<SyncConfig> = {},
-  ) {
+  public constructor(localPlanner: SQLitePlannerService, config: Partial<SyncConfig> = {}) {
     this.localPlanner = localPlanner;
     this.config = {
       syncIntervalMs: config.syncIntervalMs ?? 60000, // Default 1 minute
       batchSize: config.batchSize ?? 50,
-      conflictResolution: config.conflictResolution ?? "last-write-wins",
+      conflictResolution: config.conflictResolution ?? 'last-write-wins',
       enableAutoSync: config.enableAutoSync ?? true,
       postgresConnectionString: config.postgresConnectionString,
     };
@@ -76,16 +73,16 @@ export class DatabaseSyncService {
    */
   public startAutoSync(): void {
     if (this.syncIntervalTimer) {
-      logger.warn("Auto-sync already running");
+      logger.warn('Auto-sync already running');
       return;
     }
 
     if (!this.config.postgresConnectionString) {
-      logger.warn("Cannot start auto-sync: PostgreSQL connection string not configured");
+      logger.warn('Cannot start auto-sync: PostgreSQL connection string not configured');
       return;
     }
 
-    logger.info("Starting auto-sync", {
+    logger.info('Starting auto-sync', {
       intervalMs: this.config.syncIntervalMs,
       batchSize: this.config.batchSize,
     });
@@ -102,7 +99,7 @@ export class DatabaseSyncService {
     if (this.syncIntervalTimer) {
       clearInterval(this.syncIntervalTimer);
       this.syncIntervalTimer = null;
-      logger.info("Auto-sync stopped");
+      logger.info('Auto-sync stopped');
     }
   }
 
@@ -111,20 +108,20 @@ export class DatabaseSyncService {
    */
   public async syncNow(): Promise<SyncStatus> {
     if (this.currentlySyncing) {
-      logger.debug("Sync already in progress, skipping");
+      logger.debug('Sync already in progress, skipping');
       return this.status;
     }
 
     if (!this.config.postgresConnectionString) {
-      logger.warn("Cannot sync: PostgreSQL not configured");
+      logger.warn('Cannot sync: PostgreSQL not configured');
       return this.status;
     }
 
     this.currentlySyncing = true;
-    this.status = { ...this.status, syncState: "syncing" };
+    this.status = { ...this.status, syncState: 'syncing' };
 
     try {
-      logger.debug("Starting sync cycle");
+      logger.debug('Starting sync cycle');
 
       // Phase 1: Push local changes to PostgreSQL
       await this.pushLocalChanges();
@@ -140,19 +137,19 @@ export class DatabaseSyncService {
         pendingLocal: 0,
         pendingRemote: 0,
         conflictsDetected: this.status.conflictsDetected,
-        syncState: "idle",
+        syncState: 'idle',
       };
 
-      logger.info("Sync completed successfully", this.status);
+      logger.info('Sync completed successfully', this.status);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       this.status = {
         ...this.status,
-        syncState: "error",
+        syncState: 'error',
         lastError: errorMessage,
       };
 
-      logger.error("Sync failed", { error: errorMessage });
+      logger.error('Sync failed', { error: errorMessage });
     } finally {
       this.currentlySyncing = false;
     }
@@ -178,10 +175,10 @@ export class DatabaseSyncService {
     try {
       // TODO: Implement actual PostgreSQL health check
       // Example: SELECT 1 query with timeout
-      logger.debug("Checking PostgreSQL health (not yet implemented)");
+      logger.debug('Checking PostgreSQL health (not yet implemented)');
       return false; // Stub: return false until implemented
     } catch (error) {
-      logger.error("PostgreSQL health check failed", { error });
+      logger.error('PostgreSQL health check failed', { error });
       return false;
     }
   }
@@ -194,7 +191,7 @@ export class DatabaseSyncService {
     // 1. Get local thoughts modified since last sync
     // 2. Batch upload to PostgreSQL structured_thoughts table
     // 3. Mark as synced in local metadata
-    logger.debug("Push local changes (not yet implemented)");
+    logger.debug('Push local changes (not yet implemented)');
   }
 
   /**
@@ -206,7 +203,7 @@ export class DatabaseSyncService {
     // 2. Download in batches
     // 3. Insert into local SQLite
     // 4. Update sync metadata
-    logger.debug("Pull remote changes (not yet implemented)");
+    logger.debug('Pull remote changes (not yet implemented)');
   }
 
   /**
@@ -218,7 +215,7 @@ export class DatabaseSyncService {
     // - last-write-wins: Take newest timestamp
     // - manual: Store conflicts for user review
     // - merge: Combine metadata, prefer newer content
-    logger.debug("Resolve conflicts (not yet implemented)", {
+    logger.debug('Resolve conflicts (not yet implemented)', {
       strategy: this.config.conflictResolution,
     });
   }
@@ -228,7 +225,7 @@ export class DatabaseSyncService {
    */
   public async getConflicts(): Promise<ConflictRecord[]> {
     // TODO: Query local conflicts table
-    logger.debug("Get conflicts (not yet implemented)");
+    logger.debug('Get conflicts (not yet implemented)');
     return [];
   }
 
@@ -237,9 +234,9 @@ export class DatabaseSyncService {
    */
   public async resolveConflict(
     thoughtId: string,
-    resolution: "keep-local" | "keep-remote" | "merge",
+    resolution: 'keep-local' | 'keep-remote' | 'merge'
   ): Promise<void> {
-    logger.debug("Manual conflict resolution (not yet implemented)", {
+    logger.debug('Manual conflict resolution (not yet implemented)', {
       thoughtId,
       resolution,
     });
@@ -251,6 +248,6 @@ export class DatabaseSyncService {
    */
   public destroy(): void {
     this.stopAutoSync();
-    logger.info("DatabaseSyncService destroyed");
+    logger.info('DatabaseSyncService destroyed');
   }
 }

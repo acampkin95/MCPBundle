@@ -55,6 +55,7 @@ cd "/Users/alex/Projects/MCP Bundle"
 ```
 
 **Output**: `devtestready/0.2/` with:
+
 - `itjsst-mcp-0.2.tar.gz`
 - `mcp-orchestrator-0.2.tar.gz`
 - `deploy-to-server.sh`
@@ -131,6 +132,7 @@ cd "/Users/alex/Projects/MCP Bundle"
 ```
 
 **Output**: `final/0.2/` with:
+
 - All deployment packages
 - `README.md` (production guide)
 - `USER_MANUAL.md` (complete manual)
@@ -485,6 +487,7 @@ ssh root@46.250.243.123 'systemctl restart SERVICE_NAME'
 **Need help?** Check logs, run diagnostics, review documentation, or consult the team.
 
 **Report issues**: Document in GitHub issues with:
+
 - Version number
 - Steps to reproduce
 - Diagnostic results

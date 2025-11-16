@@ -1,0 +1,47 @@
+[Unit]
+Description=SOC Hub MCP Server - Unified Security Operations Dashboard
+Documentation=https://github.com/anthropics/claude-code
+After=network-online.target postgresql.service elasticsearch.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+Group=root
+WorkingDirectory=/opt/mcp/soc-hub-mcp
+
+# Environment
+Environment=NODE_ENV=production
+Environment=SERVER_MODE=http
+EnvironmentFile=/opt/mcp/soc-hub-mcp/.env
+
+# Execution
+ExecStart=/usr/bin/node /opt/mcp/soc-hub-mcp/dist/index.js
+
+# Restart policy
+Restart=always
+RestartSec=10
+StartLimitInterval=300
+StartLimitBurst=5
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=soc-hub-mcp
+
+# Security hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/mcp/soc-hub-mcp
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+
+# Resource limits
+LimitNOFILE=65536
+LimitNPROC=4096
+
+[Install]
+WantedBy=multi-user.target

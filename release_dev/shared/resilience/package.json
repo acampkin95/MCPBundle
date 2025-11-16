@@ -1,0 +1,40 @@
+{
+  "name": "@mcp-bundle/resilience",
+  "version": "1.0.0",
+  "description": "Resilience patterns library with retry logic, circuit breaker, and timeout handling",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "vitest run",
+    "test:watch": "vitest watch",
+    "test:coverage": "vitest run --coverage",
+    "type-check": "tsc --noEmit",
+    "clean": "rm -rf dist/ coverage/",
+    "prebuild": "npm run clean"
+  },
+  "keywords": [
+    "resilience",
+    "retry",
+    "circuit-breaker",
+    "timeout",
+    "fault-tolerance",
+    "error-handling"
+  ],
+  "author": "ACDev",
+  "license": "UNLICENSED",
+  "devDependencies": {
+    "@types/node": "22.9.0",
+    "@vitest/coverage-v8": "^2.1.8",
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.8"
+  }
+}

@@ -7,7 +7,7 @@
  * permission issues encountered in certain deployment environments.
  */
 
-export type RiskLevel = "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
+export type RiskLevel = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
 
 export interface OperationPolicy {
   readonly danger: RiskLevel;
@@ -21,7 +21,7 @@ export interface PolicyRule {
   readonly operations: Record<string, OperationPolicy>;
 }
 
-export type PolicyDecisionAction = "allow" | "deny" | "require_approval";
+export type PolicyDecisionAction = 'allow' | 'deny' | 'require_approval';
 
 export interface PolicyDecision {
   readonly action: PolicyDecisionAction;
@@ -49,7 +49,7 @@ export interface AuditLogEntry {
   readonly context: AuthorizationContext;
   readonly decision: PolicyDecision;
   readonly execution?: {
-    readonly status: "success" | "failure" | "timeout";
+    readonly status: 'success' | 'failure' | 'timeout';
     readonly duration_ms: number;
     readonly sideEffects: readonly string[];
     readonly error?: string;

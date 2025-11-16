@@ -1,5 +1,5 @@
-import { CommandExecutionError, CommandRunner } from "../utils/commandRunner.js";
-import { shellQuote } from "../utils/shell.js";
+import { CommandExecutionError, CommandRunner } from '../utils/commandRunner.js';
+import { shellQuote } from '../utils/shell.js';
 
 export interface EndpointMetrics {
   readonly httpCode: number | null;
@@ -33,9 +33,9 @@ export class WebDiagnosticsService {
     readonly node: string;
   }> {
     const [nginx, apache, node] = await Promise.all([
-      this.runPgrep("nginx"),
-      this.runPgrep("httpd|apache2"),
-      this.runPgrep("node|next|nuxt"),
+      this.runPgrep('nginx'),
+      this.runPgrep('httpd|apache2'),
+      this.runPgrep('node|next|nuxt'),
     ]);
 
     return {
@@ -47,81 +47,78 @@ export class WebDiagnosticsService {
 
   public async fetchHeaders(url: string, timeoutSeconds?: number) {
     const command = [
-      "curl",
-      "-sI",
-      "--max-time",
+      'curl',
+      '-sI',
+      '--max-time',
       String(timeoutSeconds ?? 10),
       shellQuote(url),
-    ].join(" ");
+    ].join(' ');
 
     return this.runner.run(command);
   }
 
-  public async testEndpoint(
-    url: string,
-    options: CurlOptions = {},
-  ): Promise<EndpointMetrics> {
-    const { method = "GET", headers = {}, body, timeoutSeconds } = options;
+  public async testEndpoint(url: string, options: CurlOptions = {}): Promise<EndpointMetrics> {
+    const { method = 'GET', headers = {}, body, timeoutSeconds } = options;
     const parts: string[] = [
-      "curl",
-      "-s",
-      "-o",
-      "/dev/null",
-      "-w",
+      'curl',
+      '-s',
+      '-o',
+      '/dev/null',
+      '-w',
       shellQuote(
-        "http_code:%{http_code}\\ntime_total:%{time_total}\\ntime_connect:%{time_connect}\\ntime_starttransfer:%{time_starttransfer}\\nsize_download:%{size_download}",
+        'http_code:%{http_code}\\ntime_total:%{time_total}\\ntime_connect:%{time_connect}\\ntime_starttransfer:%{time_starttransfer}\\nsize_download:%{size_download}'
       ),
-      "-X",
+      '-X',
       shellQuote(method),
     ];
 
     if (timeoutSeconds) {
-      parts.push("--max-time", String(timeoutSeconds));
+      parts.push('--max-time', String(timeoutSeconds));
     }
 
     for (const [key, value] of Object.entries(headers)) {
-      parts.push("-H", shellQuote(`${key}: ${value}`));
+      parts.push('-H', shellQuote(`${key}: ${value}`));
     }
 
     if (body) {
-      parts.push("--data", shellQuote(body));
+      parts.push('--data', shellQuote(body));
     }
 
     parts.push(shellQuote(url));
 
-    const command = parts.join(" ");
+    const command = parts.join(' ');
     const result = await this.runner.run(command);
     return this.parseCurlMetrics(result.stdout.trim());
   }
 
   public async runLighthouse(
     url: string,
-    categories: string[] = ["performance"],
+    categories: string[] = ['performance']
   ): Promise<LighthouseSummary> {
     try {
-      await this.runner.run("command -v lighthouse");
+      await this.runner.run('command -v lighthouse');
     } catch (error) {
       return {
-        command: "command -v lighthouse",
+        command: 'command -v lighthouse',
         error:
-          "Lighthouse CLI not found. Install via `npm install -g lighthouse` or provide a path.",
+          'Lighthouse CLI not found. Install via `npm install -g lighthouse` or provide a path.',
       };
     }
 
     const categoryFlags = categories.flatMap((category) => [
-      "--only-categories",
+      '--only-categories',
       shellQuote(category),
     ]);
 
     const command = [
-      "lighthouse",
+      'lighthouse',
       shellQuote(url),
-      "--quiet",
-      "--chrome-flags=\"--headless\"",
-      "--output=json",
-      "--output-path=-",
+      '--quiet',
+      '--chrome-flags="--headless"',
+      '--output=json',
+      '--output-path=-',
       ...categoryFlags,
-    ].join(" ");
+    ].join(' ');
 
     try {
       const result = await this.runner.run(command);
@@ -139,7 +136,7 @@ export class WebDiagnosticsService {
 
       return {
         command,
-        error: commandError || "Lighthouse command failed.",
+        error: commandError || 'Lighthouse command failed.',
       };
     }
   }
@@ -151,7 +148,7 @@ export class WebDiagnosticsService {
       return result.stdout.trim();
     } catch (error) {
       if (error instanceof CommandExecutionError) {
-        return error.result.stderr.trim() || "";
+        return error.result.stderr.trim() || '';
       }
       throw error;
     }
@@ -159,10 +156,10 @@ export class WebDiagnosticsService {
 
   private parseCurlMetrics(output: string): EndpointMetrics {
     const metrics = Object.fromEntries(
-      output.split("\n").map((line) => {
-        const [key, value] = line.split(":");
+      output.split('\n').map((line) => {
+        const [key, value] = line.split(':');
         return [key, value];
-      }),
+      })
     );
 
     const parseNumber = (value: string | undefined): number | null => {
@@ -186,8 +183,8 @@ export class WebDiagnosticsService {
   private extractLighthouseScores(rawJson: string): Record<string, number> | undefined {
     try {
       const data = JSON.parse(rawJson) as Record<string, unknown>;
-      const categories = data["categories"];
-      if (!categories || typeof categories !== "object") {
+      const categories = data['categories'];
+      if (!categories || typeof categories !== 'object') {
         return undefined;
       }
 
@@ -195,9 +192,9 @@ export class WebDiagnosticsService {
       for (const [key, value] of Object.entries(categories)) {
         if (
           value &&
-          typeof value === "object" &&
-          "score" in value &&
-          typeof (value as { score: unknown }).score === "number"
+          typeof value === 'object' &&
+          'score' in value &&
+          typeof (value as { score: unknown }).score === 'number'
         ) {
           summary[key] = Number((value as { score: number }).score) * 100;
         }

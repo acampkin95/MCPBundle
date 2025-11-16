@@ -72,6 +72,7 @@ Internet
 ### Tunnel-Specific Security Policies
 
 #### Root Tunnel (10.100.0.0/24)
+
 - **Purpose**: Full administrative access
 - **Security Level**: HIGH
 - **Access Control**: Pre-authorized devices only
@@ -81,6 +82,7 @@ Internet
 - **IP Restrictions**: Static IPs only
 
 **Hardening**:
+
 ```bash
 # Enforce key rotation
 cat >> /etc/cron.monthly/rotate-root-keys <<'EOF'
@@ -101,6 +103,7 @@ chmod +x /etc/cron.monthly/rotate-root-keys
 ```
 
 #### MCP Tunnel (10.101.0.0/24)
+
 - **Purpose**: MCP agent communication
 - **Security Level**: HIGH
 - **Access Control**: Service accounts only
@@ -109,6 +112,7 @@ chmod +x /etc/cron.monthly/rotate-root-keys
 - **API Key Authentication**: Required
 
 **Hardening**:
+
 ```bash
 # Rate limiting with iptables
 iptables -A INPUT -i wg-mcp -p tcp --dport 5432 -m conntrack --ctstate NEW -m recent --set
@@ -119,6 +123,7 @@ iptables -A INPUT -i wg-mcp -m conntrack --ctstate NEW -m recent --update --seco
 ```
 
 #### Red Tunnel (10.102.0.0/24)
+
 - **Purpose**: Guest VPN with enhanced security
 - **Security Level**: MAXIMUM
 - **Access Control**: Open enrollment with monitoring
@@ -128,6 +133,7 @@ iptables -A INPUT -i wg-mcp -m conntrack --ctstate NEW -m recent --update --seco
 - **DPI**: Optional SSL/TLS inspection
 
 **Hardening**:
+
 ```bash
 # Strict iptables rules for Red tunnel
 # Block all RFC1918 private networks
@@ -154,6 +160,7 @@ iptables -I FORWARD 1 -i wg-red -m limit --limit 10/min -j LOG --log-prefix "RED
 ### WireGuard Key Management
 
 **Private Key Protection**:
+
 ```bash
 # Secure key storage
 chmod 600 /etc/wireguard/*.conf
@@ -165,11 +172,13 @@ echo "* hard core 0" >> /etc/security/limits.conf
 ```
 
 **Preshared Key (PSK) Usage**:
+
 - All peers MUST use PSK for post-quantum security
 - PSK rotation every 180 days
 - PSK generated with cryptographically secure RNG
 
 **Client Key Distribution**:
+
 ```bash
 # Never send keys via unencrypted email
 # Use secure channels:
@@ -190,6 +199,7 @@ gpg --encrypt --recipient alex.campkin@acdev.host /etc/wireguard/clients/root-ma
 ### Authentication Security
 
 **Password Policy**:
+
 ```json
 {
   "minimumLength": 14,
@@ -204,25 +214,28 @@ gpg --encrypt --recipient alex.campkin@acdev.host /etc/wireguard/clients/root-ma
 ```
 
 **MFA Enforcement**:
+
 - TOTP required for all admin accounts
 - WebAuthn/FIDO2 recommended for high-security accounts
 - Backup codes mandatory (stored securely)
 
 **Brute Force Protection**:
+
 ```yaml
 # Configured in realm-config.json
 bruteForceProtected: true
 permanentLockout: false
-maxFailureWaitSeconds: 900  # 15 minutes
+maxFailureWaitSeconds: 900 # 15 minutes
 minimumQuickLoginWaitSeconds: 60
 quickLoginCheckMilliSeconds: 1000
-maxDeltaTimeSeconds: 43200  # 12 hours
+maxDeltaTimeSeconds: 43200 # 12 hours
 failureFactor: 5
 ```
 
 ### OAuth2/OIDC Security
 
 **Client Configuration**:
+
 - Use confidential clients (not public)
 - Rotate client secrets every 90 days
 - Strict redirect URI validation
@@ -230,6 +243,7 @@ failureFactor: 5
 - Refresh tokens with rotation
 
 **Token Security**:
+
 ```bash
 # Access token lifespan: 5 minutes
 # Refresh token: 30 days max, rotate on use
@@ -246,12 +260,14 @@ curl -X POST http://154.26.158.31:8080/realms/acdev-infrastructure/protocol/open
 ### Session Management
 
 **Session Security**:
+
 - SameSite cookies: Strict
 - Secure flag: Always (HTTPS only)
 - HttpOnly flag: Yes
 - Session fixation protection: Enabled
 
 **Logout**:
+
 - Front-channel logout: Enabled
 - Back-channel logout: Enabled
 - Revoke refresh tokens on logout
@@ -263,6 +279,7 @@ curl -X POST http://154.26.158.31:8080/realms/acdev-infrastructure/protocol/open
 ### DNS Filtering
 
 **Blocklists (Production)**:
+
 ```bash
 # Malware & phishing
 https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts
@@ -281,6 +298,7 @@ https://ransomwaretracker.abuse.ch/downloads/RW_DOMBL.txt
 ```
 
 **DNSSEC Validation**:
+
 ```bash
 # Enable DNSSEC in PiHole
 docker exec pihole pihole -a dnssec on
@@ -291,6 +309,7 @@ dig +dnssec example.com @10.102.0.1
 ```
 
 **DNS over HTTPS (DoH)**:
+
 ```bash
 # Unbound configuration for encrypted upstream DNS
 forward-zone:
@@ -304,12 +323,14 @@ forward-zone:
 ### Query Logging Security
 
 **Privacy Considerations**:
+
 - Log retention: 7 days only
 - No query content logging
 - Anonymize client IPs after 24 hours
 - GDPR compliance
 
 **Log Protection**:
+
 ```bash
 # Secure log files
 chmod 600 /var/log/pihole/*.log
@@ -326,6 +347,7 @@ tar -czf - /var/log/pihole/*.log | gpg --encrypt --recipient admin@acdev.host > 
 ### Rule Sets
 
 **Production Rule Sets**:
+
 ```bash
 # Emerging Threats Open
 suricata-update enable-source et/open
@@ -341,6 +363,7 @@ suricata-update enable-source oisf/trafficid
 ```
 
 **Custom Rules for Infrastructure**:
+
 ```bash
 # /var/lib/suricata/rules/local.rules
 
@@ -360,12 +383,14 @@ alert tcp any any -> any any (msg:"Large Data Transfer Detected"; flow:establish
 ### Alert Management
 
 **Alert Priorities**:
+
 1. **Critical**: Immediate action required (malware, exploit attempts)
 2. **High**: Investigation required (suspicious activity)
 3. **Medium**: Monitoring required (policy violations)
 4. **Low**: Informational (normal but logged)
 
 **Alert Forwarding**:
+
 ```bash
 # Forward to VMI01 syslog
 # /etc/rsyslog.conf
@@ -557,6 +582,7 @@ tmpfs /run/shm tmpfs defaults,noexec,nosuid,nodev 0 0
 ### Log Centralization
 
 All logs forwarded to VMI01:
+
 - WireGuard: journalctl
 - Keycloak: Docker logs
 - PiHole: Docker logs + query logs
@@ -617,6 +643,7 @@ systemctl restart auditd
 ### Response Playbook
 
 **1. Confirm Incident**:
+
 ```bash
 # Check Suricata alerts
 tail -f /var/log/suricata/fast.log | grep "Priority: 1"
@@ -631,6 +658,7 @@ ss -tupn
 ```
 
 **2. Contain Threat**:
+
 ```bash
 # Block malicious IP immediately
 iptables -I INPUT -s MALICIOUS_IP -j DROP
@@ -643,6 +671,7 @@ docker exec keycloak /opt/keycloak/bin/kcadm.sh update users/USER_ID -r acdev-in
 ```
 
 **3. Investigate**:
+
 ```bash
 # Collect evidence
 mkdir -p /root/incident-$(date +%Y%m%d-%H%M%S)
@@ -668,6 +697,7 @@ sha256sum * > checksums.txt
 ```
 
 **4. Eradicate**:
+
 ```bash
 # Update rules/signatures
 suricata-update
@@ -680,6 +710,7 @@ apt-get update && apt-get upgrade
 ```
 
 **5. Recover**:
+
 ```bash
 # Restore from backups if needed
 # Verify system integrity
@@ -692,6 +723,7 @@ curl http://localhost:8080  # Test Keycloak
 ```
 
 **6. Document**:
+
 - Timeline of events
 - Root cause analysis
 - Actions taken
@@ -745,6 +777,7 @@ echo "Backup completed: $BACKUP_FILE.gpg"
 ```
 
 **Schedule**:
+
 ```bash
 # Daily backup at 2 AM
 0 2 * * * /usr/local/bin/backup-phase2.sh
@@ -765,11 +798,13 @@ echo "Backup completed: $BACKUP_FILE.gpg"
 ### Data Protection
 
 **Encrypted Communications**:
+
 - WireGuard: ChaCha20-Poly1305
 - Keycloak: TLS 1.2+ (production)
 - DNS: DNS over TLS upstream
 
 **Key Management**:
+
 - Keys generated with /dev/urandom
 - Keys stored with 600 permissions
 - Keys rotated regularly
@@ -780,24 +815,28 @@ echo "Backup completed: $BACKUP_FILE.gpg"
 ## Security Checklist
 
 ### Daily
+
 - [ ] Review Suricata alerts
 - [ ] Check failed authentication attempts
 - [ ] Monitor disk space
 - [ ] Verify backups completed
 
 ### Weekly
+
 - [ ] Review PiHole blocked queries
 - [ ] Analyze top DNS queries
 - [ ] Check for software updates
 - [ ] Review firewall logs
 
 ### Monthly
+
 - [ ] Rotate service account passwords
 - [ ] Review user access
 - [ ] Update blocklists
 - [ ] Test disaster recovery
 
 ### Quarterly
+
 - [ ] Rotate WireGuard keys
 - [ ] Security audit
 - [ ] Penetration testing

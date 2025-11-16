@@ -2,15 +2,15 @@
 
 ## Quick Reference
 
-| Component | Service | Port | Log Location |
-|-----------|---------|------|--------------|
-| WireGuard Root | wg-quick@wg-root | 51820 | journalctl -u wg-quick@wg-root |
-| WireGuard MCP | wg-quick@wg-mcp | 51821 | journalctl -u wg-quick@wg-mcp |
-| WireGuard Red | wg-quick@wg-red | 51822 | journalctl -u wg-quick@wg-red |
-| Keycloak | docker (keycloak) | 8080 | docker logs keycloak |
-| PiHole | docker (pihole) | 53, 80 | docker logs pihole |
-| Suricata | suricata | - | /var/log/suricata/ |
-| Postfix | postfix | 25 | /var/log/mail.log |
+| Component      | Service           | Port   | Log Location                   |
+| -------------- | ----------------- | ------ | ------------------------------ |
+| WireGuard Root | wg-quick@wg-root  | 51820  | journalctl -u wg-quick@wg-root |
+| WireGuard MCP  | wg-quick@wg-mcp   | 51821  | journalctl -u wg-quick@wg-mcp  |
+| WireGuard Red  | wg-quick@wg-red   | 51822  | journalctl -u wg-quick@wg-red  |
+| Keycloak       | docker (keycloak) | 8080   | docker logs keycloak           |
+| PiHole         | docker (pihole)   | 53, 80 | docker logs pihole             |
+| Suricata       | suricata          | -      | /var/log/suricata/             |
+| Postfix        | postfix           | 25     | /var/log/mail.log              |
 
 ---
 
@@ -19,12 +19,14 @@
 ### Problem: WireGuard Tunnel Won't Start
 
 **Symptoms**:
+
 ```bash
 systemctl status wg-quick@wg-root
 # Shows: Failed to start
 ```
 
 **Diagnosis**:
+
 ```bash
 # Check configuration syntax
 wg-quick up wg-root
@@ -38,13 +40,16 @@ modprobe wireguard
 ```
 
 **Solutions**:
+
 1. **Missing keys**: Ensure all keys are generated
+
    ```bash
    ls -la /etc/wireguard/keys/root/
    # Should show: server.key, server.pub, client keys
    ```
 
 2. **Port conflict**: Check if port is already in use
+
    ```bash
    netstat -ulnp | grep 51820
    # Kill conflicting process or change port
@@ -60,10 +65,12 @@ modprobe wireguard
 ### Problem: Client Can't Connect to WireGuard
 
 **Symptoms**:
+
 - Client shows "Handshake did not complete"
 - No traffic flows through tunnel
 
 **Diagnosis**:
+
 ```bash
 # Check if server is listening
 wg show
@@ -78,7 +85,9 @@ tcpdump -i eth0 port 51820
 ```
 
 **Solutions**:
+
 1. **Firewall blocking**:
+
    ```bash
    ufw allow 51820/udp
    ufw reload
@@ -88,6 +97,7 @@ tcpdump -i eth0 port 51820
    - Should be: `Endpoint = 154.26.158.31:51820`
 
 3. **Key mismatch**: Regenerate and sync keys
+
    ```bash
    # On server
    wg show wg-root | grep "peer:"
@@ -99,10 +109,12 @@ tcpdump -i eth0 port 51820
 ### Problem: Split Tunnel Not Working (Root/MCP Tunnels)
 
 **Symptoms**:
+
 - All traffic goes through VPN instead of just admin endpoints
 - Internet connectivity lost when connected
 
 **Diagnosis**:
+
 ```bash
 # On client
 ip route
@@ -114,7 +126,9 @@ traceroute 46.250.243.123  # Should go through VPN
 ```
 
 **Solutions**:
+
 1. **Client config issue**: Verify `AllowedIPs`
+
    ```
    # Root tunnel should have:
    AllowedIPs = 10.100.0.0/24, 46.250.243.123/32, 46.250.241.70/32, 154.26.158.31/32
@@ -130,10 +144,12 @@ traceroute 46.250.243.123  # Should go through VPN
 ### Problem: Red Tunnel Blocking LAN Access (Good!)
 
 **Symptoms**:
+
 - Cannot access local network resources (10.x, 192.168.x)
 - This is intended behavior for Red tunnel security
 
 **Verification**:
+
 ```bash
 # On server, verify blocking rules
 iptables -L FORWARD -n -v | grep DROP
@@ -141,6 +157,7 @@ iptables -L FORWARD -n -v | grep DROP
 ```
 
 **If you need to allow specific LAN access**:
+
 ```bash
 # Add exception BEFORE drop rules
 iptables -I FORWARD -i wg-red -d 192.168.1.100/32 -j ACCEPT
@@ -154,12 +171,14 @@ iptables -I FORWARD -i wg-red -d 192.168.1.100/32 -j ACCEPT
 ### Problem: Keycloak Container Won't Start
 
 **Symptoms**:
+
 ```bash
 docker ps | grep keycloak
 # Container not running or constantly restarting
 ```
 
 **Diagnosis**:
+
 ```bash
 # Check logs
 docker logs keycloak --tail 100
@@ -172,7 +191,9 @@ docker exec keycloak nc -zv 46.250.243.123 5432
 ```
 
 **Solutions**:
+
 1. **Database connection failed**:
+
    ```bash
    # On VMI03, test connection
    nc -zv 46.250.243.123 5432
@@ -185,12 +206,14 @@ docker exec keycloak nc -zv 46.250.243.123 5432
    ```
 
 2. **Port 8080 already in use**:
+
    ```bash
    netstat -tlnp | grep 8080
    # Kill conflicting process or change port in docker-compose.yml
    ```
 
 3. **Memory issues**:
+
    ```bash
    # Check available memory
    free -h
@@ -205,10 +228,12 @@ docker exec keycloak nc -zv 46.250.243.123 5432
 ### Problem: Cannot Access Keycloak Admin Console
 
 **Symptoms**:
+
 - Browser can't connect to http://154.26.158.31:8080
 - Connection timeout
 
 **Diagnosis**:
+
 ```bash
 # Check if container is running
 docker ps | grep keycloak
@@ -221,13 +246,16 @@ curl http://localhost:8080
 ```
 
 **Solutions**:
+
 1. **Not connected to VPN**: Connect to Root tunnel first
+
    ```bash
    # Access via: http://10.100.0.1:8080 (VPN gateway)
    # Or: http://154.26.158.31:8080 (public IP)
    ```
 
 2. **Firewall blocking**:
+
    ```bash
    ufw allow from 10.100.0.0/24 to any port 8080
    ufw reload
@@ -238,11 +266,14 @@ curl http://localhost:8080
 ### Problem: MFA/TOTP Not Working
 
 **Symptoms**:
+
 - TOTP codes always rejected
 - "Invalid authenticator code" error
 
 **Solutions**:
+
 1. **Time sync issue**:
+
    ```bash
    # On VMI03
    timedatectl status
@@ -273,19 +304,23 @@ curl http://localhost:8080
 ### Problem: PiHole Container Won't Start
 
 **Symptoms**:
+
 ```bash
 docker ps | grep pihole
 # Container not running
 ```
 
 **Diagnosis**:
+
 ```bash
 docker logs pihole --tail 100
 docker-compose -f /opt/pihole/docker-compose.yml ps
 ```
 
 **Solutions**:
+
 1. **Port 53 already in use**:
+
    ```bash
    # Check what's using port 53
    netstat -ulnp | grep :53
@@ -307,10 +342,12 @@ docker-compose -f /opt/pihole/docker-compose.yml ps
 ### Problem: DNS Not Working on Red Tunnel
 
 **Symptoms**:
+
 - Clients can't resolve DNS
 - dig/nslookup fails
 
 **Diagnosis**:
+
 ```bash
 # Test DNS from server
 dig @10.102.0.1 example.com
@@ -323,13 +360,16 @@ iptables -L INPUT -n | grep 53
 ```
 
 **Solutions**:
+
 1. **PiHole not running**: Start container
+
    ```bash
    cd /opt/pihole
    docker-compose up -d
    ```
 
 2. **Firewall blocking**:
+
    ```bash
    iptables -I INPUT -i wg-red -p udp --dport 53 -j ACCEPT
    iptables -I INPUT -i wg-red -p tcp --dport 53 -j ACCEPT
@@ -341,10 +381,12 @@ iptables -L INPUT -n | grep 53
 ### Problem: Cannot Access PiHole Web Interface
 
 **Symptoms**:
+
 - http://10.102.0.1/admin doesn't load
 - Connection refused
 
 **Diagnosis**:
+
 ```bash
 # Check if PiHole web is running
 docker exec pihole netstat -tlnp | grep :80
@@ -354,7 +396,9 @@ curl http://10.102.0.1/admin
 ```
 
 **Solutions**:
+
 1. **Connect via Root tunnel**: Web UI only accessible from Root tunnel
+
    ```bash
    # From Root tunnel (10.100.0.0/24)
    # Access: http://10.102.0.1/admin
@@ -374,12 +418,14 @@ curl http://10.102.0.1/admin
 ### Problem: Suricata Not Starting
 
 **Symptoms**:
+
 ```bash
 systemctl status suricata
 # Shows: Failed
 ```
 
 **Diagnosis**:
+
 ```bash
 # Test configuration
 suricata -T -c /etc/suricata/suricata.yaml -v
@@ -389,9 +435,11 @@ journalctl -u suricata -n 50
 ```
 
 **Solutions**:
+
 1. **Configuration error**: Fix syntax in suricata.yaml
 
 2. **Interface doesn't exist**:
+
    ```bash
    # Check if wg-red is up
    ip link show wg-red
@@ -411,10 +459,12 @@ journalctl -u suricata -n 50
 ### Problem: No Alerts Being Generated
 
 **Symptoms**:
+
 - /var/log/suricata/fast.log is empty
 - No traffic being detected
 
 **Diagnosis**:
+
 ```bash
 # Check if Suricata is running
 systemctl status suricata
@@ -427,9 +477,11 @@ tail /var/log/suricata/stats.log
 ```
 
 **Solutions**:
+
 1. **No traffic**: Generate test traffic on Red tunnel
 
 2. **Rules not loaded**:
+
    ```bash
    grep "rules loaded" /var/log/suricata/suricata.log
    # Should show number of rules loaded
@@ -448,10 +500,12 @@ tail /var/log/suricata/stats.log
 ### Problem: Mail Not Being Delivered
 
 **Symptoms**:
+
 - Test emails not received
 - Mail stuck in queue
 
 **Diagnosis**:
+
 ```bash
 # Check mail queue
 mailq
@@ -464,13 +518,16 @@ tail -f /var/log/mail.log
 ```
 
 **Solutions**:
+
 1. **Postfix not running**:
+
    ```bash
    systemctl start postfix
    systemctl enable postfix
    ```
 
 2. **DNS issues**: Check hostname resolution
+
    ```bash
    hostname -f
    # Should return: vmi03.acdev.host
@@ -479,6 +536,7 @@ tail -f /var/log/mail.log
    ```
 
 3. **Firewall blocking outgoing SMTP**:
+
    ```bash
    # Allow outgoing SMTP
    ufw allow out 25/tcp
@@ -496,11 +554,14 @@ tail -f /var/log/mail.log
 ### Problem: Mail Being Marked as Spam
 
 **Symptoms**:
+
 - Emails arrive in spam folder
 - SPF/DKIM failures
 
 **Solutions**:
+
 1. **Configure SPF record** (DNS):
+
    ```
    v=spf1 ip4:154.26.158.31 -all
    ```
@@ -509,6 +570,7 @@ tail -f /var/log/mail.log
    - Contact Hetzner to set PTR for 154.26.158.31
 
 3. **Use SMTP relay**:
+
    ```bash
    # Edit /etc/postfix/main.cf
    relayhost = [smtp.gmail.com]:587
@@ -532,6 +594,7 @@ tail -f /var/log/mail.log
 ### Problem: High CPU Usage
 
 **Diagnosis**:
+
 ```bash
 top
 htop
@@ -539,6 +602,7 @@ docker stats
 ```
 
 **Solutions**:
+
 - Identify resource-hungry process
 - Restart container if Docker-related
 - Check for infinite loops in scripts
@@ -547,6 +611,7 @@ docker stats
 ### Problem: Out of Disk Space
 
 **Diagnosis**:
+
 ```bash
 df -h
 du -sh /var/log/* | sort -h
@@ -555,6 +620,7 @@ docker system df
 ```
 
 **Solutions**:
+
 ```bash
 # Clean Docker
 docker system prune -a --volumes
@@ -570,12 +636,14 @@ find /var/log/suricata -name "*.log" -type f -mtime +7 -delete
 ### Problem: Services Not Starting After Reboot
 
 **Diagnosis**:
+
 ```bash
 systemctl list-units --failed
 journalctl -xb
 ```
 
 **Solutions**:
+
 ```bash
 # Enable services
 systemctl enable wg-quick@wg-root

@@ -21,7 +21,7 @@ DB_NAME="mcp_ecosystem"
 DB_USER="mcp_admin"
 DB_HOST="localhost"
 DB_PORT="5432"
-DB_PASS="TeBsn4f2cS0O7vfdvYFTb37L6SdJFL+mpOgksTwgHy0="
+DB_PASS=""
 LOG_FILE="/var/log/mcp/rollback_$(date +%Y%m%d_%H%M%S).log"
 
 # Ensure log directory exists

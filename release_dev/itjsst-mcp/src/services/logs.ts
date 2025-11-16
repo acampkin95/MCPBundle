@@ -1,5 +1,5 @@
-import { CommandRunner, type CommandResult } from "../utils/commandRunner.js";
-import { shellQuote } from "../utils/shell.js";
+import { CommandRunner, type CommandResult } from '../utils/commandRunner.js';
+import { shellQuote } from '../utils/shell.js';
 
 export interface LogQueryOptions {
   readonly lastMinutes?: number;
@@ -16,9 +16,7 @@ export interface LogCollection {
 export class LogService {
   public constructor(private readonly runner: CommandRunner) {}
 
-  public async collectErrorEvents(
-    options: LogQueryOptions = {},
-  ): Promise<LogCollection> {
+  public async collectErrorEvents(options: LogQueryOptions = {}): Promise<LogCollection> {
     const command = this.buildLogShowCommand({
       ...(options.lastMinutes ? { lastMinutes: options.lastMinutes } : {}),
       predicate:
@@ -42,7 +40,7 @@ export class LogService {
 
   public async inspectProcess(
     processName: string,
-    options: LogQueryOptions = {},
+    options: LogQueryOptions = {}
   ): Promise<LogCollection> {
     const predicate =
       options.predicate ??
@@ -67,17 +65,17 @@ export class LogService {
   }
 
   private buildLogShowCommand(options: LogQueryOptions): string {
-    const segments: string[] = ["log", "show", "--style", "json"];
+    const segments: string[] = ['log', 'show', '--style', 'json'];
 
     if (options.lastMinutes) {
-      segments.push("--last", `${options.lastMinutes}m`);
+      segments.push('--last', `${options.lastMinutes}m`);
     }
 
     if (options.predicate) {
-      segments.push("--predicate", shellQuote(options.predicate));
+      segments.push('--predicate', shellQuote(options.predicate));
     }
 
-    const baseCommand = segments.join(" ");
+    const baseCommand = segments.join(' ');
 
     if (!options.limit) {
       return baseCommand;

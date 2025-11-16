@@ -345,5 +345,73 @@
       "uid": "node-exporter-overview",
       "version": 1
     }
+  },
+  "cloudflare_mcp_dashboard": {
+    "dashboard": {
+      "title": "Cloudflare MCP Mesh Relay",
+      "uid": "cloudflare-mcp",
+      "time": { "from": "now-6h", "to": "now" },
+      "panels": [
+        {
+          "type": "stat",
+          "title": "Active Agents",
+          "datasource": "Prometheus",
+          "targets": [
+            {
+              "expr": "cloudflare_mcp_agents_total{status=\"active\"}",
+              "refId": "A"
+            }
+          ],
+          "gridPos": { "h": 6, "w": 6, "x": 0, "y": 0 }
+        },
+        {
+          "type": "stat",
+          "title": "Stale Agents",
+          "datasource": "Prometheus",
+          "targets": [
+            {
+              "expr": "cloudflare_mcp_agents_stale_total",
+              "refId": "A"
+            }
+          ],
+          "gridPos": { "h": 6, "w": 6, "x": 6, "y": 0 }
+        },
+        {
+          "type": "timeseries",
+          "title": "Seconds Since Last Heartbeat",
+          "datasource": "Prometheus",
+          "targets": [
+            {
+              "expr": "cloudflare_mcp_agent_last_heartbeat_seconds",
+              "legendFormat": "{{agent}}",
+              "refId": "A"
+            }
+          ],
+          "gridPos": { "h": 9, "w": 12, "x": 0, "y": 6 },
+          "fieldConfig": {
+            "defaults": {
+              "custom": {
+                "drawStyle": "line",
+                "lineInterpolation": "smooth"
+              },
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "green", "value": null },
+                  { "color": "orange", "value": 120 },
+                  { "color": "red", "value": 300 }
+                ]
+              }
+            },
+            "overrides": []
+          }
+        }
+      ],
+      "templating": { "list": [] },
+      "datasource": null
+    },
+    "folderUid": "",
+    "message": "",
+    "overwrite": true
   }
 }

@@ -1,8 +1,8 @@
-import Database from "better-sqlite3";
-import { existsSync, mkdirSync } from "node:fs";
-import { readdir, readFile, stat } from "node:fs/promises";
-import { resolve, join, dirname, extname, basename } from "node:path";
-import type { ThoughtRecord } from "./structuredThinking.js";
+import Database from 'better-sqlite3';
+import { existsSync, mkdirSync } from 'node:fs';
+import { readdir, readFile, stat } from 'node:fs/promises';
+import { resolve, join, dirname, extname, basename } from 'node:path';
+import type { ThoughtRecord } from './structuredThinking.js';
 
 interface MarkdownResource {
   readonly path: string;
@@ -19,12 +19,12 @@ export class SQLitePlannerService {
 
   private readonly dbPath: string;
 
-  public constructor(dbPath: string = join(process.cwd(), "mcp_plan.db")) {
+  public constructor(dbPath: string = join(process.cwd(), 'mcp_plan.db')) {
     this.workspaceRoot = process.cwd();
     this.ensureParentDirectory(dbPath);
     this.dbPath = dbPath;
     this.db = new Database(dbPath);
-    this.db.pragma("journal_mode = WAL");
+    this.db.pragma('journal_mode = WAL');
     this.initialize();
   }
 
@@ -64,7 +64,7 @@ export class SQLitePlannerService {
       CREATE INDEX IF NOT EXISTS idx_thoughts_timestamp ON thoughts(timestamp DESC)
     `;
 
-    this.db.exec([createThoughts, createMarkdown, createFts, createIndexes].join(";"));
+    this.db.exec([createThoughts, createMarkdown, createFts, createIndexes].join(';'));
   }
 
   public refreshMarkdownCache(): Promise<void> {
@@ -78,13 +78,13 @@ export class SQLitePlannerService {
   public async ingestMarkdownFromWorkspace(): Promise<void> {
     const entries = await readdir(this.workspaceRoot);
     const markdownFiles = entries
-      .filter((entry) => extname(entry).toLowerCase() === ".md")
+      .filter((entry) => extname(entry).toLowerCase() === '.md')
       .map((entry) => resolve(this.workspaceRoot, entry));
 
     const resources: MarkdownResource[] = [];
     for (const file of markdownFiles) {
       try {
-        const [content, stats] = await Promise.all([readFile(file, "utf8"), stat(file)]);
+        const [content, stats] = await Promise.all([readFile(file, 'utf8'), stat(file)]);
         const parsed = this.parseMarkdown(file, content, stats.mtime.toISOString());
         resources.push(parsed);
       } catch {
@@ -104,7 +104,7 @@ export class SQLitePlannerService {
     `);
 
     const deleteFts = this.db.prepare(
-      "DELETE FROM markdown_resources_fts WHERE rowid = (SELECT rowid FROM markdown_resources WHERE path=@path)",
+      'DELETE FROM markdown_resources_fts WHERE rowid = (SELECT rowid FROM markdown_resources WHERE path=@path)'
     );
     const insertFts = this.db.prepare(`
       INSERT INTO markdown_resources_fts(rowid, path, title, content)
@@ -135,8 +135,17 @@ export class SQLitePlannerService {
 
   public getTimeline(): ThoughtRecord[] {
     const rows = this.db
-      .prepare("SELECT id, stage, thought, timestamp, ordering, metadata FROM thoughts ORDER BY ordering ASC")
-      .all() as Array<{ id: string; stage: string; thought: string; timestamp: string; ordering: number; metadata: string | null }>;
+      .prepare(
+        'SELECT id, stage, thought, timestamp, ordering, metadata FROM thoughts ORDER BY ordering ASC'
+      )
+      .all() as Array<{
+      id: string;
+      stage: string;
+      thought: string;
+      timestamp: string;
+      ordering: number;
+      metadata: string | null;
+    }>;
 
     return rows.map((row) => ({
       id: row.id,
@@ -149,7 +158,7 @@ export class SQLitePlannerService {
   }
 
   public replaceTimeline(records: ThoughtRecord[]): void {
-    const deleteStmt = this.db.prepare("DELETE FROM thoughts");
+    const deleteStmt = this.db.prepare('DELETE FROM thoughts');
     const insertStmt = this.db.prepare(`
       INSERT INTO thoughts(id, stage, thought, timestamp, ordering, metadata)
       VALUES (@id, @stage, @thought, @timestamp, @ordering, @metadata)
@@ -173,13 +182,13 @@ export class SQLitePlannerService {
   }
 
   public appendThought(record: ThoughtRecord): void {
-    const maxOrderRow = this.db
-      .prepare("SELECT MAX(ordering) as maxOrder FROM thoughts")
-      .get() as { maxOrder: number | null } | undefined;
+    const maxOrderRow = this.db.prepare('SELECT MAX(ordering) as maxOrder FROM thoughts').get() as
+      | { maxOrder: number | null }
+      | undefined;
     const nextOrder = (maxOrderRow?.maxOrder ?? 0) + 1;
     this.db
       .prepare(
-        "INSERT INTO thoughts(id, stage, thought, timestamp, ordering, metadata) VALUES (@id, @stage, @thought, @timestamp, @ordering, @metadata)",
+        'INSERT INTO thoughts(id, stage, thought, timestamp, ordering, metadata) VALUES (@id, @stage, @thought, @timestamp, @ordering, @metadata)'
       )
       .run({
         id: record.id,
@@ -215,16 +224,16 @@ export class SQLitePlannerService {
   private deriveTagsFromContent(content: string): string[] {
     const tags = new Set<string>();
     if (content.match(/devops/i)) {
-      tags.add("devops");
+      tags.add('devops');
     }
     if (content.match(/schema/i)) {
-      tags.add("schema");
+      tags.add('schema');
     }
     if (content.match(/security|mfa|nist|cve/i)) {
-      tags.add("security");
+      tags.add('security');
     }
     if (content.match(/planning|roadmap/i)) {
-      tags.add("planning");
+      tags.add('planning');
     }
     return Array.from(tags);
   }

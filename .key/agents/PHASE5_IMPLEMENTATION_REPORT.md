@@ -14,11 +14,13 @@ Successfully designed and implemented 6 production-ready MCP-based monitoring ag
 ### Deliverables
 
 ✅ **6 Complete Agent Implementations** (TypeScript/Node.js)
+
 - VMI01: Database Optimizer Agent, Application Health Agent
 - VMI02D: Storage Management Agent, Service Health Agent
 - VMI03: Network Security Agent, Identity Management Agent
 
 ✅ **Production-Ready Code** (30,000+ lines)
+
 - Full error handling and logging
 - Prometheus metrics export
 - PostgreSQL integration
@@ -26,12 +28,14 @@ Successfully designed and implemented 6 production-ready MCP-based monitoring ag
 - Auto-recovery mechanisms
 
 ✅ **Automated Deployment** (deploy-agents.sh)
+
 - One-command deployment across all VMs
 - Automated system user creation
 - Systemd service installation
 - Health check validation
 
 ✅ **Comprehensive Documentation**
+
 - Architecture overview (ARCHITECTURE.md)
 - Deployment guide (DEPLOYMENT_GUIDE.md)
 - Testing checklist (TESTING_CHECKLIST.md)
@@ -95,6 +99,7 @@ Successfully designed and implemented 6 production-ready MCP-based monitoring ag
 **Interval**: 60 seconds
 
 **Capabilities**:
+
 - PostgreSQL performance monitoring (connections, cache, transactions)
 - Dead tuple and bloat detection
 - Index usage analysis and recommendations
@@ -106,6 +111,7 @@ Successfully designed and implemented 6 production-ready MCP-based monitoring ag
 **Auto-Actions**: VACUUM, ANALYZE, index recommendations
 
 **Files**:
+
 ```
 vmi01/db-optimizer-agent/
 ├── src/index.ts (1,200 lines)
@@ -126,6 +132,7 @@ vmi01/db-optimizer-agent/
 **Interval**: 30 seconds
 
 **Capabilities**:
+
 - Service health monitoring (MCP Orchestrator, Perplexity-MCP, ITJSST-MCP)
 - Process discovery and tracking
 - HTTP endpoint health checks
@@ -137,6 +144,7 @@ vmi01/db-optimizer-agent/
 **Auto-Recovery**: Yes (configurable)
 
 **Files**:
+
 ```
 vmi01/app-health-agent/
 ├── src/index.ts (900 lines)
@@ -157,6 +165,7 @@ vmi01/app-health-agent/
 **Interval**: 60 seconds
 
 **Capabilities**:
+
 - Disk usage monitoring (/, /mnt/storage, etc.)
 - Snapshot age and integrity verification
 - SMART disk health monitoring
@@ -168,6 +177,7 @@ vmi01/app-health-agent/
 **Auto-Actions**: Snapshot rotation, cleanup alerts
 
 **Files**:
+
 ```
 vmi02d/storage-mgmt-agent/
 ├── src/index.ts (800 lines)
@@ -188,6 +198,7 @@ vmi02d/storage-mgmt-agent/
 **Interval**: 30 seconds
 
 **Capabilities**:
+
 - NextCloud monitoring (API, database, cron jobs)
 - Plex Media Server monitoring (API, transcoding, library scans)
 - File sync status tracking
@@ -199,6 +210,7 @@ vmi02d/storage-mgmt-agent/
 **Auto-Recovery**: Yes
 
 **Files**:
+
 ```
 vmi02d/service-health-agent/
 ├── src/index.ts (750 lines)
@@ -219,6 +231,7 @@ vmi02d/service-health-agent/
 **Interval**: 30 seconds
 
 **Capabilities**:
+
 - WireGuard tunnel monitoring (Root, MCP, Red)
 - Suricata IDS alert parsing and analysis
 - UFW firewall log monitoring
@@ -230,6 +243,7 @@ vmi02d/service-health-agent/
 **Security Events**: IDS alerts, firewall blocks, auth failures
 
 **Files**:
+
 ```
 vmi03/network-sec-agent/
 ├── src/index.ts (850 lines)
@@ -250,6 +264,7 @@ vmi03/network-sec-agent/
 **Interval**: 60 seconds
 
 **Capabilities**:
+
 - Keycloak health and performance monitoring
 - Active session tracking
 - Authentication attempt analysis (success/failure)
@@ -261,6 +276,7 @@ vmi03/network-sec-agent/
 **Security Alerts**: Brute force, token issues, service degradation
 
 **Files**:
+
 ```
 vmi03/identity-mgmt-agent/
 ├── src/index.ts (700 lines)
@@ -277,16 +293,16 @@ vmi03/identity-mgmt-agent/
 
 ### Core Technologies
 
-| Component | Technology | Version |
-|-----------|------------|---------|
-| Runtime | Node.js | >= 18.0.0 |
-| Language | TypeScript | 5.3.3 |
-| MCP SDK | @modelcontextprotocol/sdk | 1.0.0 |
-| Database | PostgreSQL | >= 13 |
-| Cache | Redis | >= 6.0 |
-| Metrics | Prometheus | 2.x |
-| Logging | Winston | 3.11.0 |
-| Process Manager | systemd | System default |
+| Component       | Technology                | Version        |
+| --------------- | ------------------------- | -------------- |
+| Runtime         | Node.js                   | >= 18.0.0      |
+| Language        | TypeScript                | 5.3.3          |
+| MCP SDK         | @modelcontextprotocol/sdk | 1.0.0          |
+| Database        | PostgreSQL                | >= 13          |
+| Cache           | Redis                     | >= 6.0         |
+| Metrics         | Prometheus                | 2.x            |
+| Logging         | Winston                   | 3.11.0         |
+| Process Manager | systemd                   | System default |
 
 ### Key Libraries
 
@@ -352,6 +368,7 @@ CREATE TABLE mcp_ecosystem.system_metrics (
 ### Total Metrics Exported: 50+
 
 **Database Optimizer (12 metrics)**:
+
 - db_connections_active
 - db_cache_hit_ratio
 - db_dead_tuples
@@ -365,6 +382,7 @@ CREATE TABLE mcp_ecosystem.system_metrics (
 - (+ more)
 
 **Application Health (8 metrics)**:
+
 - service_status
 - service_cpu_percent
 - service_memory_mb
@@ -375,6 +393,7 @@ CREATE TABLE mcp_ecosystem.system_metrics (
 - (+ more)
 
 **Storage Management (8 metrics)**:
+
 - disk_usage_percent
 - snapshot_age_days
 - disk_io_wait_percent
@@ -383,6 +402,7 @@ CREATE TABLE mcp_ecosystem.system_metrics (
 - (+ more)
 
 **Service Health (7 metrics)**:
+
 - service_api_status
 - service_db_connection
 - nextcloud_sync_errors_total
@@ -390,6 +410,7 @@ CREATE TABLE mcp_ecosystem.system_metrics (
 - (+ more)
 
 **Network Security (9 metrics)**:
+
 - wireguard_tunnel_status
 - wireguard_peer_handshake_seconds
 - ids_alerts_total
@@ -398,6 +419,7 @@ CREATE TABLE mcp_ecosystem.system_metrics (
 - (+ more)
 
 **Identity Management (7 metrics)**:
+
 - keycloak_active_sessions
 - keycloak_auth_attempts_total
 - keycloak_token_expiry_seconds
@@ -503,15 +525,15 @@ CPUQuota=50%                    # CPU limit
 
 ### Resource Usage (Observed)
 
-| Agent | CPU (Avg) | Memory | Network | Disk I/O |
-|-------|-----------|--------|---------|----------|
-| DB Optimizer | 5-8% | 120MB | 2KB/s | Low |
-| App Health | 3-6% | 100MB | 1KB/s | Low |
-| Storage Mgmt | 2-4% | 90MB | <1KB/s | Medium |
-| Service Health | 3-5% | 95MB | 1KB/s | Low |
-| Network Sec | 4-7% | 110MB | 2KB/s | Low |
-| Identity Mgmt | 3-5% | 85MB | 1KB/s | Low |
-| **TOTAL** | **<25%** | **<600MB** | **<10KB/s** | **Minimal** |
+| Agent          | CPU (Avg) | Memory     | Network     | Disk I/O    |
+| -------------- | --------- | ---------- | ----------- | ----------- |
+| DB Optimizer   | 5-8%      | 120MB      | 2KB/s       | Low         |
+| App Health     | 3-6%      | 100MB      | 1KB/s       | Low         |
+| Storage Mgmt   | 2-4%      | 90MB       | <1KB/s      | Medium      |
+| Service Health | 3-5%      | 95MB       | 1KB/s       | Low         |
+| Network Sec    | 4-7%      | 110MB      | 2KB/s       | Low         |
+| Identity Mgmt  | 3-5%      | 85MB       | 1KB/s       | Low         |
+| **TOTAL**      | **<25%**  | **<600MB** | **<10KB/s** | **Minimal** |
 
 ### Latency
 
@@ -662,30 +684,35 @@ CPUQuota=50%                    # CPU limit
 ### Grafana Dashboard Layout
 
 **Row 1: Overview**
+
 - Total agents (gauge)
 - Healthy agents (stat)
 - Total alerts (last 1h)
 - Average response time
 
 **Row 2: Database (VMI01)**
+
 - Connection pool usage (graph)
 - Cache hit ratio (graph)
 - Dead tuples (heatmap)
 - Slow queries (table)
 
 **Row 3: Applications (VMI01)**
+
 - Service status (stat panel × 6)
 - CPU usage (graph)
 - Memory usage (graph)
 - Restart count (counter)
 
 **Row 4: Storage (VMI02D)**
+
 - Disk usage (gauge × mount points)
 - Snapshot age (bar chart)
 - I/O wait (graph)
 - SMART status (table)
 
 **Row 5: Security (VMI03)**
+
 - Tunnel status (stat × 3)
 - IDS alerts (graph)
 - Firewall blocks (counter)
@@ -711,7 +738,7 @@ groups:
         labels:
           severity: critical
         annotations:
-          summary: "Agent {{ $labels.instance }} is down"
+          summary: 'Agent {{ $labels.instance }} is down'
 
       - alert: HighCPU
         expr: service_cpu_percent > 80

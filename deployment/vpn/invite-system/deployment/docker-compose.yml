@@ -1,0 +1,65 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    container_name: vpn-invite-backend
+    restart: unless-stopped
+    ports:
+      - "3100:3100"
+    environment:
+      - NODE_ENV=production
+      - PORT=3100
+      - DB_HOST=46.250.243.123
+      - DB_PORT=5432
+      - DB_NAME=mcp_vpn_invites
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - KEYCLOAK_URL=http://154.26.158.31:8080
+      - KEYCLOAK_REALM=mcp
+      - KEYCLOAK_CLIENT_ID=vpn-invite-system
+      - KEYCLOAK_CLIENT_SECRET=${KEYCLOAK_CLIENT_SECRET}
+      - WG_INTERFACE=wg1
+      - WG_PORT=51823
+      - WG_SERVER_PUBLIC_KEY=${WG_SERVER_PUBLIC_KEY}
+      - WG_ENDPOINT=154.26.158.31:51823
+      - WG_NETWORK=10.10.10.0/24
+      - WG_DNS=10.10.10.1
+      - WG_IP_POOL_START=10.10.10.10
+      - WG_IP_POOL_END=10.10.10.250
+      - SESSION_SECRET=${SESSION_SECRET}
+      - FRONTEND_URL=http://154.26.158.31:3101
+    volumes:
+      - /etc/wireguard:/etc/wireguard:ro
+      - /var/log/vpn-invite:/var/log/vpn-invite
+    networks:
+      - vpn-invite-network
+    depends_on:
+      - frontend
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun
+
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+    container_name: vpn-invite-frontend
+    restart: unless-stopped
+    ports:
+      - "3101:3101"
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_API_URL=http://154.26.158.31:3100
+      - NEXT_PUBLIC_KEYCLOAK_URL=http://154.26.158.31:8080
+      - NEXT_PUBLIC_KEYCLOAK_REALM=mcp
+      - NEXT_PUBLIC_KEYCLOAK_CLIENT_ID=vpn-invite-system
+    networks:
+      - vpn-invite-network
+
+networks:
+  vpn-invite-network:
+    driver: bridge

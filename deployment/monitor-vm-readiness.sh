@@ -20,7 +20,11 @@ declare -A VMS=(
     ["VMI03"]="154.26.158.31"
 )
 
-ROOT_PASS="caxr84di@f1GLlCv"
+ROOT_PASS="${ROOT_PASS:-${MCP_ROOT_PASSWORD:-}}"
+if [[ -z "${ROOT_PASS:-}" ]]; then
+    echo "Set ROOT_PASS or MCP_ROOT_PASSWORD from Vault before running." >&2
+    exit 1
+fi
 CHECK_INTERVAL=30  # seconds
 
 # Track ready status
@@ -48,7 +52,7 @@ check_vm() {
     fi
 
     # Check SSH login
-    if sshpass -p "$ROOT_PASS" ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=no \
+    if SSHPASS="$ROOT_PASS" sshpass -e ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=no \
        -o UserKnownHostsFile=/dev/null "root@$ip" 'echo "OK"' > /dev/null 2>&1; then
         echo "✅ READY"
         return 0

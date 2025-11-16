@@ -14,6 +14,7 @@ Policy enforcement has been successfully integrated into IT-MCP and is ready for
 ## What Was Done
 
 ### 1. Core Infrastructure (Completed ✅)
+
 - ✅ `PolicyEnforcer` service (400 lines)
 - ✅ `AuditLogger` utility (500 lines)
 - ✅ `CommandQueueService` enhancements for approval workflow
@@ -21,6 +22,7 @@ Policy enforcement has been successfully integrated into IT-MCP and is ready for
 - ✅ Tool wrapper function (`wrapWithPolicy()`)
 
 ### 2. Integration (Completed ✅)
+
 - ✅ Initialized in `src/index.ts`
 - ✅ Auto-configuration based on `ENABLE_POLICY_ENFORCEMENT` env var
 - ✅ High-risk tools wrapped:
@@ -30,6 +32,7 @@ Policy enforcement has been successfully integrated into IT-MCP and is ready for
   - `ssh-exec` - SSH command execution
 
 ### 3. Build System (Completed ✅)
+
 - ✅ TypeScript compilation successful
 - ✅ All import paths resolved
 - ✅ No compilation errors
@@ -66,20 +69,24 @@ Add to your Claude Desktop MCP settings (`~/Library/Application Support/Claude/c
 ### Method 3: Docker/PM2 Deployment
 
 **PM2 Ecosystem File** (`ecosystem.config.js`):
+
 ```javascript
 module.exports = {
-  apps: [{
-    name: 'it-mcp',
-    script: './dist/index.js',
-    env: {
-      ENABLE_POLICY_ENFORCEMENT: 'true',
-      NODE_ENV: 'production'
-    }
-  }]
+  apps: [
+    {
+      name: 'it-mcp',
+      script: './dist/index.js',
+      env: {
+        ENABLE_POLICY_ENFORCEMENT: 'true',
+        NODE_ENV: 'production',
+      },
+    },
+  ],
 };
 ```
 
 **Docker**:
+
 ```dockerfile
 ENV ENABLE_POLICY_ENFORCEMENT=true
 CMD ["node", "dist/index.js"]
@@ -102,6 +109,7 @@ INFO: Policy enforcement layer initialized {
 ```
 
 When disabled:
+
 ```
 INFO: Policy enforcement disabled (set ENABLE_POLICY_ENFORCEMENT=true to enable)
 ```
@@ -148,6 +156,7 @@ sqlite3 mcp_audit.db "
 ## Expected Behavior
 
 ### LOW Risk Operations (No Change)
+
 ```
 Tool: system-overview
 Risk: LOW
@@ -156,6 +165,7 @@ Result: ✅ Executes immediately (with audit log)
 ```
 
 ### HIGH Risk Operations (Missing Capabilities)
+
 ```
 Tool: ubuntu-admin (service restart)
 Risk: HIGH
@@ -165,6 +175,7 @@ Result: ❌ DENIED - "Missing required capabilities"
 ```
 
 ### CRITICAL Risk Operations (Requires Approval)
+
 ```
 Tool: ssh-exec
 Command: "sudo systemctl restart postgresql"
@@ -179,6 +190,7 @@ Job ID: 7784b583-dd73-4b58-bf5c-f10323131697
 ## Database Schemas
 
 ### Audit Logs Table
+
 ```sql
 CREATE TABLE audit_logs (
   id TEXT PRIMARY KEY,
@@ -202,6 +214,7 @@ CREATE TABLE audit_logs (
 ```
 
 ### Command Queue Table
+
 ```sql
 CREATE TABLE command_queue (
   job_id TEXT PRIMARY KEY,
@@ -247,14 +260,15 @@ All policies are defined in `src/config/policies.ts`. Example:
 
 ### Risk Levels
 
-| Level | Description | Approval Required | Examples |
-|-------|-------------|-------------------|----------|
-| **LOW** | Read-only, no system changes | No | system-overview, dns-lookup |
-| **MEDIUM** | Diagnostic operations | No | mac-diagnostics |
-| **HIGH** | Privileged operations | Conditional* | package updates, service control |
-| **CRITICAL** | Destructive operations | Always | firewall changes, service stops |
+| Level        | Description                  | Approval Required | Examples                         |
+| ------------ | ---------------------------- | ----------------- | -------------------------------- |
+| **LOW**      | Read-only, no system changes | No                | system-overview, dns-lookup      |
+| **MEDIUM**   | Diagnostic operations        | No                | mac-diagnostics                  |
+| **HIGH**     | Privileged operations        | Conditional\*     | package updates, service control |
+| **CRITICAL** | Destructive operations       | Always            | firewall changes, service stops  |
 
 \* HIGH risk operations require approval if:
+
 - Dangerous parameters detected (rm -rf, dd, curl \| sh, etc.)
 - Sudo operation
 - `--force` or `--no-confirm` flags
@@ -264,7 +278,9 @@ All policies are defined in `src/config/policies.ts`. Example:
 ## Security Features
 
 ### 1. Capability-Based Access Control
+
 Every operation requires specific capabilities:
+
 - `local-shell` - Local command execution
 - `local-sudo` - Elevated privileges
 - `ssh-linux` - SSH to Linux servers
@@ -276,7 +292,9 @@ Every operation requires specific capabilities:
 - `remote-exec` - Remote command execution
 
 ### 2. Dangerous Pattern Detection
+
 Automatically flags high-risk patterns:
+
 - **Destructive commands**: `rm -rf`, `dd if=`, `mkfs`, `fdisk`
 - **Service disruption**: `systemctl stop`, `systemctl disable`, `kill -9`
 - **Firewall changes**: `iptables -f`, `ufw delete`, `firewall-cmd --remove`
@@ -285,7 +303,9 @@ Automatically flags high-risk patterns:
 - **Force flags**: `--force`, `--no-confirm`
 
 ### 3. Approval Workflow
+
 HIGH and CRITICAL operations are submitted to approval queue:
+
 1. Operation evaluated by PolicyEnforcer
 2. Decision: `require_approval`
 3. Job submitted to CommandQueue with unique ID
@@ -296,7 +316,9 @@ HIGH and CRITICAL operations are submitted to approval queue:
 6. All steps logged to audit trail
 
 ### 4. Immutable Audit Trail
+
 Every decision is logged with:
+
 - Who requested (callerId from JWT)
 - What operation (tool + operation + args)
 - When (timestamp)
@@ -331,16 +353,19 @@ When Keycloak is configured, capabilities will be extracted from JWT:
 ## Performance Impact
 
 ### Overhead per Tool Invocation
+
 - Policy evaluation: ~1-2ms
 - Audit log write (SQLite): ~2-5ms
 - **Total overhead**: ~3-7ms
 
 ### Storage
+
 - Audit log entry: ~1-2KB per decision
 - 10,000 operations/day = ~20MB/day
 - **Recommended retention**: 90 days (~1.8GB)
 
 ### Optimization
+
 - SQLite WAL mode enabled (concurrent reads)
 - Indexes on common query patterns
 - Batch purging of old entries
@@ -350,15 +375,19 @@ When Keycloak is configured, capabilities will be extracted from JWT:
 ## Troubleshooting
 
 ### Issue: "Policy enforcement disabled" message
+
 **Cause**: `ENABLE_POLICY_ENFORCEMENT` not set to "true"
 **Fix**:
+
 ```bash
 export ENABLE_POLICY_ENFORCEMENT=true
 ```
 
 ### Issue: Database locked errors
+
 **Cause**: Multiple processes accessing same database
 **Fix**: Each MCP instance should have its own database files:
+
 ```bash
 # Process 1
 MCP_AUDIT_DB=mcp_audit_1.db MCP_QUEUE_DB=mcp_queue_1.db npm start
@@ -368,12 +397,15 @@ MCP_AUDIT_DB=mcp_audit_2.db MCP_QUEUE_DB=mcp_queue_2.db npm start
 ```
 
 ### Issue: All operations denied
+
 **Cause**: Missing capability configuration or incorrect policy rules
 **Fix**: Check policy configuration in `src/config/policies.ts`
 
 ### Issue: Audit logs not appearing
+
 **Cause**: AuditLogger not initialized or database path not writable
 **Fix**: Check startup logs and verify write permissions:
+
 ```bash
 ls -l mcp_audit.db
 chmod 644 mcp_audit.db
@@ -386,6 +418,7 @@ chmod 644 mcp_audit.db
 ### Recommended Dashboards
 
 **1. Audit Statistics** (query hourly):
+
 ```sql
 SELECT
   DATE(timestamp) as date,
@@ -398,6 +431,7 @@ GROUP BY date, decision_action, risk_level;
 ```
 
 **2. Denied Operations** (alert on threshold):
+
 ```sql
 SELECT
   caller_id,
@@ -413,6 +447,7 @@ HAVING COUNT(*) > 5;  -- Alert if >5 denials in 1 hour
 ```
 
 **3. Pending Approvals** (alert on queue depth):
+
 ```sql
 SELECT COUNT(*) as pending
 FROM command_queue
@@ -425,18 +460,21 @@ WHERE status = 'queued'
 ## Next Steps
 
 ### Short-term (This Week)
+
 1. ✅ Enable policy enforcement in development
 2. ⏳ Run integration tests with real tool invocations
 3. ⏳ Monitor audit logs for anomalies
 4. ⏳ Tune danger levels based on actual usage
 
 ### Medium-term (This Month)
+
 5. ⏳ Create Keycloak realm and configure roles
 6. ⏳ Implement JWT extraction in wrapWithPolicy()
 7. ⏳ Build approval dashboard (CLI or web UI)
 8. ⏳ Set up SIEM integration (Grafana/ELK)
 
 ### Long-term (Next Quarter)
+
 9. ⏳ Wrap remaining MEDIUM-risk tools for comprehensive coverage
 10. ⏳ Implement approval time windows (expire after N hours)
 11. ⏳ Add side effect tracking (files modified, services restarted)
@@ -447,12 +485,14 @@ WHERE status = 'queued'
 ## Support & Documentation
 
 **Full Documentation**:
+
 - `POLICY_ENFORCEMENT_GUIDE.md` - Comprehensive guide (600+ lines)
 - `POLICY_ENFORCEMENT_STATUS.md` - Implementation status report
 - `src/config/policies.ts` - Policy rule definitions
 - `src/types/policy.ts` - Type definitions
 
 **Code References**:
+
 - Policy Enforcer: `src/services/policyEnforcer.ts:1`
 - Audit Logger: `src/utils/auditLogger.ts:1`
 - Tool Wrapper: `src/tools/registerTools.ts:348`

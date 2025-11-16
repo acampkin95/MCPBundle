@@ -96,14 +96,14 @@ agents/
 
 ## Agent Overview
 
-| Agent | VM | Port | Purpose | Interval |
-|-------|-----|------|---------|----------|
-| **DB Optimizer** | VMI01 | 9100 | PostgreSQL performance monitoring | 60s |
-| **App Health** | VMI01 | 9101 | Application service health checks | 30s |
-| **Storage Mgmt** | VMI02D | 9200 | Disk usage & snapshot monitoring | 60s |
-| **Service Health** | VMI02D | 9201 | NextCloud/Plex monitoring | 30s |
-| **Network Sec** | VMI03 | 9300 | WireGuard tunnels & IDS monitoring | 30s |
-| **Identity Mgmt** | VMI03 | 9301 | Keycloak authentication monitoring | 60s |
+| Agent              | VM     | Port | Purpose                            | Interval |
+| ------------------ | ------ | ---- | ---------------------------------- | -------- |
+| **DB Optimizer**   | VMI01  | 9100 | PostgreSQL performance monitoring  | 60s      |
+| **App Health**     | VMI01  | 9101 | Application service health checks  | 30s      |
+| **Storage Mgmt**   | VMI02D | 9200 | Disk usage & snapshot monitoring   | 60s      |
+| **Service Health** | VMI02D | 9201 | NextCloud/Plex monitoring          | 30s      |
+| **Network Sec**    | VMI03  | 9300 | WireGuard tunnels & IDS monitoring | 30s      |
+| **Identity Mgmt**  | VMI03  | 9301 | Keycloak authentication monitoring | 60s      |
 
 ---
 
@@ -358,12 +358,12 @@ scrape_configs:
   - job_name: 'agents'
     static_configs:
       - targets:
-        - 'localhost:9100'  # db-optimizer
-        - 'localhost:9101'  # app-health
-        - '<vmi02d-ip>:9200'  # storage-mgmt
-        - '<vmi02d-ip>:9201'  # service-health
-        - '<vmi03-ip>:9300'  # network-sec
-        - '<vmi03-ip>:9301'  # identity-mgmt
+          - 'localhost:9100' # db-optimizer
+          - 'localhost:9101' # app-health
+          - '<vmi02d-ip>:9200' # storage-mgmt
+          - '<vmi02d-ip>:9201' # service-health
+          - '<vmi03-ip>:9300' # network-sec
+          - '<vmi03-ip>:9301' # identity-mgmt
 ```
 
 ### Grafana
@@ -379,12 +379,12 @@ scrape_configs:
 
 ### Resource Usage
 
-| Metric | Per Agent | Total (6 agents) |
-|--------|-----------|------------------|
-| CPU | <5% | <25% |
-| Memory | 80-150MB | <900MB |
-| Network | 1-5KB/s | <30KB/s |
-| Disk I/O | Minimal | Minimal |
+| Metric   | Per Agent | Total (6 agents) |
+| -------- | --------- | ---------------- |
+| CPU      | <5%       | <25%             |
+| Memory   | 80-150MB  | <900MB           |
+| Network  | 1-5KB/s   | <30KB/s          |
+| Disk I/O | Minimal   | Minimal          |
 
 ### Latency
 
@@ -400,6 +400,7 @@ scrape_configs:
 ### Systemd Hardening
 
 All agents run with:
+
 - Non-root user (`mcp-agent`)
 - No shell access
 - Restricted file system access
@@ -441,16 +442,19 @@ All agents run with:
 ## Maintenance Schedule
 
 ### Daily (5 min)
+
 - Check agent status
 - Review critical alerts
 - Monitor disk space
 
 ### Weekly (30 min)
+
 - Analyze slow queries
 - Review log warnings
 - Check for unused indexes
 
 ### Monthly (2 hours)
+
 - Clean old metrics (>30 days)
 - VACUUM database
 - Update dependencies
@@ -461,6 +465,7 @@ All agents run with:
 ## Version History
 
 ### v1.0.0 (2025-11-06)
+
 - Initial production release
 - 6 agents implemented
 - Full documentation

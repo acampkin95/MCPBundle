@@ -52,7 +52,7 @@ readonly DB_HOST="46.250.243.123"
 readonly DB_PORT="5432"
 readonly DB_NAME="mcp_ecosystem"
 readonly DB_USER="mcp_admin"
-readonly DB_PASSWORD="TeBsn4f2cS0O7vfdvYFTb37L6SdJFL+mpOgksTwgHy0="
+readonly DB_PASSWORD=""
 
 # Redis Settings
 readonly REDIS_HOST="localhost"
@@ -265,7 +265,7 @@ DB_HOST = "46.250.243.123"
 DB_PORT = "5432"
 DB_NAME = "mcp_ecosystem"
 DB_USER = "mcp_admin"
-DB_PASSWORD = "TeBsn4f2cS0O7vfdvYFTb37L6SdJFL+mpOgksTwgHy0="
+DB_PASSWORD = ""
 
 # Redis Configuration
 REDIS_HOST = "localhost"
@@ -774,7 +774,7 @@ echo ""
 echo "Queue Status"
 echo "============"
 if command -v psql &>/dev/null; then
-    PGPASSWORD="TeBsn4f2cS0O7vfdvYFTb37L6SdJFL+mpOgksTwgHy0=" \
+    PGPASSWORD="" \
     psql -h 46.250.243.123 -U mcp_admin -d mcp_ecosystem -c \
     "SELECT job_id, input_file, status,
             EXTRACT(EPOCH FROM (end_time - start_time)) as duration_seconds,

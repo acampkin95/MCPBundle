@@ -3,11 +3,16 @@
 # Install Node Exporter on VMI01
 
 VMI01_IP="46.250.243.123"
-ROOT_PASS="C0nnaught"
+ROOT_PASS="${ROOT_PASS:-${MCP_ROOT_PASSWORD:-}}"
+
+if [[ -z "${ROOT_PASS:-}" ]]; then
+  echo "Set ROOT_PASS or MCP_ROOT_PASSWORD from Vault before running." >&2
+  exit 1
+fi
 
 echo "Installing Node Exporter on VMI01..."
 
-sshpass -p "$ROOT_PASS" ssh -o StrictHostKeyChecking=no root@$VMI01_IP << 'ENDSSH'
+SSHPASS="$ROOT_PASS" sshpass -e ssh -o StrictHostKeyChecking=no root@$VMI01_IP << 'ENDSSH'
 # Check if already installed
 if [ -f /usr/local/bin/node_exporter ]; then
     echo "Node Exporter already installed"

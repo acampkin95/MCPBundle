@@ -97,6 +97,22 @@ case $choice in
         npm test
         cd ../..
 
+        # Build Cloudflare-MCP
+        echo -e "${BLUE}Building Cloudflare-MCP...${NC}"
+        cd "$RELEASE_DEV/cloudflare-mcp"
+        npm ci
+        npm run build
+        npm test
+        cd ../..
+
+        # Build Admin Panel
+        echo -e "${BLUE}Building Admin Panel...${NC}"
+        cd "$RELEASE_DEV/admin-panel"
+        npm ci
+        npm run lint
+        npm run build
+        cd ../..
+
         # Package deployments
         echo -e "${BLUE}Creating deployment packages...${NC}"
         tar -czf "${VERSION_DIR}/itjsst-mcp-${NEW_VERSION}.tar.gz" \
@@ -111,6 +127,22 @@ case $choice in
         tar -czf "${VERSION_DIR}/mcp-orchestrator-${NEW_VERSION}.tar.gz" \
             -C "$RELEASE_DEV/mcp-orchestrator" \
             --exclude='node_modules' \
+            --exclude='.git' \
+            .
+
+        tar -czf "${VERSION_DIR}/cloudflare-mcp-${NEW_VERSION}.tar.gz" \
+            -C "$RELEASE_DEV/cloudflare-mcp" \
+            --exclude='node_modules' \
+            --exclude='.git' \
+            --exclude='*.db' \
+            --exclude='*.db-wal' \
+            --exclude='*.db-shm' \
+            .
+
+        tar -czf "${VERSION_DIR}/admin-panel-${NEW_VERSION}.tar.gz" \
+            -C "$RELEASE_DEV/admin-panel" \
+            --exclude='node_modules' \
+            --exclude='.next/cache' \
             --exclude='.git' \
             .
 
@@ -136,6 +168,8 @@ echo "Deploying MCP Bundle v${VERSION} to ${USER}@${SERVER}"
 scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
     itjsst-mcp-${VERSION}.tar.gz \
     mcp-orchestrator-${VERSION}.tar.gz \
+    cloudflare-mcp-${VERSION}.tar.gz \
+    admin-panel-${VERSION}.tar.gz \
     "${USER}@${SERVER}:/opt/mcp/"
 
 # Deploy on server
@@ -150,22 +184,39 @@ fi
 if [ -d "mcp-orchestrator" ]; then
     mv mcp-orchestrator mcp-orchestrator.backup.$(date +%s)
 fi
+if [ -d "cloudflare-mcp" ]; then
+    mv cloudflare-mcp cloudflare-mcp.backup.$(date +%s)
+fi
+if [ -d "admin-panel" ]; then
+    mv admin-panel admin-panel.backup.$(date +%s)
+fi
+
+rm -rf itjsst-mcp-new mcp-orchestrator-new cloudflare-mcp-new admin-panel-new
+mkdir -p itjsst-mcp-new mcp-orchestrator-new cloudflare-mcp-new admin-panel-new
 
 # Extract new versions
 tar -xzf itjsst-mcp-VERSION_PLACEHOLDER.tar.gz -C itjsst-mcp-new
 tar -xzf mcp-orchestrator-VERSION_PLACEHOLDER.tar.gz -C mcp-orchestrator-new
+tar -xzf cloudflare-mcp-VERSION_PLACEHOLDER.tar.gz -C cloudflare-mcp-new
+tar -xzf admin-panel-VERSION_PLACEHOLDER.tar.gz -C admin-panel-new
 
 # Install dependencies
 cd itjsst-mcp-new && npm ci --production
 cd ../mcp-orchestrator-new && npm ci --production
+cd ../cloudflare-mcp-new && npm ci --production
+cd ../admin-panel-new && npm ci && npm run build
 cd ..
 
 # Atomic swap
 mv itjsst-mcp-new itjsst-mcp
 mv mcp-orchestrator-new mcp-orchestrator
+mv cloudflare-mcp-new cloudflare-mcp
+mv admin-panel-new admin-panel
 
 # Restart services
 systemctl restart mcp-orchestrator || pm2 restart mcp-orchestrator || echo "Manual restart required"
+systemctl restart cloudflare-mcp || pm2 restart cloudflare-mcp || echo "Manual restart required"
+systemctl restart admin-panel || pm2 restart admin-panel || echo "Manual restart required"
 
 echo "Deployment complete!"
 SERVER_EOF
@@ -186,6 +237,8 @@ DEPLOY_EOF
         echo -e "${CYAN}Packages:${NC}"
         echo -e "  - itjsst-mcp-${NEW_VERSION}.tar.gz"
         echo -e "  - mcp-orchestrator-${NEW_VERSION}.tar.gz"
+        echo -e "  - cloudflare-mcp-${NEW_VERSION}.tar.gz"
+        echo -e "  - admin-panel-${NEW_VERSION}.tar.gz"
         echo ""
         echo -e "${YELLOW}Next steps:${NC}"
         echo "1. Deploy to dev/test environment"
@@ -485,9 +538,11 @@ systemctl start postgresql
 systemctl start redis
 systemctl start keycloak
 systemctl start mcp-orchestrator
+systemctl start cloudflare-mcp
 
 # Check status
 systemctl status mcp-orchestrator
+systemctl status cloudflare-mcp
 ```
 
 **Desktop Agent**:
@@ -514,6 +569,12 @@ redis-cli info server
 
 # Prometheus metrics
 curl http://46.250.243.123:9091/metrics
+
+# Cloudflare MCP health
+curl http://46.250.243.123:3003/healthz
+
+# Panel snapshot (sanitized)
+curl http://46.250.243.123:3003/panel/overview | jq '.stats'
 ```
 
 ## Monitoring

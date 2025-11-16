@@ -67,7 +67,7 @@ verify_vm_access() {
     fi
 
     # Test SSH with password
-    if ! sshpass -p "$ROOT_PASS" ssh -o ConnectTimeout=10 -o StrictHostKeyChecking=no \
+    if ! SSHPASS="$ROOT_PASS" sshpass -e ssh -o ConnectTimeout=10 -o StrictHostKeyChecking=no \
          -o UserKnownHostsFile=/dev/null "$ROOT_USER@$vm_ip" 'echo "SSH_OK"' > /dev/null 2>&1; then
         error "$vm_name SSH connection failed"
         return 1
@@ -91,7 +91,7 @@ distribute_ssh_keys() {
         log "Copying SSH public key to $vm_name..."
 
         # Copy SSH key
-        sshpass -p "$ROOT_PASS" ssh-copy-id -i "$SSH_KEY.pub" \
+        SSHPASS="$ROOT_PASS" sshpass -e ssh-copy-id -i "$SSH_KEY.pub" \
             -o StrictHostKeyChecking=no "$ROOT_USER@$vm_ip" >> "$LOG_FILE" 2>&1
 
         # Verify passwordless SSH

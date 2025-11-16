@@ -120,6 +120,7 @@ Agent Startup
 **Purpose**: PostgreSQL performance monitoring and optimization
 
 **Metrics Collected**:
+
 - Connection pool usage (active/total)
 - Cache hit ratio (target: >95%)
 - Dead tuples per table
@@ -129,11 +130,13 @@ Agent Startup
 - Vacuum/analyze timestamps
 
 **Auto-Optimization**:
+
 - VACUUM when dead_tuples > 10,000
 - ANALYZE after significant data changes
 - Index recommendations for seq_scan heavy tables
 
 **Alerts**:
+
 - Critical: Connection pool exhausted, replication lag
 - Warning: Low cache hit ratio, high bloat
 - Info: Vacuum needed, unused indexes
@@ -149,6 +152,7 @@ Agent Startup
 **Purpose**: Application service monitoring and auto-recovery
 
 **Services Monitored**:
+
 - MCP Orchestrator (port 3000)
 - Perplexity-MCP (port 3001)
 - ITJSST-MCP (port 3002)
@@ -157,12 +161,14 @@ Agent Startup
 - Keycloak (port 8080)
 
 **Health Checks**:
+
 - Process existence (ps/systemctl)
 - HTTP endpoint health (/health)
 - Resource usage (CPU, memory)
 - Response time tracking
 
 **Auto-Recovery**:
+
 - Restart failed processes (max 3 attempts)
 - Exponential backoff (5s, 10s, 20s)
 - Clear cache on memory pressure
@@ -178,6 +184,7 @@ Agent Startup
 **Purpose**: Disk space and snapshot monitoring
 
 **Metrics Collected**:
+
 - Disk usage by mount point (/, /mnt/storage)
 - Snapshot age and size
 - I/O wait times
@@ -185,12 +192,14 @@ Agent Startup
 - Deduplication opportunities
 
 **Auto-Actions**:
+
 - Alert at 80% disk usage
 - Rotate snapshots >30 days old
 - Verify snapshot integrity
 - Recommend cleanup actions
 
 **Alerts**:
+
 - Critical: Disk >90% full, SMART errors
 - Warning: Disk >80%, old snapshots
 - Info: Dedup opportunities
@@ -205,18 +214,21 @@ Agent Startup
 **Purpose**: NextCloud/Plex service monitoring
 
 **Services Monitored**:
+
 - NextCloud (port 8081)
 - Plex Media Server (port 32400)
 - Background cron jobs
 - Upload/download speeds
 
 **Health Checks**:
+
 - API endpoint availability
 - Database connectivity (NextCloud)
 - Media library scanning status
 - Resource utilization
 
 **Auto-Recovery**:
+
 - Restart hung services
 - Clear file locks
 - Reset failed cron jobs
@@ -231,6 +243,7 @@ Agent Startup
 **Purpose**: Network tunnel and IDS monitoring
 
 **Metrics Collected**:
+
 - WireGuard tunnel status (Root, MCP, Red)
 - Peer connectivity and handshakes
 - Suricata IDS alerts
@@ -239,12 +252,14 @@ Agent Startup
 - Network traffic anomalies
 
 **Alert Detection**:
+
 - Tunnel disconnections
 - IDS signature matches
 - Unusual traffic patterns
 - Repeated auth failures
 
 **Auto-Actions**:
+
 - Restart failed tunnels
 - Block malicious IPs (fail2ban)
 - Log security events
@@ -259,6 +274,7 @@ Agent Startup
 **Purpose**: Keycloak authentication monitoring
 
 **Metrics Collected**:
+
 - Active user sessions
 - Authentication attempts (success/failure)
 - Token expiry tracking
@@ -266,12 +282,14 @@ Agent Startup
 - Response times
 
 **Alert Detection**:
+
 - Brute force attempts (>5 failures/min)
 - Token expiry issues
 - Keycloak service degradation
 - Database connection problems
 
 **Auto-Actions**:
+
 - Lock accounts after failed attempts
 - Clear expired sessions
 - Restart Keycloak on failure
@@ -365,6 +383,7 @@ CREATE INDEX idx_system_metrics_data ON mcp_ecosystem.system_metrics USING GIN(m
 ## Alert Severity Levels
 
 ### Critical (Immediate Action Required)
+
 - Service completely down
 - Database connection pool exhausted
 - Disk >90% full
@@ -373,6 +392,7 @@ CREATE INDEX idx_system_metrics_data ON mcp_ecosystem.system_metrics USING GIN(m
 - Auto-restart failed after max attempts
 
 ### Warning (Action Needed Soon)
+
 - High CPU/memory usage (>80%)
 - Disk >80% full
 - Cache hit ratio <95%
@@ -381,6 +401,7 @@ CREATE INDEX idx_system_metrics_data ON mcp_ecosystem.system_metrics USING GIN(m
 - Failed authentication patterns
 
 ### Info (Awareness)
+
 - Service restarted successfully
 - Vacuum/analyze recommended
 - Unused index detected
@@ -390,6 +411,7 @@ CREATE INDEX idx_system_metrics_data ON mcp_ecosystem.system_metrics USING GIN(m
 ## Security Considerations
 
 ### Agent Security
+
 1. Run as dedicated `mcp-agent` user (no shell, restricted home)
 2. Systemd hardening (NoNewPrivileges, ProtectSystem, PrivateTmp)
 3. Resource limits (MemoryLimit, CPUQuota, TasksMax)
@@ -397,6 +419,7 @@ CREATE INDEX idx_system_metrics_data ON mcp_ecosystem.system_metrics USING GIN(m
 5. Environment variable secrets (never commit passwords)
 
 ### Network Security
+
 1. Health endpoints bound to localhost only
 2. MCP stdio transport (no network exposure)
 3. PostgreSQL SSL connections (optional)
@@ -404,6 +427,7 @@ CREATE INDEX idx_system_metrics_data ON mcp_ecosystem.system_metrics USING GIN(m
 5. Prometheus metrics authentication (if public)
 
 ### Data Security
+
 1. Sensitive data redacted from logs
 2. Metric data retention (30 days default)
 3. Alert data sanitization
@@ -413,24 +437,28 @@ CREATE INDEX idx_system_metrics_data ON mcp_ecosystem.system_metrics USING GIN(m
 ## Deployment Strategy
 
 ### Phase 1: VMI01 Agents (Core Infrastructure)
+
 1. Deploy DB Optimizer Agent
 2. Verify PostgreSQL monitoring
 3. Deploy App Health Agent
 4. Test auto-recovery
 
 ### Phase 2: VMI02D Agents (Storage)
+
 1. Deploy Storage Management Agent
 2. Configure snapshot monitoring
 3. Deploy Service Health Agent
 4. Test service checks
 
 ### Phase 3: VMI03 Agents (Security)
+
 1. Deploy Network Security Agent
 2. Configure IDS integration
 3. Deploy Identity Management Agent
 4. Test Keycloak monitoring
 
 ### Phase 4: Integration
+
 1. Configure Prometheus scraping
 2. Setup Grafana dashboards
 3. Test alert routing
@@ -449,20 +477,21 @@ CREATE INDEX idx_system_metrics_data ON mcp_ecosystem.system_metrics USING GIN(m
 
 ## Performance Impact
 
-| Agent | CPU Usage | Memory | Network | Disk I/O |
-|-------|-----------|--------|---------|----------|
-| DB Optimizer | 5-10% | 100-200MB | 1-5KB/s | Low |
-| App Health | 3-7% | 80-150MB | 1-3KB/s | Low |
-| Storage Mgmt | 2-5% | 60-120MB | <1KB/s | Medium |
-| Service Health | 3-6% | 70-130MB | 1-2KB/s | Low |
-| Network Sec | 4-8% | 90-160MB | 2-5KB/s | Low |
-| Identity Mgmt | 3-6% | 80-140MB | 1-3KB/s | Low |
+| Agent          | CPU Usage | Memory    | Network | Disk I/O |
+| -------------- | --------- | --------- | ------- | -------- |
+| DB Optimizer   | 5-10%     | 100-200MB | 1-5KB/s | Low      |
+| App Health     | 3-7%      | 80-150MB  | 1-3KB/s | Low      |
+| Storage Mgmt   | 2-5%      | 60-120MB  | <1KB/s  | Medium   |
+| Service Health | 3-6%      | 70-130MB  | 1-2KB/s | Low      |
+| Network Sec    | 4-8%      | 90-160MB  | 2-5KB/s | Low      |
+| Identity Mgmt  | 3-6%      | 80-140MB  | 1-3KB/s | Low      |
 
 **Total System Impact**: <5% CPU, <1GB RAM across all agents
 
 ## Troubleshooting Guide
 
 ### Agent Won't Start
+
 1. Check logs: `journalctl -u {agent-name} -n 50`
 2. Verify config: `yamllint config/config.yaml`
 3. Test DB connection: `psql -h localhost -U mcp_orchestrator -d mcp_ecosystem`
@@ -470,6 +499,7 @@ CREATE INDEX idx_system_metrics_data ON mcp_ecosystem.system_metrics USING GIN(m
 5. Check permissions: `ls -la /opt/mcp-agents/{agent-name}`
 
 ### Missing Metrics
+
 1. Verify Pushgateway: `curl http://localhost:9091/metrics`
 2. Check agent metrics endpoint: `curl http://localhost:910X/metrics`
 3. Review collection errors in logs
@@ -477,6 +507,7 @@ CREATE INDEX idx_system_metrics_data ON mcp_ecosystem.system_metrics USING GIN(m
 5. Check Redis cache: `redis-cli --scan --pattern 'agent:*'`
 
 ### High Resource Usage
+
 1. Review metric collection interval (increase if too frequent)
 2. Check for metric explosion (high cardinality labels)
 3. Tune database connection pool size
@@ -484,6 +515,7 @@ CREATE INDEX idx_system_metrics_data ON mcp_ecosystem.system_metrics USING GIN(m
 5. Adjust systemd resource limits
 
 ### Alert Storm
+
 1. Increase alert thresholds temporarily
 2. Check for cascading failures
 3. Review alert deduplication logic

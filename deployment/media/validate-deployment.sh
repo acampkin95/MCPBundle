@@ -238,7 +238,7 @@ validate_database() {
     local checks_total=2
 
     # Check PostgreSQL connectivity from VMI02D
-    if ssh root@${TARGET_HOST} 'PGPASSWORD="TeBsn4f2cS0O7vfdvYFTb37L6SdJFL+mpOgksTwgHy0=" psql -h 46.250.243.123 -U mcp_admin -d mcp_ecosystem -c "SELECT 1"' &>/dev/null; then
+    if ssh root@${TARGET_HOST} 'PGPASSWORD="" psql -h 46.250.243.123 -U mcp_admin -d mcp_ecosystem -c "SELECT 1"' &>/dev/null; then
         log_success "Database connection to VMI01 successful"
         ((checks_passed++))
     else
@@ -246,7 +246,7 @@ validate_database() {
     fi
 
     # Check transcoding_jobs table
-    if ssh root@${TARGET_HOST} 'PGPASSWORD="TeBsn4f2cS0O7vfdvYFTb37L6SdJFL+mpOgksTwgHy0=" psql -h 46.250.243.123 -U mcp_admin -d mcp_ecosystem -c "SELECT COUNT(*) FROM transcoding_jobs"' &>/dev/null; then
+    if ssh root@${TARGET_HOST} 'PGPASSWORD="" psql -h 46.250.243.123 -U mcp_admin -d mcp_ecosystem -c "SELECT COUNT(*) FROM transcoding_jobs"' &>/dev/null; then
         log_success "Transcoding jobs table exists"
         ((checks_passed++))
     else

@@ -3,4 +3,4 @@ export const shellQuote = (value: string): string => {
   return `'${safe}'`;
 };
 
-export const buildCommand = (parts: string[]): string => parts.join(" ");
+export const buildCommand = (parts: string[]): string => parts.join(' ');

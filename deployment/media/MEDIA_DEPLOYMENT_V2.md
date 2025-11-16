@@ -15,17 +15,20 @@ This is an enhanced version of the media deployment that provides:
 ## Key Features
 
 ### Fast Detection
+
 - 15-second file detection interval
 - Automatic video format recognition
 - Queue-based processing for multiple files
 
 ### H265 Transcoding
+
 - Automatic conversion to H265/HEVC
 - Optimal quality settings (CRF 28)
 - Hardware acceleration support when available
 - Original files cleaned up after processing
 
 ### Public Access
+
 - data.acdev.host → Nextcloud
 - plex.acdev.host → Plex Media Server
 - CloudFlare DDoS protection
@@ -65,7 +68,9 @@ cd /tmp
 ## File Descriptions
 
 ### deploy-media-stack.sh
+
 Main deployment script that:
+
 - Installs Docker and dependencies
 - Deploys Nextcloud with PostgreSQL and Redis
 - Installs Plex Media Server
@@ -75,7 +80,9 @@ Main deployment script that:
 - Enables SOC monitoring
 
 ### configure-cloudflare-dns.sh
+
 CloudFlare configuration that:
+
 - Creates DNS A records for data.acdev.host and plex.acdev.host
 - Configures SSL/TLS settings (Full strict)
 - Enables HSTS and Always Use HTTPS
@@ -83,7 +90,9 @@ CloudFlare configuration that:
 - Creates firewall rules for security
 
 ### test-media-stack.sh
+
 Comprehensive testing script that:
+
 - Validates all services are running
 - Tests video processing pipeline
 - Checks DNS resolution
@@ -146,12 +155,14 @@ systemctl restart video-watcher
 ## Monitoring & Logs
 
 ### Log Files
+
 - `/var/log/transcode.log` - Transcoding operations
 - `/var/log/video-watcher.log` - File detection events
 - `/var/log/media-stack-test.log` - Test results
 - `/var/log/nginx/access.log` - Web access logs
 
 ### SOC Integration
+
 - Metrics sent to VMI03 (10.0.0.3:9090)
 - Syslog forwarding to VMI03:514
 - 60-second update interval
@@ -164,12 +175,14 @@ systemctl restart video-watcher
 If you cannot SSH to VMI02D:
 
 1. **Check IP Whitelist**
+
    ```bash
    # Your IP may be blocked by Fail2Ban
    # Contact admin to whitelist your IP
    ```
 
 2. **Use Alternative Access**
+
    ```bash
    # Try via VMI01 as jump host
    ssh -i ssh-keys/vmi01-acdev-vmi01-id_ed25519 root@46.250.243.123

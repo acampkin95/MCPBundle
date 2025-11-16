@@ -8,7 +8,6 @@
     "eslint:recommended",
     "plugin:@typescript-eslint/recommended",
     "plugin:@typescript-eslint/recommended-requiring-type-checking",
-    "plugin:security/recommended",
     "plugin:node/recommended",
     "prettier"
   ],
@@ -18,12 +17,7 @@
     "sourceType": "module",
     "project": "./tsconfig.json"
   },
-  "plugins": [
-    "@typescript-eslint",
-    "security",
-    "node",
-    "prettier"
-  ],
+  "plugins": ["@typescript-eslint", "security", "node", "prettier"],
   "rules": {
     "@typescript-eslint/explicit-function-return-type": "warn",
     "@typescript-eslint/no-explicit-any": "error",

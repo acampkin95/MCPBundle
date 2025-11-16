@@ -7,12 +7,12 @@
  * other automation workflows.
  */
 
-import process from "node:process";
-import { CommandRunner } from "../utils/commandRunner.js";
-import { MacDiagnosticsService } from "../services/macDiagnostics.js";
-import { MacPermissionsService } from "../services/macPermissions.js";
-import { SshService } from "../services/ssh.js";
-import { getToolMetadata, listToolMetadata } from "../config/toolMetadata.js";
+import process from 'node:process';
+import { CommandRunner } from '../utils/commandRunner.js';
+import { MacDiagnosticsService } from '../services/macDiagnostics.js';
+import { MacPermissionsService } from '../services/macPermissions.js';
+import { SshService } from '../services/ssh.js';
+import { getToolMetadata, listToolMetadata } from '../config/toolMetadata.js';
 
 interface CliOptions {
   readonly command: string | undefined;
@@ -27,13 +27,13 @@ const parseArgs = (argv: string[]): CliOptions => {
 
   for (let i = 0; i < flagTokens.length; i += 1) {
     const token = flagTokens[i];
-    if (!token.startsWith("-")) {
+    if (!token.startsWith('-')) {
       continue;
     }
 
-    const normalized = token.replace(/^--?/, "");
+    const normalized = token.replace(/^--?/, '');
     const next = flagTokens[i + 1];
-    if (next && !next.startsWith("-")) {
+    if (next && !next.startsWith('-')) {
       flags[normalized] = next;
       i += 1;
     } else {
@@ -47,31 +47,31 @@ const parseArgs = (argv: string[]): CliOptions => {
 const printUsage = (): void => {
   console.log(
     [
-      "Usage: it-mcp <command> [subcommand] [flags]",
-      "",
-      "Commands:",
-      "  mac-permissions overview           Print admin membership, SecureToken holders, FileVault status",
-      "  mac-permissions audit              Run a permissions risk audit",
-      "  mac-diagnostics run --suite <suite> [--cache-ttl <seconds>] [--compare-baseline] [--update-baseline]",
-      "  tool-metadata [toolId]             List tool metadata or show details for a specific tool",
-      "",
-      "Examples:",
-      "  it-mcp mac-permissions overview",
-      "  it-mcp tool-metadata mac-permissions-audit",
-      "",
-    ].join("\n"),
+      'Usage: it-mcp <command> [subcommand] [flags]',
+      '',
+      'Commands:',
+      '  mac-permissions overview           Print admin membership, SecureToken holders, FileVault status',
+      '  mac-permissions audit              Run a permissions risk audit',
+      '  mac-diagnostics run --suite <suite> [--cache-ttl <seconds>] [--compare-baseline] [--update-baseline]',
+      '  tool-metadata [toolId]             List tool metadata or show details for a specific tool',
+      '',
+      'Examples:',
+      '  it-mcp mac-permissions overview',
+      '  it-mcp tool-metadata mac-permissions-audit',
+      '',
+    ].join('\n')
   );
 };
 
 const main = async (): Promise<void> => {
   const { command, subcommand, flags } = parseArgs(process.argv);
 
-  if (!command || command === "help" || command === "-h" || command === "--help") {
+  if (!command || command === 'help' || command === '-h' || command === '--help') {
     printUsage();
     return;
   }
 
-  const allowSudo = process.env.IT_MCP_ALLOW_SUDO !== "false";
+  const allowSudo = process.env.IT_MCP_ALLOW_SUDO !== 'false';
   const runner = new CommandRunner(allowSudo);
   const ssh = new SshService(runner);
   const macDiagnostics = new MacDiagnosticsService(runner, ssh);
@@ -79,14 +79,14 @@ const main = async (): Promise<void> => {
 
   try {
     switch (command) {
-      case "mac-permissions": {
-        const mode = subcommand ?? "overview";
-        if (mode === "overview") {
+      case 'mac-permissions': {
+        const mode = subcommand ?? 'overview';
+        if (mode === 'overview') {
           const overview = await macPermissions.collectOverview();
-          console.log(JSON.stringify({ status: "ok", overview }, null, 2));
-        } else if (mode === "audit") {
+          console.log(JSON.stringify({ status: 'ok', overview }, null, 2));
+        } else if (mode === 'audit') {
           const audit = await macPermissions.auditPermissions();
-          console.log(JSON.stringify({ status: "ok", audit }, null, 2));
+          console.log(JSON.stringify({ status: 'ok', audit }, null, 2));
         } else {
           console.error(`Unknown mac-permissions subcommand: ${mode}`);
           process.exitCode = 1;
@@ -94,112 +94,119 @@ const main = async (): Promise<void> => {
         break;
       }
 
-      case "mac-diagnostics": {
-        const action = subcommand ?? "run";
-        if (action !== "run") {
+      case 'mac-diagnostics': {
+        const action = subcommand ?? 'run';
+        if (action !== 'run') {
           console.error(`Unknown mac-diagnostics subcommand: ${action}`);
           process.exitCode = 1;
           break;
         }
 
-        const suiteFlag = String(flags.suite ?? "");
+        const suiteFlag = String(flags.suite ?? '');
         if (!suiteFlag) {
-          console.error("Missing required flag: --suite <hardware|performance|security|network|storage>");
+          console.error(
+            'Missing required flag: --suite <hardware|performance|security|network|storage>'
+          );
           process.exitCode = 1;
           break;
         }
 
-        const cacheTtlSeconds = flags["cache-ttl"] ? Number(flags["cache-ttl"]) : undefined;
-        const compareBaseline = Boolean(flags["compare-baseline"]);
-        const updateBaseline = Boolean(flags["update-baseline"]);
-        const baselinePath = typeof flags["baseline-path"] === "string" ? (flags["baseline-path"] as string) : undefined;
+        const cacheTtlSeconds = flags['cache-ttl'] ? Number(flags['cache-ttl']) : undefined;
+        const compareBaseline = Boolean(flags['compare-baseline']);
+        const updateBaseline = Boolean(flags['update-baseline']);
+        const baselinePath =
+          typeof flags['baseline-path'] === 'string'
+            ? (flags['baseline-path'] as string)
+            : undefined;
 
         const run = await macDiagnostics.runLocalDiagnosticsWithBaseline({
-          suite: suiteFlag as Parameters<MacDiagnosticsService["runLocalDiagnosticsWithBaseline"]>[0]["suite"],
+          suite: suiteFlag as Parameters<
+            MacDiagnosticsService['runLocalDiagnosticsWithBaseline']
+          >[0]['suite'],
           cacheTtlSeconds,
           compareBaseline,
           updateBaseline,
           baselinePath,
         });
 
-      console.log(
-        JSON.stringify(
-          {
-            status: "ok",
-            suite: suiteFlag,
-            cacheHit: run.cacheHit,
-            baselinePath: run.baselinePath,
-            baselineUpdated: run.baselineUpdated,
-            comparisons: run.comparisons,
-            results: run.results,
-          },
-          null,
-          2,
-        ),
-      );
-      break;
-    }
+        console.log(
+          JSON.stringify(
+            {
+              status: 'ok',
+              suite: suiteFlag,
+              cacheHit: run.cacheHit,
+              baselinePath: run.baselinePath,
+              baselineUpdated: run.baselineUpdated,
+              comparisons: run.comparisons,
+              results: run.results,
+            },
+            null,
+            2
+          )
+        );
+        break;
+      }
 
-    case "tool-metadata": {
-      const targetId = subcommand && subcommand !== "list" ? subcommand : undefined;
-      if (targetId) {
-        const metadata = getToolMetadata(targetId);
-        if (!metadata) {
-          console.error(
+      case 'tool-metadata': {
+        const targetId = subcommand && subcommand !== 'list' ? subcommand : undefined;
+        if (targetId) {
+          const metadata = getToolMetadata(targetId);
+          if (!metadata) {
+            console.error(
+              JSON.stringify(
+                {
+                  status: 'error',
+                  message: `No metadata found for tool '${targetId}'`,
+                },
+                null,
+                2
+              )
+            );
+            process.exitCode = 1;
+            break;
+          }
+
+          console.log(
             JSON.stringify(
               {
-                status: "error",
-                message: `No metadata found for tool '${targetId}'`,
+                status: 'ok',
+                metadata,
               },
               null,
-              2,
-            ),
+              2
+            )
           );
-          process.exitCode = 1;
-          break;
+        } else {
+          const metadata = listToolMetadata();
+          console.log(
+            JSON.stringify(
+              {
+                status: 'ok',
+                metadata,
+              },
+              null,
+              2
+            )
+          );
         }
-
-        console.log(
-          JSON.stringify(
-            {
-              status: "ok",
-              metadata,
-            },
-            null,
-            2,
-          ),
-        );
-      } else {
-        const metadata = listToolMetadata();
-        console.log(
-          JSON.stringify(
-            {
-              status: "ok",
-              metadata,
-            },
-            null,
-            2,
-          ),
-        );
+        break;
       }
-      break;
-    }
 
-    default:
-      console.error(`Unknown command: ${command}`);
-      printUsage();
-      process.exitCode = 1;
-  }
+      default:
+        console.error(`Unknown command: ${command}`);
+        printUsage();
+        process.exitCode = 1;
+    }
   } catch (error) {
     console.error(
       JSON.stringify(
         {
-          status: "error",
+          status: 'error',
           message: error instanceof Error ? error.message : String(error),
         },
         null,
-        2,
-      ),
+        2
+      )
     );
     process.exitCode = 1;
   }

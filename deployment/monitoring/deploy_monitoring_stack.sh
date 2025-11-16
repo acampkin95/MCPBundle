@@ -9,7 +9,12 @@ set -e
 VMI03_IP="154.26.158.31"
 VMI01_IP="46.250.243.123"
 VMI02D_IP="185.21.217.89"
-ROOT_PASS="C0nnaught"
+ROOT_PASS="${ROOT_PASS:-${MCP_ROOT_PASSWORD:-}}"
+
+if [[ -z "${ROOT_PASS:-}" ]]; then
+    echo "Set ROOT_PASS or MCP_ROOT_PASSWORD from Vault before running." >&2
+    exit 1
+fi
 
 # Colors for output
 RED='\033[0;31m'
@@ -23,7 +28,7 @@ echo -e "${GREEN}Starting Infrastructure Monitoring Stack Deployment${NC}"
 execute_remote() {
     local server=$1
     local command=$2
-    sshpass -p "$ROOT_PASS" ssh -o StrictHostKeyChecking=no root@$server "$command"
+    SSHPASS="$ROOT_PASS" sshpass -e ssh -o StrictHostKeyChecking=no root@$server "$command"
 }
 
 # Function to copy files to remote server
@@ -31,7 +36,7 @@ copy_to_remote() {
     local server=$1
     local local_file=$2
     local remote_file=$3
-    sshpass -p "$ROOT_PASS" scp -o StrictHostKeyChecking=no "$local_file" root@$server:"$remote_file"
+    SSHPASS="$ROOT_PASS" sshpass -e scp -o StrictHostKeyChecking=no "$local_file" root@$server:"$remote_file"
 }
 
 # ============================================

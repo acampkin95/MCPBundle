@@ -1,6 +1,6 @@
-import Database from "better-sqlite3";
-import { join } from "node:path";
-import { logger } from "../utils/logger.js";
+import Database from 'better-sqlite3';
+import { join } from 'node:path';
+import { logger } from '../utils/logger.js';
 
 export interface QueuedCommand {
   readonly jobId: string;
@@ -8,8 +8,8 @@ export interface QueuedCommand {
   readonly params: Record<string, unknown>;
   readonly requestedCapabilities: readonly string[];
   readonly targetAgentId?: string;
-  readonly status: "queued" | "picked" | "executing" | "completed" | "failed" | "timeout";
-  readonly priority: "low" | "normal" | "high" | "urgent";
+  readonly status: 'queued' | 'picked' | 'executing' | 'completed' | 'failed' | 'timeout';
+  readonly priority: 'low' | 'normal' | 'high' | 'urgent';
   readonly createdAt: string;
   readonly pickedAt?: string;
   readonly completedAt?: string;
@@ -62,10 +62,10 @@ export class CommandQueueService {
   private readonly db: Database.Database;
   private readonly dbPath: string;
 
-  public constructor(dbPath: string = join(process.cwd(), "mcp_command_queue.db")) {
+  public constructor(dbPath: string = join(process.cwd(), 'mcp_command_queue.db')) {
     this.dbPath = dbPath;
     this.db = new Database(dbPath);
-    this.db.pragma("journal_mode = WAL");
+    this.db.pragma('journal_mode = WAL');
     this.initialize();
   }
 
@@ -94,7 +94,7 @@ export class CommandQueueService {
     `;
 
     this.db.exec(schema);
-    logger.info("CommandQueueService initialized", { dbPath: this.dbPath });
+    logger.info('CommandQueueService initialized', { dbPath: this.dbPath });
   }
 
   /**
@@ -106,7 +106,7 @@ export class CommandQueueService {
     readonly params: Record<string, unknown>;
     readonly requestedCapabilities: readonly string[];
     readonly targetAgentId?: string;
-    readonly priority?: "low" | "normal" | "high" | "urgent";
+    readonly priority?: 'low' | 'normal' | 'high' | 'urgent';
     readonly maxRetries?: number;
   }): QueuedCommand {
     const queuedCommand: QueuedCommand = {
@@ -115,8 +115,8 @@ export class CommandQueueService {
       params: command.params,
       requestedCapabilities: command.requestedCapabilities,
       targetAgentId: command.targetAgentId,
-      status: "queued",
-      priority: command.priority ?? "normal",
+      status: 'queued',
+      priority: command.priority ?? 'normal',
       createdAt: new Date().toISOString(),
       retryCount: 0,
       maxRetries: command.maxRetries ?? 3,
@@ -145,7 +145,7 @@ export class CommandQueueService {
       maxRetries: queuedCommand.maxRetries,
     });
 
-    logger.debug("Command enqueued", {
+    logger.debug('Command enqueued', {
       jobId: queuedCommand.jobId,
       toolName: queuedCommand.toolName,
       priority: queuedCommand.priority,
@@ -173,22 +173,24 @@ export class CommandQueueService {
       LIMIT 1
     `);
 
-    const row = stmt.get(agentId ?? null) as {
-      job_id: string;
-      tool_name: string;
-      params: string;
-      requested_capabilities: string;
-      target_agent_id: string | null;
-      status: string;
-      priority: string;
-      created_at: string;
-      picked_at: string | null;
-      completed_at: string | null;
-      result: string | null;
-      error: string | null;
-      retry_count: number;
-      max_retries: number;
-    } | undefined;
+    const row = stmt.get(agentId ?? null) as
+      | {
+          job_id: string;
+          tool_name: string;
+          params: string;
+          requested_capabilities: string;
+          target_agent_id: string | null;
+          status: string;
+          priority: string;
+          created_at: string;
+          picked_at: string | null;
+          completed_at: string | null;
+          result: string | null;
+          error: string | null;
+          retry_count: number;
+          max_retries: number;
+        }
+      | undefined;
 
     if (!row) {
       return null;
@@ -211,13 +213,14 @@ export class CommandQueueService {
    */
   public updateStatus(
     jobId: string,
-    status: "executing" | "completed" | "failed" | "timeout",
+    status: 'executing' | 'completed' | 'failed' | 'timeout',
     result?: Record<string, unknown>,
-    error?: string,
+    error?: string
   ): void {
-    const completedAt = status === "completed" || status === "failed" || status === "timeout"
-      ? new Date().toISOString()
-      : null;
+    const completedAt =
+      status === 'completed' || status === 'failed' || status === 'timeout'
+        ? new Date().toISOString()
+        : null;
 
     const stmt = this.db.prepare(`
       UPDATE command_queue
@@ -228,15 +231,9 @@ export class CommandQueueService {
       WHERE job_id = ?
     `);
 
-    stmt.run(
-      status,
-      completedAt,
-      result ? JSON.stringify(result) : null,
-      error ?? null,
-      jobId,
-    );
+    stmt.run(status, completedAt, result ? JSON.stringify(result) : null, error ?? null, jobId);
 
-    logger.debug("Command status updated", { jobId, status });
+    logger.debug('Command status updated', { jobId, status });
   }
 
   /**
@@ -245,12 +242,12 @@ export class CommandQueueService {
   public retryCommand(jobId: string): boolean {
     const command = this.getCommand(jobId);
     if (!command) {
-      logger.warn("Cannot retry: command not found", { jobId });
+      logger.warn('Cannot retry: command not found', { jobId });
       return false;
     }
 
     if (command.retryCount >= command.maxRetries) {
-      logger.warn("Cannot retry: max retries exceeded", {
+      logger.warn('Cannot retry: max retries exceeded', {
         jobId,
         retryCount: command.retryCount,
         maxRetries: command.maxRetries,
@@ -269,7 +266,7 @@ export class CommandQueueService {
     `);
 
     stmt.run(jobId);
-    logger.info("Command requeued for retry", {
+    logger.info('Command requeued for retry', {
       jobId,
       retryCount: command.retryCount + 1,
     });
@@ -285,22 +282,24 @@ export class CommandQueueService {
       SELECT * FROM command_queue WHERE job_id = ?
     `);
 
-    const row = stmt.get(jobId) as {
-      job_id: string;
-      tool_name: string;
-      params: string;
-      requested_capabilities: string;
-      target_agent_id: string | null;
-      status: string;
-      priority: string;
-      created_at: string;
-      picked_at: string | null;
-      completed_at: string | null;
-      result: string | null;
-      error: string | null;
-      retry_count: number;
-      max_retries: number;
-    } | undefined;
+    const row = stmt.get(jobId) as
+      | {
+          job_id: string;
+          tool_name: string;
+          params: string;
+          requested_capabilities: string;
+          target_agent_id: string | null;
+          status: string;
+          priority: string;
+          created_at: string;
+          picked_at: string | null;
+          completed_at: string | null;
+          result: string | null;
+          error: string | null;
+          retry_count: number;
+          max_retries: number;
+        }
+      | undefined;
 
     return row ? this.rowToCommand(row) : null;
   }
@@ -313,7 +312,7 @@ export class CommandQueueService {
     readonly params: Record<string, unknown>;
     readonly requestedCapabilities: readonly string[];
     readonly targetAgentId?: string;
-    readonly priority?: "low" | "normal" | "high" | "urgent";
+    readonly priority?: 'low' | 'normal' | 'high' | 'urgent';
     readonly maxRetries?: number;
   }): Promise<string> {
     const jobId = crypto.randomUUID();
@@ -335,7 +334,7 @@ export class CommandQueueService {
    * Mark command as failed with error message
    */
   public async markCommandFailed(jobId: string, error: string): Promise<void> {
-    this.updateStatus(jobId, "failed", undefined, error);
+    this.updateStatus(jobId, 'failed', undefined, error);
   }
 
   /**
@@ -369,21 +368,21 @@ export class CommandQueueService {
 
     for (const row of rows) {
       switch (row.status) {
-        case "queued":
+        case 'queued':
           totalQueued = row.count;
           oldestQueued = row.oldest;
           break;
-        case "picked":
+        case 'picked':
           totalPicked = row.count;
           break;
-        case "executing":
+        case 'executing':
           totalExecuting = row.count;
           break;
-        case "completed":
+        case 'completed':
           totalCompleted = row.count;
           break;
-        case "failed":
-        case "timeout":
+        case 'failed':
+        case 'timeout':
           totalFailed += row.count;
           break;
       }
@@ -413,7 +412,7 @@ export class CommandQueueService {
     `);
 
     const result = stmt.run(cutoffDate.toISOString());
-    logger.info("Purged old commands", { deleted: result.changes, daysOld });
+    logger.info('Purged old commands', { deleted: result.changes, daysOld });
 
     return result.changes;
   }
@@ -443,8 +442,8 @@ export class CommandQueueService {
       params: JSON.parse(row.params),
       requestedCapabilities: JSON.parse(row.requested_capabilities),
       targetAgentId: row.target_agent_id ?? undefined,
-      status: row.status as QueuedCommand["status"],
-      priority: row.priority as QueuedCommand["priority"],
+      status: row.status as QueuedCommand['status'],
+      priority: row.priority as QueuedCommand['priority'],
       createdAt: row.created_at,
       pickedAt: row.picked_at ?? undefined,
       completedAt: row.completed_at ?? undefined,
@@ -460,6 +459,6 @@ export class CommandQueueService {
    */
   public close(): void {
     this.db.close();
-    logger.info("CommandQueueService closed");
+    logger.info('CommandQueueService closed');
   }
 }

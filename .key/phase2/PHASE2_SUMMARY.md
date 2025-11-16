@@ -70,6 +70,7 @@ phase2/
 **Purpose**: Secure, segmented network access with different security levels
 
 #### Root Tunnel (10.100.0.0/24, Port 51820)
+
 - **Users**: Administrators only
 - **Network**: Split tunnel (admin endpoints only)
 - **Features**: Full access to VMI01, VMI02D, VMI03
@@ -78,6 +79,7 @@ phase2/
 - **Clients**: MacBook (FOTW_XVP7W61TJM), Mobile devices
 
 #### MCP Tunnel (10.101.0.0/24, Port 51821)
+
 - **Users**: MCP agents and developers
 - **Network**: Split tunnel (VMI01 + Perplexity API only)
 - **Features**: MCP protocol, database access, Keycloak OAuth
@@ -86,6 +88,7 @@ phase2/
 - **Clients**: MCP agents, developer machines
 
 #### Red Tunnel (10.102.0.0/24, Port 51822)
+
 - **Users**: Guest users (untrusted)
 - **Network**: Full tunnel (all traffic through VPN)
 - **Features**: PiHole DNS, Suricata IDS/IPS, NO LAN access
@@ -94,6 +97,7 @@ phase2/
 - **Clients**: Guest devices (open enrollment)
 
 **Key Features**:
+
 - ChaCha20-Poly1305 encryption
 - Preshared keys (PSK) for post-quantum security
 - Automatic key generation with deployment script
@@ -109,6 +113,7 @@ phase2/
 **Purpose**: Centralized authentication and authorization (OAuth2/OIDC provider)
 
 **Configuration**:
+
 - **Version**: Keycloak 26.1.1 (latest stable)
 - **Database**: PostgreSQL on VMI01 (dedicated keycloak database)
 - **Access**: http://154.26.158.31:8080 (or http://10.100.0.1:8080 via VPN)
@@ -118,18 +123,21 @@ phase2/
 **Pre-configured Components**:
 
 **Users & Groups**:
+
 - Master admin: alex.campkin (MFA required)
 - Service accounts: dev-admin, data-admin, sec-admin
 - Groups: infrastructure-admins, mcp-agents, guests
 - Roles: admin, infrastructure-admin, mcp-agent, database-access, guest
 
 **OAuth2 Clients**:
+
 - wireguard-dynamic (WireGuard dynamic IP management)
 - mcp-services (MCP agent services)
 - nextcloud (future NextCloud integration)
 - plex (future Plex Media Server integration)
 
 **Security Features**:
+
 - MFA enforcement (TOTP/WebAuthn)
 - Brute force protection (5 failures = 15min lockout)
 - Password policies (14+ chars, complexity requirements)
@@ -138,6 +146,7 @@ phase2/
 - Admin event auditing
 
 **Included Documentation**:
+
 - Complete admin guide (KEYCLOAK_GUIDE.md)
 - User management procedures
 - OAuth2 client configuration
@@ -153,6 +162,7 @@ phase2/
 **Purpose**: DNS filtering, ad-blocking, and network intrusion detection
 
 **PiHole Configuration**:
+
 - **DNS Server**: 10.102.0.1 (Red Tunnel only)
 - **Web UI**: http://10.102.0.1/admin (Root Tunnel only)
 - **Upstream DNS**: Cloudflare DoH (1.1.1.1), Quad9 (9.9.9.9) via Unbound
@@ -160,17 +170,20 @@ phase2/
 - **Query Logging**: 30 days retention
 
 **Blocklists** (Pre-configured):
+
 - Steven Black unified hosts (ads, malware, fakenews)
 - Malware Domains (malicious domains)
 - Disconnect.me (tracking, ads)
 - Phishing Army (phishing domains)
 
 **Custom DNS Entries**:
+
 - All acdev.host domains (VMI01, VMI02D, VMI03)
 - Service endpoints (db.acdev.host, auth.acdev.host, etc.)
 - Tunnel endpoints (root-tunnel, mcp-tunnel, red-tunnel)
 
 **Suricata IDS/IPS Configuration**:
+
 - **Monitored Interfaces**: wg-red (Red Tunnel), eth0 (external)
 - **Ruleset**: ET Open (Emerging Threats)
 - **Update Frequency**: Daily automatic updates
@@ -178,6 +191,7 @@ phase2/
 - **Syslog Forwarding**: All alerts forwarded to VMI01 (46.250.243.123:514)
 
 **Detection Capabilities**:
+
 - Malware communication
 - Exploit attempts
 - Port scanning
@@ -187,6 +201,7 @@ phase2/
 - Suspicious HTTP/TLS patterns
 
 **Optional DPI-SSL**:
+
 - mitmproxy for SSL/TLS inspection (optional)
 - Threat detection only (no content logging)
 - Separate deployment script (dpi-ssl-setup.sh)
@@ -198,6 +213,7 @@ phase2/
 **Purpose**: System alerts and notification delivery
 
 **Configuration**:
+
 - **Hostname**: vmi03.acdev.host
 - **Domain**: acdev.host
 - **Forward To**: acampkinpersonnal@gmail.com
@@ -206,6 +222,7 @@ phase2/
 - **Queue Lifetime**: 1 day
 
 **Features**:
+
 - Local mail delivery for system accounts
 - External mail forwarding (all root mail → acampkinpersonnal@gmail.com)
 - SMTP relay support (Gmail, SendGrid, etc.)
@@ -214,12 +231,14 @@ phase2/
 - Queue management
 
 **Use Cases**:
+
 - System alerts (disk space, service failures)
 - Security alerts (Suricata, failed logins)
 - Backup notifications
 - Scheduled task reports
 
 **Testing**:
+
 - Includes comprehensive test script (test-mail.sh)
 - Tests local delivery, external delivery, alert formatting
 
@@ -230,6 +249,7 @@ phase2/
 ### Automated Deployment
 
 **Single-command deployment**:
+
 ```bash
 # Transfer files to VMI03
 scp -r phase2 root@154.26.158.31:/opt/
@@ -239,6 +259,7 @@ ssh root@154.26.158.31 "cd /opt/phase2 && bash deploy-phase2.sh"
 ```
 
 **What the deployment script does**:
+
 1. ✅ Updates system packages
 2. ✅ Deploys WireGuard (generates keys, creates configs, starts services)
 3. ✅ Creates Keycloak database on VMI01
@@ -263,6 +284,7 @@ ssh root@154.26.158.31 "cd /opt/phase2 && bash deploy-phase2.sh"
 ### Network Segmentation
 
 **3-tier security model**:
+
 1. **Root Tunnel**: Trusted administrators (high security, split tunnel)
 2. **MCP Tunnel**: Service accounts (high security, limited access)
 3. **Red Tunnel**: Untrusted guests (maximum security, full monitoring)
@@ -270,28 +292,33 @@ ssh root@154.26.158.31 "cd /opt/phase2 && bash deploy-phase2.sh"
 ### Defense in Depth
 
 **Layer 1 - Network**:
+
 - WireGuard encryption (ChaCha20-Poly1305)
 - Network segmentation (3 isolated tunnels)
 - Firewall (UFW + iptables)
 - LAN access blocking (Red tunnel)
 
 **Layer 2 - Transport**:
+
 - TLS/SSL for Keycloak (production)
 - DNS over TLS upstream (Unbound)
 - Encrypted VPN tunnels
 
 **Layer 3 - Application**:
+
 - OAuth2/OIDC authentication (Keycloak)
 - MFA enforcement (TOTP/WebAuthn)
 - Service account isolation
 
 **Layer 4 - Detection**:
+
 - Suricata IDS/IPS
 - PiHole DNS filtering
 - Failed login monitoring
 - Brute force protection
 
 **Layer 5 - Logging**:
+
 - Centralized logging to VMI01
 - 30-day log retention
 - Alert forwarding
@@ -300,24 +327,28 @@ ssh root@154.26.158.31 "cd /opt/phase2 && bash deploy-phase2.sh"
 ### Key Security Mechanisms
 
 **Encryption**:
+
 - WireGuard: ChaCha20-Poly1305 + Preshared Keys
 - Keycloak: TLS 1.2+ (production)
 - Database: TLS connections
 - Backups: GPG encryption
 
 **Authentication**:
+
 - WireGuard: Public key + PSK
 - Keycloak: Password + MFA (TOTP/WebAuthn)
 - SSH: Key-based only
 - Service accounts: Strong passwords
 
 **Authorization**:
+
 - Role-based access control (Keycloak)
 - Network segmentation (WireGuard)
 - Firewall rules (iptables)
 - Group-based permissions
 
 **Monitoring**:
+
 - Suricata IDS/IPS
 - PiHole query logging
 - Keycloak event logging
@@ -377,6 +408,7 @@ ssh root@154.26.158.31 "cd /opt/phase2 && bash deploy-phase2.sh"
 ### Configuration Files (Production-Ready)
 
 ✅ **32 configuration files** ready for deployment:
+
 - 3 WireGuard server configs (complete with iptables rules)
 - 4 WireGuard client templates (customizable)
 - 1 Keycloak Docker Compose config
@@ -389,6 +421,7 @@ ssh root@154.26.158.31 "cd /opt/phase2 && bash deploy-phase2.sh"
 ### Deployment Scripts (Tested & Executable)
 
 ✅ **8 deployment/automation scripts**:
+
 - deploy-phase2.sh (master deployment)
 - deploy-wireguard.sh (WireGuard + key generation)
 - init-keycloak.sh (Keycloak + database setup)
@@ -401,6 +434,7 @@ ssh root@154.26.158.31 "cd /opt/phase2 && bash deploy-phase2.sh"
 ### Documentation (Comprehensive)
 
 ✅ **5 major documentation files**:
+
 - Complete setup guide (README.md)
 - Deployment checklist (DEPLOYMENT_CHECKLIST.md)
 - Troubleshooting guide (TROUBLESHOOTING.md)
@@ -449,6 +483,7 @@ ssh root@154.26.158.31 "cd /opt/phase2 && bash deploy-phase2.sh"
 ### Deployment Success Indicators
 
 ✅ All services running:
+
 - [ ] WireGuard Root tunnel active
 - [ ] WireGuard MCP tunnel active
 - [ ] WireGuard Red tunnel active
@@ -458,12 +493,14 @@ ssh root@154.26.158.31 "cd /opt/phase2 && bash deploy-phase2.sh"
 - [ ] Postfix service active
 
 ✅ Connectivity verified:
+
 - [ ] Root tunnel clients can access all VMs
 - [ ] MCP tunnel clients can access VMI01 + Perplexity API
 - [ ] Red tunnel clients have full tunnel + PiHole DNS
 - [ ] Internet connectivity maintained (split tunnels)
 
 ✅ Security validated:
+
 - [ ] MFA configured for admin accounts
 - [ ] LAN access blocked on Red tunnel
 - [ ] Suricata generating alerts
@@ -471,6 +508,7 @@ ssh root@154.26.158.31 "cd /opt/phase2 && bash deploy-phase2.sh"
 - [ ] Firewall properly configured
 
 ✅ Services operational:
+
 - [ ] Keycloak OAuth2 endpoints responding
 - [ ] PiHole resolving DNS queries
 - [ ] Suricata monitoring traffic
@@ -552,22 +590,26 @@ scp -r root@154.26.158.31:/etc/wireguard/clients/ ./wireguard-clients/
 ### Recommended Maintenance Schedule
 
 **Daily**:
+
 - Review Suricata alerts
 - Check service status
 - Monitor disk space
 
 **Weekly**:
+
 - Review PiHole blocked queries
 - Update PiHole gravity
 - Check for software updates
 
 **Monthly**:
+
 - Rotate service account passwords
 - Review user access
 - Update Suricata rules
 - Test backups
 
 **Quarterly**:
+
 - Rotate WireGuard keys
 - Security audit
 - Update documentation
@@ -579,6 +621,7 @@ scp -r root@154.26.158.31:/etc/wireguard/clients/ ./wireguard-clients/
 ### System Requirements
 
 **Minimum**:
+
 - CPU: 2 cores
 - RAM: 2GB
 - Disk: 20GB
@@ -586,6 +629,7 @@ scp -r root@154.26.158.31:/etc/wireguard/clients/ ./wireguard-clients/
 - Network: 10 Mbps
 
 **Recommended**:
+
 - CPU: 4 cores
 - RAM: 4GB
 - Disk: 40GB
@@ -606,12 +650,14 @@ scp -r root@154.26.158.31:/etc/wireguard/clients/ ./wireguard-clients/
 ### Network Ports
 
 **Inbound**:
+
 - 22/tcp (SSH)
 - 51820/udp (WireGuard Root)
 - 51821/udp (WireGuard MCP)
 - 51822/udp (WireGuard Red)
 
 **Outbound**:
+
 - 25/tcp (SMTP)
 - 53/tcp+udp (DNS)
 - 80/tcp (HTTP)
@@ -620,6 +666,7 @@ scp -r root@154.26.158.31:/etc/wireguard/clients/ ./wireguard-clients/
 - 514/udp (Syslog to VMI01)
 
 **Internal** (VPN only):
+
 - 8080/tcp (Keycloak)
 - 53/tcp+udp (PiHole DNS)
 - 80/tcp (PiHole Web UI)
@@ -631,6 +678,7 @@ scp -r root@154.26.158.31:/etc/wireguard/clients/ ./wireguard-clients/
 This Phase 2 deployment package provides a **complete, production-ready security infrastructure** for VMI03 Security Gateway.
 
 **Key Highlights**:
+
 - ✅ Fully automated deployment (single command)
 - ✅ Comprehensive documentation (150+ pages)
 - ✅ Production-ready configurations
@@ -640,6 +688,7 @@ This Phase 2 deployment package provides a **complete, production-ready security
 - ✅ Maintenance procedures
 
 **Ready for**:
+
 - Immediate deployment to production
 - Enterprise-grade security requirements
 - Multi-user environments

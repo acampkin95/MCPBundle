@@ -1,0 +1,44 @@
+{
+  "name": "@mcp-bundle/ml-foundation",
+  "version": "2.0.0",
+  "description": "Machine learning foundation library for MCP Bundle v2.0 - Anomaly detection, predictive analytics, and time-series forecasting",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src/**/*.ts",
+    "clean": "rm -rf dist"
+  },
+  "keywords": [
+    "machine-learning",
+    "tensorflow",
+    "anomaly-detection",
+    "predictive-analytics",
+    "time-series",
+    "forecasting",
+    "mcp"
+  ],
+  "author": "ACDev",
+  "license": "MIT",
+  "dependencies": {
+    "@tensorflow/tfjs": "^4.22.0",
+    "brain.js": "^2.0.0-beta.24",
+    "ml-regression": "^6.1.3",
+    "ioredis": "^5.4.1",
+    "winston": "^3.17.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.9.0",
+    "@vitest/coverage-v8": "^2.1.8",
+    "eslint": "^9.15.0",
+    "typescript": "^5.9.3",
+    "vitest": "^2.1.8"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

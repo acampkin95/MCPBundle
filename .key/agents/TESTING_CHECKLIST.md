@@ -5,6 +5,7 @@
 ### Local Development Environment
 
 - [ ] **Build Tests**
+
   ```bash
   cd agents/vmi01/db-optimizer-agent
   npm install
@@ -13,6 +14,7 @@
   ```
 
 - [ ] **TypeScript Compilation**
+
   ```bash
   npm run build
   # Expected: No compilation errors
@@ -20,12 +22,14 @@
   ```
 
 - [ ] **Configuration Validation**
+
   ```bash
   yamllint config/config.yaml
   # Expected: No syntax errors
   ```
 
 - [ ] **Dependency Check**
+
   ```bash
   npm audit
   # Expected: No critical vulnerabilities
@@ -44,6 +48,7 @@
 ### Database Optimizer Agent
 
 - [ ] **PostgreSQL Connection**
+
   ```bash
   # Set environment
   export DB_PASSWORD=test_password
@@ -65,6 +70,7 @@
   ```
 
 - [ ] **Metrics Collection**
+
   ```bash
   # Start agent in dev mode
   npm run dev
@@ -76,18 +82,21 @@
   ```
 
 - [ ] **Health Endpoint**
+
   ```bash
   curl http://localhost:9100/health
   # Expected: {"status":"healthy",...}
   ```
 
 - [ ] **Metrics Endpoint**
+
   ```bash
   curl http://localhost:9100/metrics | grep db_connections_active
   # Expected: Metric values present
   ```
 
 - [ ] **Error Handling**
+
   ```bash
   # Stop PostgreSQL
   systemctl stop postgresql
@@ -104,6 +113,7 @@
 ### Application Health Agent
 
 - [ ] **Service Discovery**
+
   ```bash
   npm run dev
 
@@ -113,6 +123,7 @@
   ```
 
 - [ ] **Health Checks**
+
   ```bash
   # All services running
   # Check logs: "Service healthy: mcp-orchestrator"
@@ -125,6 +136,7 @@
   ```
 
 - [ ] **Auto-Recovery**
+
   ```bash
   # Stop MCP Orchestrator
   systemctl stop mcp-orchestrator
@@ -151,6 +163,7 @@
 ### VMI01 Integration
 
 - [ ] **Database Schema**
+
   ```sql
   psql -U postgres -d mcp_ecosystem -c "
   SELECT COUNT(*) FROM information_schema.tables
@@ -161,6 +174,7 @@
   ```
 
 - [ ] **Heartbeat Registration**
+
   ```sql
   SELECT agent_id, status, last_heartbeat
   FROM mcp_ecosystem.agent_heartbeats
@@ -169,6 +183,7 @@
   ```
 
 - [ ] **Metrics Storage**
+
   ```sql
   SELECT agent_id, metric_type, COUNT(*)
   FROM mcp_ecosystem.system_metrics
@@ -178,6 +193,7 @@
   ```
 
 - [ ] **Redis Caching**
+
   ```bash
   redis-cli keys "db-optimizer:*"
   redis-cli keys "app-health:*"
@@ -197,6 +213,7 @@
 ### Cross-VM Integration
 
 - [ ] **Network Connectivity**
+
   ```bash
   # From VMI01
   nc -zv <vmi02d-ip> 9200
@@ -205,6 +222,7 @@
   ```
 
 - [ ] **Metric Push from Remote VMs**
+
   ```bash
   # On VMI01 Pushgateway
   curl http://localhost:9091/metrics | grep storage_mgmt
@@ -213,6 +231,7 @@
   ```
 
 - [ ] **Alert Propagation**
+
   ```bash
   # Generate alert on VMI02D
   # Fill disk to >80%
@@ -234,6 +253,7 @@
 ### Load Testing
 
 - [ ] **Database Load**
+
   ```bash
   # Generate load
   pgbench -i -s 50 mcp_ecosystem
@@ -246,6 +266,7 @@
   ```
 
 - [ ] **Service Churn**
+
   ```bash
   # Rapid service restarts
   for i in {1..10}; do
@@ -260,6 +281,7 @@
   ```
 
 - [ ] **Metric Volume**
+
   ```bash
   # Let agents run for 1 hour
   sleep 3600
@@ -279,6 +301,7 @@
 ### Resource Usage
 
 - [ ] **CPU Usage**
+
   ```bash
   # Monitor for 5 minutes
   pidstat -p $(pgrep -f db-optimizer) 1 300 > cpu_usage.txt
@@ -289,6 +312,7 @@
   ```
 
 - [ ] **Memory Usage**
+
   ```bash
   systemctl status db-optimizer | grep Memory
   systemctl status app-health | grep Memory
@@ -297,6 +321,7 @@
   ```
 
 - [ ] **Network Bandwidth**
+
   ```bash
   # Monitor traffic
   iftop -f "port 9091"
@@ -305,6 +330,7 @@
   ```
 
 - [ ] **Disk I/O**
+
   ```bash
   iotop -p $(pgrep -f db-optimizer)
 
@@ -318,6 +344,7 @@
 ### Service Failures
 
 - [ ] **PostgreSQL Down**
+
   ```bash
   systemctl stop postgresql
 
@@ -331,6 +358,7 @@
   ```
 
 - [ ] **Redis Down**
+
   ```bash
   systemctl stop redis
 
@@ -343,6 +371,7 @@
   ```
 
 - [ ] **Pushgateway Down**
+
   ```bash
   systemctl stop pushgateway
 
@@ -357,6 +386,7 @@
 ### Agent Failures
 
 - [ ] **Agent Crash**
+
   ```bash
   # Kill agent process
   kill -9 $(pgrep -f db-optimizer)
@@ -369,6 +399,7 @@
   ```
 
 - [ ] **Configuration Error**
+
   ```bash
   # Introduce syntax error
   echo "invalid: yaml: syntax" >> /opt/mcp-agents/db-optimizer-agent/config/config.yaml
@@ -388,6 +419,7 @@
   ```
 
 - [ ] **Disk Full**
+
   ```bash
   # Simulate disk full
   dd if=/dev/zero of=/var/log/mcp-agents/fill.dat bs=1M count=10000
@@ -404,6 +436,7 @@
 ### Network Failures
 
 - [ ] **Network Partition**
+
   ```bash
   # Block access to PostgreSQL
   iptables -A OUTPUT -p tcp --dport 5432 -j DROP
@@ -430,6 +463,7 @@
 ### Permission Tests
 
 - [ ] **File Permissions**
+
   ```bash
   # Check config file
   ls -la /opt/mcp-agents/*/config/config.yaml
@@ -441,12 +475,14 @@
   ```
 
 - [ ] **Process User**
+
   ```bash
   ps aux | grep db-optimizer | grep -v grep
   # Expected: Running as mcp-agent user
   ```
 
 - [ ] **Systemd Restrictions**
+
   ```bash
   systemctl show db-optimizer | grep NoNewPrivileges
   # Expected: NoNewPrivileges=yes
@@ -458,6 +494,7 @@
 ### Credential Tests
 
 - [ ] **Password Not in Logs**
+
   ```bash
   journalctl -u db-optimizer -n 1000 | grep -i password
   # Expected: No matches (passwords redacted)
@@ -472,6 +509,7 @@
 ### Network Security
 
 - [ ] **Health Endpoint Access**
+
   ```bash
   # From remote machine
   curl http://<vm-ip>:9100/health
@@ -491,12 +529,14 @@
 ### Prometheus Integration
 
 - [ ] **Target Discovery**
+
   ```bash
   curl http://localhost:9090/api/v1/targets | jq '.data.activeTargets[] | select(.labels.job | contains("agent"))'
   # Expected: All 6 agents listed
   ```
 
 - [ ] **Metric Scraping**
+
   ```bash
   curl http://localhost:9090/api/v1/query?query=db_connections_active
   # Expected: Metric values returned
@@ -516,6 +556,7 @@
   - Expected: All panels load data
 
 - [ ] **Panel Queries**
+
   ```
   Query: db_connections_active{vm="vmi01"}
   Expected: Graph shows connection count over time
@@ -593,9 +634,9 @@
 - **Failure Tests**: [ ] Passed / [ ] Failed
 - **Security Tests**: [ ] Passed / [ ] Failed
 
-**Tested By**: ___________________
-**Date**: ___________________
-**Signature**: ___________________
+**Tested By**: **\*\*\*\***\_\_\_**\*\*\*\***
+**Date**: **\*\*\*\***\_\_\_**\*\*\*\***
+**Signature**: **\*\*\*\***\_\_\_**\*\*\*\***
 
 ### Deployment Team
 
@@ -603,22 +644,19 @@
 - **Documentation Complete**: [ ] Yes / [ ] No
 - **Monitoring Configured**: [ ] Yes / [ ] No
 
-**Approved By**: ___________________
-**Date**: ___________________
-**Signature**: ___________________
+**Approved By**: **\*\*\*\***\_\_\_**\*\*\*\***
+**Date**: **\*\*\*\***\_\_\_**\*\*\*\***
+**Signature**: **\*\*\*\***\_\_\_**\*\*\*\***
 
 ---
 
 ## Notes
 
-**Issues Found**:
--
+## **Issues Found**:
 
-**Recommendations**:
--
+## **Recommendations**:
 
-**Next Steps**:
--
+## **Next Steps**:
 
 ---
 

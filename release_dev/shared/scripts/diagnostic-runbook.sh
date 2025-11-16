@@ -281,7 +281,10 @@ for port in $REQUIRED_PORTS; do
     fi
 done
 
-PORT_JSON=$(IFS=,; echo "[${PORT_RESULTS[*]}]")
+PORT_JSON="[]"
+if [ "${#PORT_RESULTS[@]}" -gt 0 ]; then
+  PORT_JSON="[$(printf '%s,' "${PORT_RESULTS[@]}" | sed 's/,$//')]"
+fi
 add_result "network_ports" "info" "Port check complete" "$PORT_JSON"
 
 echo ""

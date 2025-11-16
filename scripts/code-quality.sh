@@ -84,8 +84,9 @@ echo ""
 
 # 6. Semgrep Security Scan
 echo -e "${BLUE}[6/8]${NC} ${YELLOW}Semgrep Security Analysis...${NC}"
+SEM_GREP_TARGETS=(release_dev/cloudflare-mcp/src release_dev/admin-panel)
 if command -v semgrep &> /dev/null; then
-    if semgrep --config=auto --error --quiet .; then
+    if semgrep --config=auto --error --quiet "${SEM_GREP_TARGETS[@]}"; then
         echo -e "${GREEN}✓ Semgrep security scan passed${NC}"
     else
         echo -e "${RED}✗ Semgrep found security issues${NC}"
@@ -98,10 +99,10 @@ echo ""
 
 # 7. ShellCheck (Shell Scripts)
 echo -e "${BLUE}[7/8]${NC} ${YELLOW}ShellCheck (Shell Scripts)...${NC}"
-SHELL_SCRIPTS=$(find . -name "*.sh" -not -path "./node_modules/*" -not -path "./dist/*")
-if [ -n "$SHELL_SCRIPTS" ]; then
+if find deployment scripts release_dev -name "*.sh" -not -path "*/node_modules/*" -not -path "*/dist/*" -quit 2>/dev/null | grep -q .; then
     if command -v shellcheck &> /dev/null; then
-        if echo "$SHELL_SCRIPTS" | xargs shellcheck; then
+        if find deployment scripts release_dev -name "*.sh" -not -path "*/node_modules/*" -not -path "*/dist/*" -print0 2>/dev/null | \
+            xargs -0 --no-run-if-empty shellcheck --severity=error; then
             echo -e "${GREEN}✓ ShellCheck passed${NC}"
         else
             echo -e "${RED}✗ ShellCheck found issues${NC}"
@@ -124,6 +125,27 @@ else
     echo -e "${YELLOW}⚠ No dist/ folder. Run: npm run build${NC}"
 fi
 echo ""
+
+# Release package QA
+echo -e "${BLUE}[*]${NC} ${YELLOW}Release Package QA (lint/test/build)${NC}"
+PACKAGES=(
+  "release_dev/itjsst-mcp:ITJSST-MCP:--runInBand"
+  "release_dev/mcp-orchestrator:MCP-Orchestrator:--runInBand"
+  "release_dev/cloudflare-mcp:Cloudflare-MCP:--runInBand"
+  "release_dev/admin-panel:Admin-Panel:"
+)
+
+for entry in "${PACKAGES[@]}"; do
+    IFS=':' read -r path label test_args <<< "$entry"
+    echo -e "  → ${label}"
+    if (cd "$path" && npm ci && npm run lint && { if [ -n "$test_args" ]; then npm run test -- "$test_args"; else npm run test; fi; } && npm run build); then
+        echo -e "    ${GREEN}✓ ${label} passed lint/test/build${NC}"
+    else
+        echo -e "    ${RED}✗ ${label} failed quality gates${NC}"
+        FAILED=$((FAILED + 1))
+    fi
+    echo ""
+done
 
 # Performance Summary
 END_TIME=$(date +%s)

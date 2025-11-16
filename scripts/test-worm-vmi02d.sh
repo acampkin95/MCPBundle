@@ -36,7 +36,12 @@ log_test() {
 # Configuration
 SERVER_IP="${1:-}"
 USERNAME="AccessService"
-PASSWORD="Jeremylikestosuckbigdicks8==>"
+PASSWORD="${PASSWORD:-${WORM_ACCESS_PASSWORD:-}}"
+
+if [ -z "$PASSWORD" ]; then
+    log_error "Set WORM_ACCESS_PASSWORD (or PASSWORD) from Contabo secret worm-access-password before running (use npm run secrets:pull)."
+    exit 1
+fi
 TEST_FILE="/tmp/worm_test_$(date +%s).txt"
 
 if [ -z "$SERVER_IP" ]; then
@@ -64,7 +69,7 @@ fi
 
 # Test 1: SFTP Connection
 log_test "Test 1: SFTP Connection"
-if sshpass -p "${PASSWORD}" sftp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${USERNAME}@${SERVER_IP} <<EOF 2>&1 | grep -q "Connected"
+if SSHPASS= sshpass -e"${PASSWORD}" sftp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${USERNAME}@${SERVER_IP} <<EOF 2>&1 | grep -q "Connected"
 bye
 EOF
 then
@@ -76,7 +81,7 @@ fi
 
 # Test 2: Verify chroot jail (user should only see upload directory)
 log_test "Test 2: Chroot Jail Verification"
-SFTP_OUTPUT=$(sshpass -p "${PASSWORD}" sftp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${USERNAME}@${SERVER_IP} <<EOF 2>&1
+SFTP_OUTPUT=$(SSHPASS= sshpass -e"${PASSWORD}" sftp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${USERNAME}@${SERVER_IP} <<EOF 2>&1
 pwd
 ls -la
 bye
@@ -101,7 +106,7 @@ echo "WORM Test File - $(date)" > ${TEST_FILE}
 echo "This file should be automatically archived after upload." >> ${TEST_FILE}
 echo "Timestamp: $(date +%s)" >> ${TEST_FILE}
 
-if sshpass -p "${PASSWORD}" sftp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${USERNAME}@${SERVER_IP} <<EOF 2>&1 | grep -q "Uploading"
+if SSHPASS= sshpass -e"${PASSWORD}" sftp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${USERNAME}@${SERVER_IP} <<EOF 2>&1 | grep -q "Uploading"
 cd upload
 put ${TEST_FILE}
 bye
@@ -122,7 +127,7 @@ log_test "Test 4: Automated Archival (waiting 5 seconds...)"
 sleep 5
 
 # Check if file still exists in upload directory
-UPLOAD_CHECK=$(sshpass -p "${PASSWORD}" sftp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${USERNAME}@${SERVER_IP} <<EOF 2>&1
+UPLOAD_CHECK=$(SSHPASS= sshpass -e"${PASSWORD}" sftp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${USERNAME}@${SERVER_IP} <<EOF 2>&1
 cd upload
 ls
 bye
@@ -138,7 +143,7 @@ fi
 
 # Test 5: Verify user cannot execute shell commands
 log_test "Test 5: Shell Access Prevention"
-if sshpass -p "${PASSWORD}" ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${USERNAME}@${SERVER_IP} "ls" 2>&1 | grep -q "subsystem request failed\|command not found\|not permitted"; then
+if SSHPASS= sshpass -e"${PASSWORD}" ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${USERNAME}@${SERVER_IP} "ls" 2>&1 | grep -q "subsystem request failed\|command not found\|not permitted"; then
     echo -e "  ${GREEN}✓${NC} Shell access correctly denied"
 else
     echo -e "  ${YELLOW}⚠${NC} Shell access check inconclusive"
@@ -146,7 +151,7 @@ fi
 
 # Test 6: Try to access parent directories (should fail)
 log_test "Test 6: Directory Traversal Prevention"
-TRAVERSAL_TEST=$(sshpass -p "${PASSWORD}" sftp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${USERNAME}@${SERVER_IP} <<EOF 2>&1
+TRAVERSAL_TEST=$(SSHPASS= sshpass -e"${PASSWORD}" sftp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${USERNAME}@${SERVER_IP} <<EOF 2>&1
 cd ..
 pwd
 bye

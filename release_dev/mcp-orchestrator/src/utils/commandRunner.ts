@@ -1,6 +1,6 @@
-import { type ExecException, exec } from "node:child_process";
-import { promisify } from "node:util";
-import { logger } from "./logger.js";
+import { type ExecException, exec } from 'node:child_process';
+import { promisify } from 'node:util';
+import { logger } from './logger.js';
 
 const execAsync = promisify(exec);
 
@@ -24,7 +24,7 @@ export class CommandExecutionError extends Error {
 
   public constructor(message: string, result: CommandResult) {
     super(message);
-    this.name = "CommandExecutionError";
+    this.name = 'CommandExecutionError';
     this.result = result;
   }
 }
@@ -32,22 +32,12 @@ export class CommandExecutionError extends Error {
 export class CommandRunner {
   public constructor(private readonly allowSudo: boolean = true) {}
 
-  public async run(
-    command: string,
-    options: CommandOptions = {},
-  ): Promise<CommandResult> {
-    const {
-      requiresSudo = false,
-      timeoutMs,
-      dryRun = false,
-      env,
-      cwd,
-    } = options;
+  public async run(command: string, options: CommandOptions = {}): Promise<CommandResult> {
+    const { requiresSudo = false, timeoutMs, dryRun = false, env, cwd } = options;
 
-    const finalCommand =
-      requiresSudo && this.allowSudo ? `sudo ${command}` : command;
+    const finalCommand = requiresSudo && this.allowSudo ? `sudo ${command}` : command;
 
-    logger.debug("Executing command", {
+    logger.debug('Executing command', {
       command: finalCommand,
       dryRun,
       requiresSudo,
@@ -55,11 +45,11 @@ export class CommandRunner {
     });
 
     if (dryRun) {
-      logger.debug("Dry run completed", { command: finalCommand });
+      logger.debug('Dry run completed', { command: finalCommand });
       return {
         command: finalCommand,
-        stdout: "",
-        stderr: "",
+        stdout: '',
+        stderr: '',
         code: null,
       };
     }
@@ -72,7 +62,7 @@ export class CommandRunner {
         maxBuffer: 10 * 1024 * 1024,
       });
 
-      logger.debug("Command succeeded", {
+      logger.debug('Command succeeded', {
         command: finalCommand,
         stdoutPreview: stdout ? stdout.slice(0, 200) : undefined,
         stderrPreview: stderr ? stderr.slice(0, 200) : undefined,
@@ -92,21 +82,18 @@ export class CommandRunner {
 
       const result: CommandResult = {
         command: finalCommand,
-        stdout: execError.stdout ?? "",
+        stdout: execError.stdout ?? '',
         stderr: execError.stderr ?? execError.message,
-        code: typeof execError.code === "number" ? execError.code : null,
+        code: typeof execError.code === 'number' ? execError.code : null,
       };
 
-      logger.error("Command failed", {
+      logger.error('Command failed', {
         command: finalCommand,
         exitCode: result.code,
         stderr: result.stderr ? result.stderr.slice(0, 2000) : undefined,
       });
 
-      throw new CommandExecutionError(
-        `Command failed: ${finalCommand}`,
-        result,
-      );
+      throw new CommandExecutionError(`Command failed: ${finalCommand}`, result);
     }
   }
 }

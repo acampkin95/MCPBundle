@@ -95,6 +95,72 @@ jobs:
       with:
         fail-on-severity: moderate
 
+  package-quality:
+    name: Package QA (${{ matrix.package.name }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        package:
+          - name: ITJ SST MCP
+            path: release_dev/itjsst-mcp
+          - name: MCP Orchestrator
+            path: release_dev/mcp-orchestrator
+          - name: Cloudflare MCP
+            path: release_dev/cloudflare-mcp
+          - name: Admin Panel
+            path: release_dev/admin-panel
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+        cache: 'npm'
+        cache-dependency-path: '${{ matrix.package.path }}/package-lock.json'
+
+    - name: Install dependencies
+      run: npm ci
+      working-directory: ${{ matrix.package.path }}
+
+    - name: Detect package test runner
+      id: detect-tests
+      working-directory: ${{ matrix.package.path }}
+      shell: bash
+      run: |
+        test_script=$(node -e "const fs = require('fs'); const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8')); const script = pkg?.scripts?.test ?? ''; process.stdout.write(script);")
+        if [[ -n "$test_script" ]]; then
+          echo "has-test=true" >> "$GITHUB_OUTPUT"
+        else
+          echo "has-test=false" >> "$GITHUB_OUTPUT"
+        fi
+
+        if [[ "$test_script" == *"jest"* ]]; then
+          echo "jest-tests=true" >> "$GITHUB_OUTPUT"
+        else
+          echo "jest-tests=false" >> "$GITHUB_OUTPUT"
+        fi
+
+    - name: Lint
+      run: npm run lint
+      working-directory: ${{ matrix.package.path }}
+
+    - name: Test
+      if: steps.detect-tests.outputs.has-test == 'true'
+      run: |
+        if [[ '${{ steps.detect-tests.outputs.jest-tests }}' == 'true' ]]; then
+          npm run test -- --runInBand
+        else
+          npm run test
+        fi
+      working-directory: ${{ matrix.package.path }}
+
+    - name: Build
+      run: npm run build
+      working-directory: ${{ matrix.package.path }}
+
   performance-benchmarks:
     name: Performance Benchmarks
     runs-on: ubuntu-latest
