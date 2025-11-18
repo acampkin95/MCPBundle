@@ -941,7 +941,7 @@ class DatabaseOptimizerAgent {
   }
 
   /**
-   * Graceful shutdown
+   * Graceful shutdown with timeout
    */
   public async shutdown(): Promise<void> {
     if (this.isShuttingDown) {
@@ -951,6 +951,13 @@ class DatabaseOptimizerAgent {
     this.isShuttingDown = true;
     this.logger.info('Shutting down gracefully...');
 
+    // Set shutdown timeout: 30 seconds
+    const SHUTDOWN_TIMEOUT = 30000;
+    const shutdownTimer = setTimeout(() => {
+      this.logger.error('Graceful shutdown timeout exceeded - forcing exit');
+      process.exit(1);
+    }, SHUTDOWN_TIMEOUT);
+
     try {
       // Update agent status
       await this.dbPool.query(`
@@ -959,16 +966,35 @@ class DatabaseOptimizerAgent {
         WHERE agent_id = $1
       `, [this.config.agent.name]);
 
-      // Close connections
+      // Close connections with individual timeouts
       if (this.mcpClient) {
-        await this.mcpClient.close();
+        await Promise.race([
+          this.mcpClient.close(),
+          new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('MCP client close timeout')), 5000)
+          )
+        ]);
       }
-      await this.dbPool.end();
-      await this.redis.quit();
 
+      await Promise.race([
+        this.dbPool.end(),
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Database close timeout')), 5000)
+        )
+      ]);
+
+      await Promise.race([
+        this.redis.quit(),
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Redis close timeout')), 5000)
+        )
+      ]);
+
+      clearTimeout(shutdownTimer);
       this.logger.info('Shutdown complete');
       process.exit(0);
     } catch (error) {
+      clearTimeout(shutdownTimer);
       this.logger.error('Error during shutdown:', error);
       process.exit(1);
     }

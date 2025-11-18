@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import express from "express";
+import express, { Request, Response, NextFunction } from "express";
 import { CommandRunner } from "./utils/commandRunner.js";
 import { logger } from "./utils/logger.js";
 
@@ -262,16 +262,91 @@ const createServer = () => {
   const healthPort = parseInt(process.env.HEALTH_CHECK_PORT ?? "9090", 10);
   const app = express();
 
+  // Security: Rate limiting middleware
+  const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
+  const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute
+  const RATE_LIMIT_MAX_REQUESTS = 100; // 100 requests per minute per IP
+
+  const rateLimitMiddleware = (req: Request, res: Response, next: NextFunction) => {
+    const clientIp = req.ip || req.socket.remoteAddress || 'unknown';
+    const now = Date.now();
+
+    let rateLimit = rateLimitMap.get(clientIp);
+
+    if (!rateLimit || now > rateLimit.resetTime) {
+      // New window
+      rateLimit = {
+        count: 1,
+        resetTime: now + RATE_LIMIT_WINDOW
+      };
+      rateLimitMap.set(clientIp, rateLimit);
+      return next();
+    }
+
+    if (rateLimit.count >= RATE_LIMIT_MAX_REQUESTS) {
+      logger.warn('Rate limit exceeded', { clientIp, count: rateLimit.count });
+      return res.status(429).json({
+        error: 'Too many requests',
+        retryAfter: Math.ceil((rateLimit.resetTime - now) / 1000)
+      });
+    }
+
+    rateLimit.count++;
+    next();
+  };
+
+  // Apply rate limiting to all routes
+  app.use(rateLimitMiddleware);
+
+  // Security: Request timeout middleware
+  const REQUEST_TIMEOUT = 30000; // 30 seconds
+
+  app.use((req: Request, res: Response, next: NextFunction) => {
+    const timeout = setTimeout(() => {
+      if (!res.headersSent) {
+        logger.warn('Request timeout', { url: req.url, method: req.method });
+        res.status(408).json({ error: 'Request timeout' });
+      }
+    }, REQUEST_TIMEOUT);
+
+    res.on('finish', () => clearTimeout(timeout));
+    next();
+  });
+
+  // Security: Basic security headers
+  app.use((req: Request, res: Response, next: NextFunction) => {
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('X-Frame-Options', 'DENY');
+    res.setHeader('X-XSS-Protection', '1; mode=block');
+    res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+    next();
+  });
+
   app.get("/health", async (_req, res) => {
     try {
-      const health = await healthCheck.getHealth();
+      // Health check timeout: 5 seconds
+      const HEALTH_CHECK_TIMEOUT = 5000;
+      const timeoutPromise = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('Health check timeout')), HEALTH_CHECK_TIMEOUT)
+      );
+
+      const health = await Promise.race([
+        healthCheck.getHealth(),
+        timeoutPromise
+      ]);
+
       const statusCode = health.status === "healthy" ? 200 : health.status === "degraded" ? 200 : 503;
       res.status(statusCode).json(health);
     } catch (error) {
       logger.error("Health check failed", { error });
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      // Don't expose internal error details in production
+      const safeErrorMessage = process.env.NODE_ENV === 'production'
+        ? 'Health check failed'
+        : errorMessage;
       res.status(503).json({
         status: "unhealthy",
-        error: error instanceof Error ? error.message : String(error),
+        error: safeErrorMessage,
       });
     }
   });

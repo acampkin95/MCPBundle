@@ -246,6 +246,18 @@ export class KeycloakAuthService {
 
   /**
    * Decode JWT and extract token info (without verification)
+   *
+   * ⚠️ **SECURITY WARNING**: This method does NOT verify the token signature!
+   * - Do NOT use for authorization decisions
+   * - Do NOT trust the returned data for security-critical operations
+   * - Use `verifyAndExtractCapabilities()` instead for verified token validation
+   *
+   * This method is only suitable for:
+   * - Debugging and logging (non-sensitive data only)
+   * - Quick expiry checks (followed by full verification)
+   * - Reading non-security-critical metadata
+   *
+   * @deprecated Use verifyAndExtractCapabilities() for security-critical operations
    */
   public decodeToken(token: string): TokenInfo | null {
     try {
@@ -254,6 +266,7 @@ export class KeycloakAuthService {
         return null;
       }
 
+      // WARNING: No signature verification! Token could be forged!
       const payload = JSON.parse(Buffer.from(parts[1], "base64").toString());
 
       return {
