@@ -58,7 +58,7 @@ log_warn() {
 }
 
 run_remote() {
-    ssh -o ConnectTimeout=10 -o StrictHostKeyChecking=no -i "${VMI01_SSH_KEY}" \
+    ssh -o ConnectTimeout=10 -o StrictHostKeyChecking=accept-new -i "${VMI01_SSH_KEY}" \
         "${VMI01_USER}@${VMI01_HOST}" "$@" 2>/dev/null
 }
 
@@ -149,8 +149,8 @@ check_postgresql() {
 
     # Test connection with credentials
     log_check "PostgreSQL connection with credentials"
-    export PGPASSWORD='TeBsn4f2cS0O7vfdvYFTb37L6SdJFL+mpOgksTwgHy0='
-    if run_remote "PGPASSWORD='TeBsn4f2cS0O7vfdvYFTb37L6SdJFL+mpOgksTwgHy0=' psql -U mcp_admin -d mcp_ecosystem -h localhost -c 'SELECT 1' >/dev/null 2>&1 && echo 'yes' || echo 'no'" | grep -q "yes"; then
+    export PGPASSWORD='${MCP_DB_PASSWORD}'
+    if run_remote "PGPASSWORD='${MCP_DB_PASSWORD}' psql -U mcp_admin -d mcp_ecosystem -h localhost -c 'SELECT 1' >/dev/null 2>&1 && echo 'yes' || echo 'no'" | grep -q "yes"; then
         log_pass "PostgreSQL authentication successful"
     else
         log_fail "Cannot authenticate to PostgreSQL with provided credentials"

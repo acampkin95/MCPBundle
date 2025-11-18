@@ -138,7 +138,7 @@ increment_version() {
 
 check_ssh_connection() {
     log_info "Testing SSH connection to ${VMI01_HOST}..."
-    if ! ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=no -i "${VMI01_SSH_KEY}" \
+    if ! ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=accept-new -i "${VMI01_SSH_KEY}" \
          "${VMI01_USER}@${VMI01_HOST}" "echo 'SSH connection successful'" > /dev/null 2>&1; then
         log_error "Cannot connect to ${VMI01_HOST} via SSH"
         log_error "Please check: SSH key (${VMI01_SSH_KEY}), network, and server status"
@@ -265,7 +265,7 @@ main() {
 
     # Install on VMI01
     log_step "STEP 7: INSTALL ON VMI01"
-    if ! ssh -o StrictHostKeyChecking=no -i "${VMI01_SSH_KEY}" \
+    if ! ssh -o StrictHostKeyChecking=accept-new -i "${VMI01_SSH_KEY}" \
          "${VMI01_USER}@${VMI01_HOST}" \
          "bash -s" < "${PHASE3_DIR}/install-mcp.sh" "$NEW_VERSION"; then
         log_error "Installation failed"

@@ -22,7 +22,7 @@ declare -A VMS
 VMS["VMI01"]="46.250.243.123"
 VMS["VMI02D"]="46.250.241.70"
 VMS["VMI03"]="154.26.158.31"
-VM_PASSWORD="C0nnaught"
+VM_PASSWORD="${VM_ROOT_PASSWORD:?Error: VM_ROOT_PASSWORD environment variable not set}"
 
 # Initialize report
 echo "{" > "$REPORT_FILE"
@@ -70,7 +70,7 @@ for vm_name in "${!VMS[@]}"; do
     vm_ip="${VMS[$vm_name]}"
     start_time=$(date +%s%N)
 
-    fw_status=$(sshpass -p "$VM_PASSWORD" ssh -o StrictHostKeyChecking=no root@$vm_ip \
+    fw_status=$(sshpass -p "$VM_PASSWORD" ssh -o StrictHostKeyChecking=accept-new root@$vm_ip \
         "ufw status 2>/dev/null | grep -q 'Status: active' && echo 'active' || echo 'inactive'" 2>/dev/null)
 
     end_time=$(date +%s%N)
@@ -90,7 +90,7 @@ for vm_name in "${!VMS[@]}"; do
     vm_ip="${VMS[$vm_name]}"
     start_time=$(date +%s%N)
 
-    f2b_status=$(sshpass -p "$VM_PASSWORD" ssh -o StrictHostKeyChecking=no root@$vm_ip \
+    f2b_status=$(sshpass -p "$VM_PASSWORD" ssh -o StrictHostKeyChecking=accept-new root@$vm_ip \
         "systemctl is-active fail2ban 2>/dev/null || echo 'inactive'" 2>/dev/null)
 
     end_time=$(date +%s%N)
@@ -111,7 +111,7 @@ for vm_name in "${!VMS[@]}"; do
     start_time=$(date +%s%N)
 
     # Check if password authentication is disabled (best practice, but we're using it for testing)
-    permit_root=$(sshpass -p "$VM_PASSWORD" ssh -o StrictHostKeyChecking=no root@$vm_ip \
+    permit_root=$(sshpass -p "$VM_PASSWORD" ssh -o StrictHostKeyChecking=accept-new root@$vm_ip \
         "grep '^PermitRootLogin' /etc/ssh/sshd_config 2>/dev/null | awk '{print \$2}'" 2>/dev/null || echo "unknown")
 
     end_time=$(date +%s%N)
@@ -133,7 +133,7 @@ for vm_name in "${!VMS[@]}"; do
     start_time=$(date +%s%N)
 
     # Get list of listening ports
-    open_ports=$(sshpass -p "$VM_PASSWORD" ssh -o StrictHostKeyChecking=no root@$vm_ip \
+    open_ports=$(sshpass -p "$VM_PASSWORD" ssh -o StrictHostKeyChecking=accept-new root@$vm_ip \
         "ss -tuln | grep LISTEN | awk '{print \$5}' | cut -d: -f2 | sort -u | tr '\n' ' '" 2>/dev/null)
 
     end_time=$(date +%s%N)
@@ -165,7 +165,7 @@ for vm_name in "${!VMS[@]}"; do
     start_time=$(date +%s%N)
 
     # Check if WireGuard is using strong encryption
-    wg_config=$(sshpass -p "$VM_PASSWORD" ssh -o StrictHostKeyChecking=no root@$vm_ip \
+    wg_config=$(sshpass -p "$VM_PASSWORD" ssh -o StrictHostKeyChecking=accept-new root@$vm_ip \
         "wg show 2>/dev/null | grep -c 'public key' || echo '0'" 2>/dev/null)
 
     end_time=$(date +%s%N)
@@ -206,7 +206,7 @@ for vm_name in "${!VMS[@]}"; do
     start_time=$(date +%s%N)
 
     # Check SSH key permissions
-    ssh_key_perms=$(sshpass -p "$VM_PASSWORD" ssh -o StrictHostKeyChecking=no root@$vm_ip \
+    ssh_key_perms=$(sshpass -p "$VM_PASSWORD" ssh -o StrictHostKeyChecking=accept-new root@$vm_ip \
         "ls -la ~/.ssh/ 2>/dev/null | grep 'id_' | grep -c 'rw-------' || echo '0'" 2>/dev/null)
 
     end_time=$(date +%s%N)
@@ -227,7 +227,7 @@ for vm_name in "${!VMS[@]}"; do
     start_time=$(date +%s%N)
 
     # Check for available security updates
-    updates=$(sshpass -p "$VM_PASSWORD" ssh -o StrictHostKeyChecking=no root@$vm_ip \
+    updates=$(sshpass -p "$VM_PASSWORD" ssh -o StrictHostKeyChecking=accept-new root@$vm_ip \
         "apt list --upgradable 2>/dev/null | grep -c security || echo '0'" 2>/dev/null)
 
     end_time=$(date +%s%N)
@@ -248,7 +248,7 @@ for vm_name in "${!VMS[@]}"; do
     start_time=$(date +%s%N)
 
     # Check if auth.log exists and is being updated
-    auth_log_recent=$(sshpass -p "$VM_PASSWORD" ssh -o StrictHostKeyChecking=no root@$vm_ip \
+    auth_log_recent=$(sshpass -p "$VM_PASSWORD" ssh -o StrictHostKeyChecking=accept-new root@$vm_ip \
         "find /var/log/auth.log -mmin -60 2>/dev/null | wc -l" 2>/dev/null || echo "0")
 
     end_time=$(date +%s%N)
@@ -267,7 +267,7 @@ echo "Testing Network Segmentation..."
 start_time=$(date +%s%N)
 
 # Test if VMI02D can directly access VMI03's service port (should be blocked by firewall)
-nc_test=$(sshpass -p "$VM_PASSWORD" ssh -o StrictHostKeyChecking=no root@46.250.241.70 \
+nc_test=$(sshpass -p "$VM_PASSWORD" ssh -o StrictHostKeyChecking=accept-new root@46.250.241.70 \
     "timeout 2 nc -zv 154.26.158.31 3002 2>&1 | grep -c 'succeeded\\|open' || echo '0'" 2>/dev/null)
 
 end_time=$(date +%s%N)

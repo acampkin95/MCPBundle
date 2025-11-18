@@ -15,12 +15,12 @@ NC='\033[0m'
 VMI01_IP="46.250.243.123"
 VMI02D_IP="46.250.241.70"
 VMI03_IP="154.26.158.31"
-VM_PASSWORD="C0nnaught"
+VM_PASSWORD="${VM_ROOT_PASSWORD:?Error: VM_ROOT_PASSWORD environment variable not set}"
 
 DB_HOST="46.250.243.123"
 DB_NAME="mcp_ecosystem"
 DB_USER="mcp_admin"
-DB_PASSWORD="MCP#Secure2025!Prod"
+DB_PASSWORD="${MCP_DB_PASSWORD:?Error: MCP_DB_PASSWORD environment variable not set}"
 
 REPORT_FILE="/tmp/mcp_comprehensive_test_report.txt"
 PASS_COUNT=0
@@ -72,7 +72,7 @@ for vm_name in VMI01 VMI02D VMI03; do
         VMI03) vm_ip=$VMI03_IP ;;
     esac
 
-    if sshpass -p "$VM_PASSWORD" ssh -o StrictHostKeyChecking=no -o ConnectTimeout=5 root@$vm_ip "echo 'OK'" > /dev/null 2>&1; then
+    if sshpass -p "$VM_PASSWORD" ssh -o StrictHostKeyChecking=accept-new -o ConnectTimeout=5 root@$vm_ip "echo 'OK'" > /dev/null 2>&1; then
         log_test "INFRA" "SSH_$vm_name" "PASS" "Connected to $vm_ip"
     else
         log_test "INFRA" "SSH_$vm_name" "FAIL" "Cannot connect to $vm_ip"
@@ -81,7 +81,7 @@ done
 
 # Test WireGuard
 echo "Testing WireGuard VPN..."
-wg_status=$(sshpass -p "$VM_PASSWORD" ssh -o StrictHostKeyChecking=no root@$VMI01_IP \
+wg_status=$(sshpass -p "$VM_PASSWORD" ssh -o StrictHostKeyChecking=accept-new root@$VMI01_IP \
     "wg show 2>/dev/null | grep -c 'peer:' || echo '0'" 2>/dev/null)
 if [ "$wg_status" -gt 0 ]; then
     log_test "INFRA" "WireGuard" "PASS" "$wg_status peers connected"
@@ -91,7 +91,7 @@ fi
 
 # Test Firewall
 echo "Testing firewall..."
-fw_active=$(sshpass -p "$VM_PASSWORD" ssh -o StrictHostKeyChecking=no root@$VMI01_IP \
+fw_active=$(sshpass -p "$VM_PASSWORD" ssh -o StrictHostKeyChecking=accept-new root@$VMI01_IP \
     "ufw status | grep -c 'Status: active' || echo '0'" 2>/dev/null)
 if [ "$fw_active" -eq 1 ]; then
     log_test "INFRA" "Firewall_VMI01" "PASS" "UFW is active"
@@ -120,7 +120,7 @@ fi
 
 # Test replication
 echo "Testing replication..."
-rep_status=$(sshpass -p "$VM_PASSWORD" ssh -o StrictHostKeyChecking=no root@$VMI01_IP \
+rep_status=$(sshpass -p "$VM_PASSWORD" ssh -o StrictHostKeyChecking=accept-new root@$VMI01_IP \
     "sudo -u postgres psql -t -c \"SELECT state FROM pg_stat_replication LIMIT 1;\" 2>/dev/null | tr -d ' '" || echo "none")
 if [ "$rep_status" == "streaming" ]; then
     log_test "DB" "Replication" "PASS" "Streaming replication active"
@@ -263,7 +263,7 @@ fi
 
 # Test replication lag
 echo "Testing replication lag..."
-lag=$(sshpass -p "$VM_PASSWORD" ssh -o StrictHostKeyChecking=no root@$VMI01_IP \
+lag=$(sshpass -p "$VM_PASSWORD" ssh -o StrictHostKeyChecking=accept-new root@$VMI01_IP \
     "sudo -u postgres psql -t -c \"SELECT COALESCE(EXTRACT(EPOCH FROM (now() - pg_last_xact_replay_timestamp()))::int, 0) FROM pg_stat_replication LIMIT 1;\" 2>/dev/null" | tr -d ' ')
 
 if [ -n "$lag" ] && [ "$lag" -lt 5 ] 2>/dev/null; then
@@ -285,7 +285,7 @@ echo "----------------" >> "$REPORT_FILE"
 
 # Test fail2ban
 echo "Testing fail2ban..."
-f2b_status=$(sshpass -p "$VM_PASSWORD" ssh -o StrictHostKeyChecking=no root@$VMI01_IP \
+f2b_status=$(sshpass -p "$VM_PASSWORD" ssh -o StrictHostKeyChecking=accept-new root@$VMI01_IP \
     "systemctl is-active fail2ban 2>/dev/null" || echo "inactive")
 if [ "$f2b_status" == "active" ]; then
     log_test "SEC" "Fail2ban" "PASS" "Service is active"
@@ -295,7 +295,7 @@ fi
 
 # Test open ports
 echo "Testing open ports..."
-open_ports=$(sshpass -p "$VM_PASSWORD" ssh -o StrictHostKeyChecking=no root@$VMI01_IP \
+open_ports=$(sshpass -p "$VM_PASSWORD" ssh -o StrictHostKeyChecking=accept-new root@$VMI01_IP \
     "ss -tuln | grep LISTEN | wc -l" 2>/dev/null || echo "0")
 if [ "$open_ports" -lt 15 ] && [ "$open_ports" -gt 0 ]; then
     log_test "SEC" "Open_Ports" "PASS" "$open_ports ports listening"

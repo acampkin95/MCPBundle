@@ -24,7 +24,7 @@ configure_rclone() {
 
     echo -e "${YELLOW}Configuring rclone on $server_name...${NC}"
 
-    sshpass -p "$ROOT_PASS" ssh -o StrictHostKeyChecking=no root@$host << 'EOF'
+    sshpass -p "$ROOT_PASS" ssh -o StrictHostKeyChecking=accept-new root@$host << 'EOF'
 # Create rclone configuration directory
 mkdir -p /root/.config/rclone
 chmod 700 /root/.config/rclone

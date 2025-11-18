@@ -133,13 +133,13 @@ USER="${2:-root}"
 echo "Deploying MCP Bundle v${VERSION} to ${USER}@${SERVER}"
 
 # Upload packages
-scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
+scp -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile=/dev/null \
     itjsst-mcp-${VERSION}.tar.gz \
     mcp-orchestrator-${VERSION}.tar.gz \
     "${USER}@${SERVER}:/opt/mcp/"
 
 # Deploy on server
-ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
+ssh -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile=/dev/null \
     "${USER}@${SERVER}" << 'SERVER_EOF'
 cd /opt/mcp
 

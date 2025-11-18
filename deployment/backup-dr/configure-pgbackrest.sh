@@ -20,7 +20,7 @@ echo -e "${GREEN}=== Configuring pgBackRest ===${NC}"
 # Create pgBackRest configuration on VMI01
 echo -e "${YELLOW}Configuring pgBackRest on VMI01...${NC}"
 
-sshpass -p "$ROOT_PASS" ssh -o StrictHostKeyChecking=no root@$VMI01_HOST << 'EOF'
+sshpass -p "$ROOT_PASS" ssh -o StrictHostKeyChecking=accept-new root@$VMI01_HOST << 'EOF'
 # Create pgBackRest configuration
 cat > /etc/pgbackrest/pgbackrest.conf << 'EOC'
 [global]
@@ -113,7 +113,7 @@ EOF
 # Configure backup repository on VMI02D
 echo -e "${YELLOW}Setting up backup repository on VMI02D...${NC}"
 
-sshpass -p "$ROOT_PASS" ssh -o StrictHostKeyChecking=no root@$VMI02D_HOST << 'EOF'
+sshpass -p "$ROOT_PASS" ssh -o StrictHostKeyChecking=accept-new root@$VMI02D_HOST << 'EOF'
 # Create backup repository structure
 mkdir -p /backup/pgbackrest
 mkdir -p /backup/system
@@ -139,7 +139,7 @@ EOF
 # Mount NFS on VMI01
 echo -e "${YELLOW}Mounting NFS backup repository on VMI01...${NC}"
 
-sshpass -p "$ROOT_PASS" ssh -o StrictHostKeyChecking=no root@$VMI01_HOST << 'EOF'
+sshpass -p "$ROOT_PASS" ssh -o StrictHostKeyChecking=accept-new root@$VMI01_HOST << 'EOF'
 # Install NFS client
 apt-get install -y nfs-common
 

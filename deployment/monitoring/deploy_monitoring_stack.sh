@@ -23,7 +23,7 @@ echo -e "${GREEN}Starting Infrastructure Monitoring Stack Deployment${NC}"
 execute_remote() {
     local server=$1
     local command=$2
-    sshpass -p "$ROOT_PASS" ssh -o StrictHostKeyChecking=no root@$server "$command"
+    sshpass -p "$ROOT_PASS" ssh -o StrictHostKeyChecking=accept-new root@$server "$command"
 }
 
 # Function to copy files to remote server
@@ -31,7 +31,7 @@ copy_to_remote() {
     local server=$1
     local local_file=$2
     local remote_file=$3
-    sshpass -p "$ROOT_PASS" scp -o StrictHostKeyChecking=no "$local_file" root@$server:"$remote_file"
+    sshpass -p "$ROOT_PASS" scp -o StrictHostKeyChecking=accept-new "$local_file" root@$server:"$remote_file"
 }
 
 # ============================================

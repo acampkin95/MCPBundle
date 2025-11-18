@@ -22,8 +22,8 @@ PRIMARY_HOST="46.250.243.123"
 STANDBY_HOST="46.250.241.70"
 DB_NAME="mcp_ecosystem"
 DB_USER="mcp_admin"
-DB_PASSWORD="MCP#Secure2025!Prod"
-VM_PASSWORD="C0nnaught"
+DB_PASSWORD="${MCP_DB_PASSWORD:?Error: MCP_DB_PASSWORD environment variable not set}"
+VM_PASSWORD="${VM_ROOT_PASSWORD:?Error: VM_ROOT_PASSWORD environment variable not set}"
 
 # Initialize report
 echo "{" > "$REPORT_FILE"
@@ -108,7 +108,7 @@ fi
 echo ""
 echo "Testing Replication Status..."
 start_time=$(date +%s%N)
-replication_status=$(sshpass -p "$VM_PASSWORD" ssh -o StrictHostKeyChecking=no root@$PRIMARY_HOST \
+replication_status=$(sshpass -p "$VM_PASSWORD" ssh -o StrictHostKeyChecking=accept-new root@$PRIMARY_HOST \
     "sudo -u postgres psql -c \"SELECT state, sync_state FROM pg_stat_replication;\" 2>/dev/null | grep streaming" || echo "")
 
 end_time=$(date +%s%N)

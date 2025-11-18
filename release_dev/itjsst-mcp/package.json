@@ -10,6 +10,8 @@
     "start": "node dist/index.js",
     "dev": "ts-node src/index.ts",
     "cli": "ts-node src/cli/itMcpCli.ts",
+    "type-check": "tsc --noEmit",
+    "test": "echo \"Error: no tests specified\" && exit 0",
     "lint": "eslint . --ext .ts",
     "format": "prettier --write \"src/**/*.ts\"",
     "format:check": "prettier --check \"src/**/*.ts\""

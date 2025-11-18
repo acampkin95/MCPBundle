@@ -51,15 +51,11 @@
     /* Skip Lib Check for Performance */
     "skipLibCheck": true
   },
-  "include": [
-    "src/**/*",
-    "tests/**/*"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist",
-    "coverage",
-    "**/*.spec.ts",
-    "**/*.test.ts"
+  "files": [],
+  "references": [
+    { "path": "./release_dev/itjsst-mcp" },
+    { "path": "./release_dev/mcp-orchestrator" },
+    { "path": "./.key/agents/vmi01/db-optimizer-agent" },
+    { "path": "./.key/agents/vmi01/app-health-agent" }
   ]
 }

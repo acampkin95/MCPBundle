@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PASSWORD='RJBZPH/r+ZdTy54E9EP00U32fImBH9N0pa5lwjUeh3s='
+PASSWORD='${KEYCLOAK_ADMIN_PASSWORD:?Error: KEYCLOAK_ADMIN_PASSWORD environment variable not set}'
 
 TOKEN=$(curl -s -X POST "http://154.26.158.31:8080/realms/master/protocol/openid-connect/token" \
     -H "Content-Type: application/x-www-form-urlencoded" \

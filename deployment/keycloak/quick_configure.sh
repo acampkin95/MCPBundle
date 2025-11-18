@@ -5,7 +5,7 @@ set -e
 
 KEYCLOAK_URL="http://localhost:8080"
 ADMIN_USER="admin"
-ADMIN_PASSWORD="RJBZPH/r+ZdTy54E9EP00U32fImBH9N0pa5lwjUeh3s="
+ADMIN_PASSWORD="${KEYCLOAK_ADMIN_PASSWORD:?Error: KEYCLOAK_ADMIN_PASSWORD environment variable not set}"
 REALM="mcp-ecosystem"
 
 # Get admin token

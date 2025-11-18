@@ -17,7 +17,7 @@ echo -e "${BLUE}=== WireGuard Configuration Deployment ===${NC}"
 VMI01="46.250.243.123"
 VMI02D="46.250.241.70"
 VMI03="154.26.158.31"
-PASSWORD="C0nnaught"
+PASSWORD="${VM_ROOT_PASSWORD:?Error: VM_ROOT_PASSWORD environment variable not set}"
 
 BASE_DIR="/Users/alex/Projects/MCP Bundle/deployment/wireguard"
 CONFIG_DIR="$BASE_DIR/configs"
@@ -29,12 +29,12 @@ for tunnel in root mcp red; do
     echo -e "Deploying $tunnel tunnel configuration..."
 
     # Copy configuration file
-    sshpass -p "$PASSWORD" scp -o StrictHostKeyChecking=no \
+    sshpass -p "$PASSWORD" scp -o StrictHostKeyChecking=accept-new \
         "$CONFIG_DIR/vmi01-wg-$tunnel.conf" \
         root@$VMI01:/etc/wireguard/wg-$tunnel.conf
 
     # Set permissions and start tunnel
-    sshpass -p "$PASSWORD" ssh -o StrictHostKeyChecking=no root@$VMI01 << EOF
+    sshpass -p "$PASSWORD" ssh -o StrictHostKeyChecking=accept-new root@$VMI01 << EOF
 chmod 600 /etc/wireguard/wg-$tunnel.conf
 systemctl stop wg-quick@wg-$tunnel 2>/dev/null || true
 wg-quick up wg-$tunnel
@@ -50,11 +50,11 @@ echo -e "\n${YELLOW}Deploying configurations to VMI02D...${NC}"
 for tunnel in root mcp red; do
     echo -e "Deploying $tunnel tunnel configuration..."
 
-    sshpass -p "$PASSWORD" scp -o StrictHostKeyChecking=no \
+    sshpass -p "$PASSWORD" scp -o StrictHostKeyChecking=accept-new \
         "$CONFIG_DIR/vmi02d-wg-$tunnel.conf" \
         root@$VMI02D:/etc/wireguard/wg-$tunnel.conf
 
-    sshpass -p "$PASSWORD" ssh -o StrictHostKeyChecking=no root@$VMI02D << EOF
+    sshpass -p "$PASSWORD" ssh -o StrictHostKeyChecking=accept-new root@$VMI02D << EOF
 chmod 600 /etc/wireguard/wg-$tunnel.conf
 systemctl stop wg-quick@wg-$tunnel 2>/dev/null || true
 wg-quick up wg-$tunnel
@@ -70,11 +70,11 @@ echo -e "\n${YELLOW}Deploying configurations to VMI03...${NC}"
 for tunnel in root mcp red; do
     echo -e "Deploying $tunnel tunnel configuration..."
 
-    sshpass -p "$PASSWORD" scp -o StrictHostKeyChecking=no \
+    sshpass -p "$PASSWORD" scp -o StrictHostKeyChecking=accept-new \
         "$CONFIG_DIR/vmi03-wg-$tunnel.conf" \
         root@$VMI03:/etc/wireguard/wg-$tunnel.conf
 
-    sshpass -p "$PASSWORD" ssh -o StrictHostKeyChecking=no root@$VMI03 << EOF
+    sshpass -p "$PASSWORD" ssh -o StrictHostKeyChecking=accept-new root@$VMI03 << EOF
 chmod 600 /etc/wireguard/wg-$tunnel.conf
 systemctl stop wg-quick@wg-$tunnel 2>/dev/null || true
 wg-quick up wg-$tunnel
@@ -93,7 +93,7 @@ configure_firewall() {
 
     echo -e "${YELLOW}Configuring firewall on $name...${NC}"
 
-    sshpass -p "$PASSWORD" ssh -o StrictHostKeyChecking=no root@$server << 'EOF'
+    sshpass -p "$PASSWORD" ssh -o StrictHostKeyChecking=accept-new root@$server << 'EOF'
 # Reset UFW
 ufw --force reset
 
@@ -174,14 +174,14 @@ ignoreregex =
 EOF
 
     # Deploy configurations
-    sshpass -p "$PASSWORD" scp -o StrictHostKeyChecking=no \
+    sshpass -p "$PASSWORD" scp -o StrictHostKeyChecking=accept-new \
         /tmp/jail.local root@$server:/etc/fail2ban/jail.local
 
-    sshpass -p "$PASSWORD" scp -o StrictHostKeyChecking=no \
+    sshpass -p "$PASSWORD" scp -o StrictHostKeyChecking=accept-new \
         /tmp/wireguard.conf root@$server:/etc/fail2ban/filter.d/wireguard.conf
 
     # Restart fail2ban
-    sshpass -p "$PASSWORD" ssh -o StrictHostKeyChecking=no root@$server << EOF
+    sshpass -p "$PASSWORD" ssh -o StrictHostKeyChecking=accept-new root@$server << EOF
 systemctl restart fail2ban
 systemctl enable fail2ban
 fail2ban-client status

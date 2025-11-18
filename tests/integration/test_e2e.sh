@@ -21,7 +21,7 @@ TESTS_RUN=0
 DB_HOST="46.250.243.123"
 DB_NAME="mcp_ecosystem"
 DB_USER="mcp_admin"
-DB_PASSWORD="MCP#Secure2025!Prod"
+DB_PASSWORD="${MCP_DB_PASSWORD:?Error: MCP_DB_PASSWORD environment variable not set}"
 
 # Service endpoints
 ORCHESTRATOR_URL="http://46.250.243.123:3000"

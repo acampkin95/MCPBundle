@@ -48,7 +48,7 @@ check_vm() {
     fi
 
     # Check SSH login
-    if sshpass -p "$ROOT_PASS" ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=no \
+    if sshpass -p "$ROOT_PASS" ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=accept-new \
        -o UserKnownHostsFile=/dev/null "root@$ip" 'echo "OK"' > /dev/null 2>&1; then
         echo "✅ READY"
         return 0

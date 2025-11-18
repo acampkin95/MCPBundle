@@ -18,7 +18,7 @@ NC='\033[0m' # No Color
 # Configuration
 DB_NAME="mcp_ecosystem"
 DB_USER="mcp_admin"
-DB_PASSWORD="TeBsn4f2cS0O7vfdvYFTb37L6SdJFL+mpOgksTwgHy0="
+DB_PASSWORD="${MCP_DB_PASSWORD:?Error: MCP_DB_PASSWORD environment variable not set}"
 SCHEMA_FILE="/opt/mcp-schema.sql"
 
 echo -e "${BLUE}========================================${NC}"

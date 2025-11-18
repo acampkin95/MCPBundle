@@ -16,7 +16,7 @@ ROOT_PASS="C0nnaught"
 
 echo -e "${GREEN}=== Configuring LVM Snapshots on VMI02D ===${NC}"
 
-sshpass -p "$ROOT_PASS" ssh -o StrictHostKeyChecking=no root@$VMI02D_HOST << 'EOF'
+sshpass -p "$ROOT_PASS" ssh -o StrictHostKeyChecking=accept-new root@$VMI02D_HOST << 'EOF'
 # Create snapshot management script
 cat > /backup/scripts/lvm-snapshot.sh << 'EOSCRIPT'
 #!/bin/bash

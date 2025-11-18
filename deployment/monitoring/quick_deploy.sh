@@ -21,7 +21,7 @@ echo -e "${GREEN}Quick Monitoring Stack Deployment${NC}"
 # Step 1: Test connections first
 echo -e "${YELLOW}Testing connections...${NC}"
 for server in $VMI03_IP $VMI01_IP; do
-    if sshpass -p "$ROOT_PASS" ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=no root@$server "echo 'Connected to $server'" 2>/dev/null; then
+    if sshpass -p "$ROOT_PASS" ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=accept-new root@$server "echo 'Connected to $server'" 2>/dev/null; then
         echo -e "${GREEN}✓ Connected to $server${NC}"
     else
         echo -e "${RED}✗ Failed to connect to $server${NC}"
@@ -31,7 +31,7 @@ done
 
 # Step 2: Install HAProxy on VMI03
 echo -e "${YELLOW}Installing HAProxy on VMI03...${NC}"
-sshpass -p "$ROOT_PASS" ssh -o StrictHostKeyChecking=no root@$VMI03_IP << 'ENDSSH'
+sshpass -p "$ROOT_PASS" ssh -o StrictHostKeyChecking=accept-new root@$VMI03_IP << 'ENDSSH'
 # Update and install HAProxy
 apt-get update -qq
 apt-get install -y haproxy
@@ -92,7 +92,7 @@ ENDSSH
 
 # Step 3: Install Prometheus on VMI03
 echo -e "${YELLOW}Installing Prometheus on VMI03...${NC}"
-sshpass -p "$ROOT_PASS" ssh -o StrictHostKeyChecking=no root@$VMI03_IP << 'ENDSSH'
+sshpass -p "$ROOT_PASS" ssh -o StrictHostKeyChecking=accept-new root@$VMI03_IP << 'ENDSSH'
 # Create prometheus user
 useradd --no-create-home --shell /bin/false prometheus || true
 
@@ -170,7 +170,7 @@ ENDSSH
 echo -e "${YELLOW}Installing Node Exporters...${NC}"
 for server in $VMI03_IP $VMI01_IP; do
     echo "Installing Node Exporter on $server..."
-    sshpass -p "$ROOT_PASS" ssh -o StrictHostKeyChecking=no root@$server << 'ENDSSH'
+    sshpass -p "$ROOT_PASS" ssh -o StrictHostKeyChecking=accept-new root@$server << 'ENDSSH'
 # Create user
 useradd --no-create-home --shell /bin/false node_exporter || true
 
@@ -211,7 +211,7 @@ done
 
 # Step 5: Install Grafana on VMI03
 echo -e "${YELLOW}Installing Grafana on VMI03...${NC}"
-sshpass -p "$ROOT_PASS" ssh -o StrictHostKeyChecking=no root@$VMI03_IP << 'ENDSSH'
+sshpass -p "$ROOT_PASS" ssh -o StrictHostKeyChecking=accept-new root@$VMI03_IP << 'ENDSSH'
 # Install Grafana
 apt-get install -y software-properties-common wget
 wget -q -O - https://packages.grafana.com/gpg.key | apt-key add -
@@ -264,7 +264,7 @@ ENDSSH
 
 # Step 6: Create health check script
 echo -e "${YELLOW}Creating health check script...${NC}"
-sshpass -p "$ROOT_PASS" ssh -o StrictHostKeyChecking=no root@$VMI03_IP << 'ENDSSH'
+sshpass -p "$ROOT_PASS" ssh -o StrictHostKeyChecking=accept-new root@$VMI03_IP << 'ENDSSH'
 cat > /usr/local/bin/health_check.sh << 'EOF'
 #!/bin/bash
 
@@ -321,7 +321,7 @@ ENDSSH
 
 # Step 7: Configure firewall
 echo -e "${YELLOW}Configuring firewall...${NC}"
-sshpass -p "$ROOT_PASS" ssh -o StrictHostKeyChecking=no root@$VMI03_IP << 'ENDSSH'
+sshpass -p "$ROOT_PASS" ssh -o StrictHostKeyChecking=accept-new root@$VMI03_IP << 'ENDSSH'
 # Open required ports
 ufw allow 80/tcp comment 'HTTP' || true
 ufw allow 443/tcp comment 'HTTPS' || true

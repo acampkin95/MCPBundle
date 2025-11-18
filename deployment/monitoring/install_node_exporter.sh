@@ -7,7 +7,7 @@ ROOT_PASS="C0nnaught"
 
 echo "Installing Node Exporter on VMI01..."
 
-sshpass -p "$ROOT_PASS" ssh -o StrictHostKeyChecking=no root@$VMI01_IP << 'ENDSSH'
+sshpass -p "$ROOT_PASS" ssh -o StrictHostKeyChecking=accept-new root@$VMI01_IP << 'ENDSSH'
 # Check if already installed
 if [ -f /usr/local/bin/node_exporter ]; then
     echo "Node Exporter already installed"

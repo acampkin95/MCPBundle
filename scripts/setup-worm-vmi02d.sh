@@ -38,7 +38,7 @@ log_info "Starting WORM Area Setup for VMI02D..."
 
 # Configuration
 USERNAME="AccessService"
-PASSWORD="Jeremylikestosuckbigdicks8==>"
+PASSWORD="${WORM_ACCESS_PASSWORD:?Error: WORM_ACCESS_PASSWORD environment variable not set}"
 UPLOAD_DIR="/home/${USERNAME}/upload"
 ARCHIVE_DIR="/mnt/secure-archive"
 

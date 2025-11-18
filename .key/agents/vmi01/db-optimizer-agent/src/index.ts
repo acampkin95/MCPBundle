@@ -730,14 +730,34 @@ class DatabaseOptimizerAgent {
   /**
    * Perform vacuum operation on a table
    */
+  /**
+   * Validate and quote a PostgreSQL identifier to prevent SQL injection
+   */
+  private quoteIdentifier(identifier: string): string {
+    // Validate identifier: alphanumeric, underscore, max 63 chars (PostgreSQL limit)
+    if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(identifier)) {
+      throw new Error(`Invalid identifier: ${identifier}`);
+    }
+    if (identifier.length > 63) {
+      throw new Error(`Identifier too long (max 63 characters): ${identifier}`);
+    }
+    // Quote identifier using double quotes to handle case-sensitivity and reserved words
+    return `"${identifier}"`;
+  }
+
   private async performVacuum(schema: string, table: string): Promise<void> {
     try {
       this.logger.info(`Performing VACUUM on ${schema}.${table}`);
 
+      // Validate and quote identifiers to prevent SQL injection
+      const quotedSchema = this.quoteIdentifier(schema);
+      const quotedTable = this.quoteIdentifier(table);
+
       // Use a separate connection for VACUUM (cannot run in transaction)
       const client = await this.dbPool.connect();
       try {
-        await client.query(`VACUUM ANALYZE ${schema}.${table}`);
+        // Safe from SQL injection with validated and quoted identifiers
+        await client.query(`VACUUM ANALYZE ${quotedSchema}.${quotedTable}`);
         this.metrics.vacuumRuns.inc({ type: 'manual' });
         this.logger.info(`VACUUM completed on ${schema}.${table}`);
       } finally {

@@ -7,7 +7,7 @@ set -euo pipefail
 VMI01="46.250.243.123"
 VMI02D="46.250.241.70"
 VMI03="154.26.158.31"
-PASSWORD="caxr84di@f1GLlCv"
+PASSWORD="${MONITOR_PASSWORD:?Error: MONITOR_PASSWORD environment variable not set}"
 
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -25,13 +25,13 @@ check_vm_status() {
     local vm_name=$2
 
     # Check if hardening script is still running
-    if sshpass -p "$PASSWORD" ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=10 root@$vm_ip 'ps aux | grep -v grep | grep phase1-hardening.sh' >/dev/null 2>&1; then
+    if sshpass -p "$PASSWORD" ssh -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile=/dev/null -o ConnectTimeout=10 root@$vm_ip 'ps aux | grep -v grep | grep phase1-hardening.sh' >/dev/null 2>&1; then
         # Get last completed step
-        local last_step=$(sshpass -p "$PASSWORD" ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null root@$vm_ip 'tail -100 /root/phase1-hardening.log 2>&1 | grep -E "^✅" | tail -1' 2>/dev/null || echo "")
+        local last_step=$(sshpass -p "$PASSWORD" ssh -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile=/dev/null root@$vm_ip 'tail -100 /root/phase1-hardening.log 2>&1 | grep -E "^✅" | tail -1' 2>/dev/null || echo "")
         echo "RUNNING|$last_step"
     else
         # Check if completed successfully
-        if sshpass -p "$PASSWORD" ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null root@$vm_ip 'grep -q "Phase 1 Hardening Complete" /root/phase1-hardening.log 2>&1' 2>/dev/null; then
+        if sshpass -p "$PASSWORD" ssh -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile=/dev/null root@$vm_ip 'grep -q "Phase 1 Hardening Complete" /root/phase1-hardening.log 2>&1' 2>/dev/null; then
             echo "COMPLETE"
         else
             echo "FAILED"

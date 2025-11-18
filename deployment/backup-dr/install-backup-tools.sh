@@ -24,7 +24,7 @@ install_tools() {
 
     echo -e "${YELLOW}Installing backup tools on $server_name ($host)...${NC}"
 
-    sshpass -p "$ROOT_PASS" ssh -o StrictHostKeyChecking=no root@$host << 'EOF'
+    sshpass -p "$ROOT_PASS" ssh -o StrictHostKeyChecking=accept-new root@$host << 'EOF'
 # Update package list
 apt-get update -qq
 
